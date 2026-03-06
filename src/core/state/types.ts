@@ -153,14 +153,14 @@ export interface StateSnapshot {
 // Dirty layer flags for precise invalidation.
 // Use bitmask to allow combining layers; renderer/scheduler will interpret these.
 export enum DirtyLayer {
-	Board = 1, //1 << 0,
-	Coords = 1 << 1,
-	LastMove = 1 << 2,
-	Highlights = 1 << 3,
-	Arrows = 1 << 4,
-	Pieces = 1 << 5,
-	Drag = 1 << 6,
-	Overlay = 1 << 7
+	Board = 1, // 1 << 0,
+	Coords = 2, // 1 << 1,
+	LastMove = 4, // 1 << 2,
+	Highlights = 8, // 1 << 3,
+	Arrows = 16, // 1 << 4,
+	Pieces = 32, // 1 << 5,
+	Drag = 64, // 1 << 6,
+	Overlay = 128 // 1 << 7
 }
 
 // Position map acceptance forms (public inputs)

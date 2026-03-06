@@ -4,7 +4,7 @@ import type { FileChar, RankChar, Square, SquareString } from './types';
  * Square indexing:
  * - 0..63 where a1 = 0, b1 = 1, ..., h1 = 7, a2 = 8, ..., h8 = 63.
  * - file = sq % 8  (0..7 => a..h)
- * - rank = (sq / 8) | 0  (0..7 => 1..8 when displayed)
+ * - rank = (sq / 8) | 0 = Math.trunc(sq / 8)  (0..7 => 1..8 when displayed)
  */
 
 const FILE_START = 'a'.charCodeAt(0);
