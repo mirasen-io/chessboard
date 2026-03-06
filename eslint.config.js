@@ -1,15 +1,21 @@
 import { includeIgnoreFile } from '@eslint/compat';
-import js from '@eslint/js';
+import eslint from '@eslint/js';
 import prettier from 'eslint-config-prettier';
+import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import { fileURLToPath } from 'node:url';
-import ts from 'typescript-eslint';
+import tseslint from 'typescript-eslint';
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
-export default ts.config(
+export default defineConfig(
+	{
+		plugins: {
+			'@typescript-eslint': tseslint.plugin
+		}
+	},
 	includeIgnoreFile(gitignorePath),
-	js.configs.recommended,
-	...ts.configs.recommended,
+	eslint.configs.recommended,
+	tseslint.configs.recommended,
 	prettier,
 	{
 		languageOptions: {
@@ -20,3 +26,18 @@ export default ts.config(
 		}
 	}
 );
+
+/*tseslint.config(
+	includeIgnoreFile(gitignorePath),
+	eslint.configs.recommended,
+	...tseslint.configs.recommended,
+	prettier,
+	{
+		languageOptions: {
+			globals: {
+				...globals.browser,
+				...globals.node
+			}
+		}
+	}
+);*/
