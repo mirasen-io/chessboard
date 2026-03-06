@@ -78,7 +78,7 @@ export function squareOf(file: number, rank: number): Square {
 	) {
 		throw new RangeError(`Invalid file/rank: file=${file}, rank=${rank}`);
 	}
-	return Math.trunc(rank * 8 + file);
+	return Math.trunc(rank * 8 + file) as Square;
 }
 
 /**

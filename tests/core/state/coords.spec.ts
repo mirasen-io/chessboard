@@ -8,6 +8,7 @@ import {
 	squareOf,
 	toAlgebraic
 } from '../../../src/core/state/coords';
+import { Square } from '../../../src/core/state/types';
 
 describe('coords', () => {
 	it('fromAlgebraic maps algebraic to numeric index correctly', () => {
@@ -23,7 +24,7 @@ describe('coords', () => {
 		expect(toAlgebraic(7)).toBe('h1');
 		expect(toAlgebraic(56)).toBe('a8');
 		expect(toAlgebraic(63)).toBe('h8');
-		expect(toAlgebraic(3 * 8 + 4)).toBe('e4');
+		expect(toAlgebraic((3 * 8 + 4) as Square)).toBe('e4');
 	});
 
 	it('fileOf and rankOf compute components correctly', () => {
