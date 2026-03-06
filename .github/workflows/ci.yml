@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# cancel in-progress runs on new commits to same PR (gitub.event.number)
+concurrency:
+  # group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+  actions: write # to delete cache (actions/cache)
+
+env:
+  # set the default node version to use in the matrix
+  DEFAULT_MATRIX_NODE_VERSION: '[20, 22]'
+  # DEFAULT_CACHE_ADDITIONAL_PATH: 'node_modules/.cache'
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ${{ tojson(github) }}
+        shell: cat {0}
+
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      sonar: ${{ steps.sonar.outputs.sonar }}
+      matrix-node-version: ${{ steps.matrix-node-version.outputs.matrix-node-version }}
+      cache-additional-path: ${{ steps.cache-additional-path.outputs.cache-additional-path }}
+    steps:
+      - id: sonar
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "SONAR_TOKEN is not set, skipping sonar job"
+            echo "sonar=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "SONAR_TOKEN is set, running sonar job"
+            echo "sonar=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: matrix-node-version
+        run: |
+          # set the node version to use in the matrix
+          if [ -z "${{ vars.MATRIX_NODE_VERSION }}" ]; then
+            echo "MATRIX_NODE_VERSION is not set, using default"
+            # use the default node version
+            echo "matrix-node-version=${{ env.DEFAULT_MATRIX_NODE_VERSION }}" >> "$GITHUB_OUTPUT"
+          else
+            # use the matrix node version
+            echo "MATRIX_NODE_VERSION is set, using matrix node version"
+            echo "matrix-node-version=${{ vars.MATRIX_NODE_VERSION }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: cache-additional-path
+        run: |
+          # set the cache additional path to use
+          if [ -z "${{ vars.CACHE_ADDITIONAL_PATH }}" ]; then
+            echo "CACHE_ADDITIONAL_PATH is not set, using default"
+            # use the default cache additional path
+            echo "cache-additional-path=${{ env.DEFAULT_CACHE_ADDITIONAL_PATH }}" >> "$GITHUB_OUTPUT"
+          else
+            # use the cache additional path
+            echo "CACHE_ADDITIONAL_PATH is set, using cache additional path"
+            echo "cache-additional-path=${{ vars.CACHE_ADDITIONAL_PATH }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  ci-subpackage:
+    runs-on: ubuntu-latest
+    steps:
+      - id: check-changes
+        uses: kt-actions/has-changes-since-last-success@v1
+        with:
+          paths: |
+            subpackage
+            .githooks
+
+      - uses: actions/checkout@v4
+        if: steps.check-changes.outputs.has-changes == 'true'
+
+      - run: subpackage/test.sh
+        shell: bash
+        if: steps.check-changes.outputs.has-changes == 'true'
+
+  check:
+    needs: config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kt-workflows/actions/npm-ci-check@main
+        with:
+          matrix-node-version: needs.config.outputs.matrix-node-version
+          cache-additional-path: needs.config.outputs.cache-additional-path
+          # cache-reset: true
+
+  test:
+    needs: config
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ${{ fromJson(needs.config.outputs.matrix-node-version) }}
+    steps:
+      - uses: kt-workflows/actions/npm-ci-test@main
+        with:
+          # pass the matrix node version to the called workflow
+          node-version: ${{ matrix.node-version }}
+          cache-additional-path: ${{ vars.CACHE_ADDITIONAL_PATH }}
+          # cache-reset: true
+
+  sonar:
+    if: needs.config.outputs.sonar == 'true'
+    needs: config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kt-workflows/actions/npm-ci-sonar@main
+        with:
+          matrix-node-version: needs.config.outputs.matrix-node-version
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          fail-on-empty-token: true
+          cache-additional-path: ${{ vars.CACHE_ADDITIONAL_PATH }}
+          # cache-reset: true

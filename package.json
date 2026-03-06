@@ -1,0 +1,84 @@
+{
+	"name": "@ktarmyshov/npm-typescript-template",
+	"description": "Template repository for npm packages written in TypeScript",
+	"version": "0.0.4",
+	"license": "MIT",
+	"author": {
+		"name": "Konstantin Tarmyshov",
+		"email": "k.tarmyshov@googlemail.com"
+	},
+	"keywords": [
+		"node",
+		"javascript",
+		"typescript",
+		"nodejs",
+		"node_modules",
+		"npm",
+		"template",
+		"auto-update",
+		"auto-release",
+		"sonar",
+		"sonarcloud",
+		"codeql",
+		"eslint",
+		"prettier",
+		"changeset"
+	],
+	"homepage": "https://github.com/kt-npm-modules/npm-typescript-template#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kt-npm-modules/npm-typescript-template.git"
+	},
+	"bugs": {
+		"url": "https://github.com/kt-npm-modules/npm-typescript-template/issues"
+	},
+	"type": "module",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "rimraf ./dist && tsc --project tsconfig.json && npm run prepack",
+		"build:release": "rimraf ./dist && tsc --project tsconfig-release.json && npm run prepack",
+		"prepare": "bash ./scripts/npm-link.sh",
+		"prepack": "publint",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint .",
+		"check": "tsc --skipLibCheck",
+		"check:test": "tsc --project tsconfig-test.json --skipLibCheck",
+		"test": "npm run check:test && vitest run",
+		"coverage": "vitest run --coverage",
+		"changeset:version": "changeset version && git add --all",
+		"changeset:publish": "changeset publish"
+	},
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*",
+		"!tests",
+		"!examples",
+		"!benchmarks"
+	],
+	"devDependencies": {
+		"@changesets/cli": "^2.28.1",
+		"@eslint/compat": "^1.2.7",
+		"@types/node": "^22.15.1",
+		"@vitest/coverage-istanbul": "^3.1.1",
+		"eslint": "^9.22.0",
+		"eslint-config-prettier": "^10.1.2",
+		"prettier": "^3.5.3",
+		"publint": "^0.3.11",
+		"rimraf": "^6.0.1",
+		"tsc-alias": "^1.8.15",
+		"typescript": "^5.8.2",
+		"typescript-eslint": "^8.26.1",
+		"vitest": "^3.0.8"
+	},
+	"engines": {
+		"node": ">=20"
+	}
+}

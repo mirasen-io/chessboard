@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # to create release (changesets/action)
+  id-token: write # OpenID Connect token needed for provenance
+  pull-requests: write # to create pull request (changesets/action)
+
+jobs:
+  # echo:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: ${{ tojson(github) }}
+  #       shell: cat {0}
+  release:
+    # prevents this action from running on forks
+    if: >-
+      github.repository == 'kt-npm-modules/npm-typescript-template' && 
+      github.ref == 'refs/heads/main' && 
+      github.event.workflow_run.event == 'push' && 
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-branch: ${{ steps.release.outputs.release-branch }}
+    steps:
+      - id: release
+        uses: kt-workflows/actions/npm-release@main
+        with:
+          app-id: ${{ secrets.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          matrix-node-version: ${{ vars.MATRIX_NODE_VERSION }}
+          cache-additional-path: ${{ vars.CACHE_ADDITIONAL_PATH }}
+          # cache-reset: true
+          npm-token: ${{ secrets.NPM_TOKEN }}
+
+  update-pkg-lock:
+    needs: release
+    if: needs.release.outputs.release-branch != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kt-workflows/actions/npm-release-upd-pkg-lock@main
+        with:
+          app-id: ${{ secrets.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          release-branch: ${{ needs.release.outputs.release-branch }}

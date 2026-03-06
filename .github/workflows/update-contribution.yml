@@ -1,0 +1,35 @@
+name: UPDATE-CONTRIBUTION
+# Update the 'contribution' branch with the state of the 'main' branch
+# The branch 'contribution' is used for accepting contributions from the community
+# This is neccessary, because some of the actions workflows that need organization secrets are not available from external PRs
+# So we first accept the PRs to the 'contribution' branch and then we merge them via PRs to the 'main' branch, so all secrets are available and all jobs can run
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  update-pull:
+    runs-on: ubuntu-latest
+    steps:
+      - id: app-token
+        uses: kt-workflows/actions/create-github-app-token@main
+        with:
+          app-id: ${{ secrets.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          configure-git: true
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Merge 'main' into 'contribution' branch
+        run: |
+          git checkout contribution || git checkout -b contribution
+          git merge main
+          git push origin contribution
