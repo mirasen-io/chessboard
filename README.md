@@ -12,3 +12,20 @@
 Web (could be used for mobile) chessboard UI
 
 in progress
+
+# Artwork
+
+## Chess Pieces Sprite.svg
+
+- Title: “Chess Pieces Sprite.svg”
+- Author: jurgenwesterhof (adapted from work of Cburnett)
+- Source: https://commons.wikimedia.org/wiki/File:Chess_Pieces_Sprite.svg (via Wikimedia Commons)
+- Original file: https://upload.wikimedia.org/wikipedia/commons/b/b2/Chess_Pieces_Sprite.svg
+- License: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/, library code: MIT
+
+See for details:
+
+- [./assets/pieces/cburnett/ATTRIBUTION.md](./assets/pieces/cburnett/ATTRIBUTION.md)
+- [./assets/pieces/cburnett/LICENSE-CC-BY-SA-3.0.txt](./assets/pieces/cburnett/LICENSE-CC-BY-SA-3.0.txt)
+
+jurgenwesterhof (adapted from work of Cburnett), [CC BY‑SA 3.0](https://creativecommons.org/licenses/by-sa/3.0), via Wikimedia Commons

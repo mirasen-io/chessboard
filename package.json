@@ -50,6 +50,10 @@
 	},
 	"files": [
 		"dist",
+		"assets",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE",
 		"!dist/**/*.test.*",
 		"!dist/**/*.spec.*",
 		"!tests",
