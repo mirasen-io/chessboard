@@ -160,7 +160,8 @@ export enum DirtyLayer {
 	Arrows = 16, // 1 << 4,
 	Pieces = 32, // 1 << 5,
 	Drag = 64, // 1 << 6,
-	Overlay = 128 // 1 << 7
+	Overlay = 128, // 1 << 7
+	All = Board | Coords | LastMove | Highlights | Arrows | Pieces | Drag | Overlay
 }
 
 // Position map acceptance forms (public inputs)

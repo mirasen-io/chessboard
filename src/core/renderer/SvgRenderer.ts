@@ -92,8 +92,7 @@ export class SvgRenderer implements Renderer {
 
 		// Decide what to update based on layers bitmask
 		const layers = invalidation.layers;
-		const updateBoard =
-			(layers & DirtyLayer.Board) !== 0 || (layers & DirtyLayer.Coords) !== 0 || layers === 0;
+		const updateBoard = (layers & DirtyLayer.Board) !== 0 || (layers & DirtyLayer.Coords) !== 0;
 		const updateHighlights =
 			(layers & DirtyLayer.Highlights) !== 0 || (layers & DirtyLayer.LastMove) !== 0 || updateBoard;
 		const updatePieces = (layers & DirtyLayer.Pieces) !== 0 || updateBoard;
