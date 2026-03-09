@@ -11,15 +11,13 @@ type SvgRendererOptions = {
 	spriteUrl?: string;
 };
 
-export type Arrow = { from: Square; to: Square; color?: string; width?: number; opacity?: number };
-
 /**
  * Minimal SVG renderer with invalidation awareness.
  * Layers:
  *  - squares: board background
  *  - highlights: last move + selection
  *  - pieces: all pieces rendered from sprite
- *  - overlay: reserved for arrows/drag previews (empty in v1)
+ *  - overlay: reserved for arrows/drag previews, etc.
  *
  * Strategy for pieces with sprite:
  *  - Each piece is a <g> with a clipPath (userSpaceOnUse) exactly covering its square.
@@ -34,7 +32,6 @@ export class SvgRenderer implements Renderer {
 	private layerOverlay!: SVGGElement;
 	private defsStatic!: SVGDefsElement; // persistent defs (markers, etc.)
 	private defsDynamic!: SVGDefsElement; // holds per-render clipPaths for pieces
-	private overlayArrows: Arrow[] = [];
 	private spriteUrl: string;
 	private uidPrefix: string;
 
@@ -73,7 +70,6 @@ export class SvgRenderer implements Renderer {
 		this.layerOverlay = gOverlay;
 		this.defsDynamic = defsDynamic;
 		this.defsStatic = defsStatic;
-		this.ensureArrowMarker();
 
 		container.appendChild(svg);
 	}
@@ -101,12 +97,10 @@ export class SvgRenderer implements Renderer {
 		const updateHighlights =
 			(layers & DirtyLayer.Highlights) !== 0 || (layers & DirtyLayer.LastMove) !== 0 || updateBoard;
 		const updatePieces = (layers & DirtyLayer.Pieces) !== 0 || updateBoard;
-		const updateOverlay = (layers & DirtyLayer.Overlay) !== 0 || updateBoard;
 
 		if (updateBoard) this.drawSquares(state.theme.light, state.theme.dark, geometry);
 		if (updateHighlights) this.drawHighlights(state, geometry);
 		if (updatePieces) this.drawPieces(state, geometry);
-		if (updateOverlay) this.drawOverlay(state, geometry);
 	}
 
 	private clear(node: Element) {
@@ -204,69 +198,6 @@ export class SvgRenderer implements Renderer {
 			gPiece.appendChild(img);
 
 			layer.appendChild(gPiece);
-		}
-	}
-
-	// Set overlay arrows and request overlay redraw on next render (via DirtyLayer.Overlay)
-	setOverlayArrows(arrows: Arrow[]): void {
-		this.overlayArrows = arrows.slice();
-	}
-
-	private ensureArrowMarker(): string {
-		const id = `${this.uidPrefix}arrowhead`;
-		if (this.defsStatic && !this.defsStatic.querySelector(`#${id}`)) {
-			const marker = document.createElementNS(SVG_NS, 'marker');
-			marker.setAttribute('id', id);
-			marker.setAttribute('viewBox', '0 0 10 10');
-			marker.setAttribute('refX', '9');
-			marker.setAttribute('refY', '5');
-			marker.setAttribute('markerWidth', '6');
-			marker.setAttribute('markerHeight', '6');
-			marker.setAttribute('orient', 'auto');
-			marker.setAttribute('markerUnits', 'strokeWidth');
-			const path = document.createElementNS(SVG_NS, 'path');
-			path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-			path.setAttribute('fill', 'context-stroke');
-			path.setAttribute('stroke', 'none');
-			marker.appendChild(path);
-			this.defsStatic.appendChild(marker);
-		}
-		return id;
-	}
-
-	private drawOverlay(state: StateSnapshot, g: BoardGeometry) {
-		this.clear(this.layerOverlay);
-		if (!this.overlayArrows || this.overlayArrows.length === 0) return;
-
-		const markerId = this.ensureArrowMarker();
-		const defaultColor = state.theme.highlight ?? 'rgba(0, 128, 255, 0.8)';
-		const widthFactor = 0.12;
-
-		for (const a of this.overlayArrows) {
-			const rFrom = g.squareRect(a.from);
-			const rTo = g.squareRect(a.to);
-			const x1 = rFrom.x + rFrom.size / 2;
-			const y1 = rFrom.y + rFrom.size / 2;
-			const x2 = rTo.x + rTo.size / 2;
-			const y2 = rTo.y + rTo.size / 2;
-
-			const line = document.createElementNS(SVG_NS, 'line');
-			line.setAttribute('x1', String(x1));
-			line.setAttribute('y1', String(y1));
-			line.setAttribute('x2', String(x2));
-			line.setAttribute('y2', String(y2));
-
-			const color = a.color ?? defaultColor;
-			const strokeWidth = (a.width ?? widthFactor) * g.squareSize;
-			line.setAttribute('stroke', color);
-			line.setAttribute('stroke-width', String(strokeWidth));
-			line.setAttribute('stroke-linecap', 'round');
-			line.setAttribute('stroke-linejoin', 'round');
-			if (a.opacity != null) line.setAttribute('opacity', String(a.opacity));
-
-			line.setAttribute('marker-end', `url(#${markerId})`);
-
-			this.layerOverlay.appendChild(line);
 		}
 	}
 }

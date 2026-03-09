@@ -82,7 +82,6 @@
 	},
 	"dependencies": {
 		"@ktarmyshov/assert": "^0.1.9",
-		"chess.js": "^1.4.0",
 		"type-fest": "^5.4.4"
 	}
 }

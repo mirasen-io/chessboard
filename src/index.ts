@@ -13,4 +13,3 @@ export { isLightSquare, makeBoardGeometry, squareAtPoint } from './core/renderer
 // SVG renderer and assets
 export { cburnettSpriteUrl } from './core/renderer/assets';
 export { SvgRenderer } from './core/renderer/SvgRenderer';
-export type { Arrow } from './core/renderer/SvgRenderer';
