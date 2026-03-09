@@ -81,7 +81,7 @@ export type InputEvent =
 	  }
 	| {
 			kind: 'hover:change';
-			square: Square | -1;
+			square: Square | null;
 	  };
 
 /**
@@ -100,7 +100,7 @@ export type InputOutcome = {
  * This does NOT mutate the board state.
  */
 export interface OverlayView {
-	hover: Square | -1;
+	hover: Square | null;
 	dragging?: {
 		from: Square;
 		to?: Square;
@@ -113,6 +113,6 @@ export interface OverlayView {
  * Geometry provider used by InputController to map client coordinates
  * to board squares. Provided by the facade/renderer and updated on resize/orientation.
  */
-export interface BoardGeometry {
-	clientToSquare(client: ClientPoint): Square | -1;
+export interface InputGeometry {
+	clientToSquare(client: ClientPoint): Square | null;
 }

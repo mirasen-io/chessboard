@@ -4,7 +4,7 @@
  * - The renderer interprets DirtyLayer bitmask and (optionally) a set of specific squares.
  */
 
-import type { Color, Square, StateSnapshot } from '../state/types';
+import type { Square, StateSnapshot } from '../state/types';
 
 /**
  * Invalidation payload:
@@ -24,10 +24,9 @@ export interface Invalidation {
  * - squareRect returns the top-left pixel position and side length for a given square index (0..63).
  *   Coordinates are in the local SVG space with origin at the top-left corner.
  */
-export interface BoardGeometry {
+export interface RenderGeometry {
 	boardSize: number; // total board side in px
 	squareSize: number; // derived: boardSize / 8
-	orientation: Color; // 'white' or 'black'
 	squareRect(sq: Square): { x: number; y: number; size: number };
 }
 
@@ -39,5 +38,5 @@ export interface BoardGeometry {
 export interface Renderer {
 	mount(container: HTMLElement): void;
 	unmount(): void;
-	render(state: StateSnapshot, geometry: BoardGeometry, invalidation: Invalidation): void;
+	render(state: StateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void;
 }

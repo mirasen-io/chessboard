@@ -15,7 +15,7 @@ describe('scheduler/scheduler (rAF-only)', () => {
 
 	const fakeSnapshot = {} as unknown as StateSnapshot;
 	const fakeInvalidation = (): Invalidation => ({ layers: DirtyLayer.Pieces, squares: new Set() });
-	const fakeOverlay: OverlayView = { hover: -1 };
+	const fakeOverlay: OverlayView = { hover: null };
 
 	let render: RenderCallback;
 	let scheduler: ReturnType<typeof createScheduler>;

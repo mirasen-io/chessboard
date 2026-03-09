@@ -1,9 +1,9 @@
-import { fileOf, rankOf, squareOf } from '../state/coords';
+import { fileOf, rankOf } from '../state/coords';
 import type { Color, Square } from '../state/types';
-import type { BoardGeometry } from './types';
+import type { RenderGeometry } from './types';
 
 /**
- * Create BoardGeometry for a given board size (in px) and orientation.
+ * Create RenderGeometry for a given board size (in px) and orientation.
  * - Geometry uses an SVG-local coordinate system with origin at top-left.
  * - Orientation mapping:
  *   - 'white': files increase left→right (a..h), ranks increase bottom→top (1..8).
@@ -11,7 +11,7 @@ import type { BoardGeometry } from './types';
  *   - 'black': files increase right→left (a..h), ranks increase top→bottom (1..8).
  *              yIndex = rank, xIndex = 7 - file
  */
-export function makeBoardGeometry(boardSize: number, orientation: Color): BoardGeometry {
+export function makeRenderGeometry(boardSize: number, orientation: Color): RenderGeometry {
 	if (!(boardSize > 0 && Number.isFinite(boardSize))) {
 		throw new RangeError(`Invalid boardSize: ${boardSize}`);
 	}
@@ -34,26 +34,8 @@ export function makeBoardGeometry(boardSize: number, orientation: Color): BoardG
 	return {
 		boardSize,
 		squareSize,
-		orientation,
 		squareRect
 	};
-}
-
-/**
- * Convert a point (x,y) in board-local coords to a square index, or null if outside board.
- */
-export function squareAtPoint(x: number, y: number, g: BoardGeometry): Square | null {
-	if (x < 0 || y < 0 || x >= g.boardSize || y >= g.boardSize) return null;
-
-	const col = Math.floor(x / g.squareSize); // 0..7 from left
-	const row = Math.floor(y / g.squareSize); // 0..7 from top
-
-	const white = g.orientation === 'white';
-
-	const file = white ? col : 7 - col;
-	const rank = white ? 7 - row : row;
-
-	return squareOf(file, rank);
 }
 
 /**

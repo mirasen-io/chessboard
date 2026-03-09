@@ -2,7 +2,7 @@ import { decodePiece } from '../state/encode';
 import { DirtyLayer, Square, type Color, type Role, type StateSnapshot } from '../state/types';
 import { cburnettSpriteUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type { BoardGeometry, Invalidation, Renderer } from './types';
+import type { Invalidation, Renderer, RenderGeometry } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -93,7 +93,7 @@ export class SvgRenderer implements Renderer {
 		this.pieceNodes.clear();
 	}
 
-	render(state: StateSnapshot, geometry: BoardGeometry, invalidation: Invalidation): void {
+	render(state: StateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void {
 		if (!this.root) return;
 
 		// Ensure size/viewBox matches geometry
@@ -118,7 +118,7 @@ export class SvgRenderer implements Renderer {
 		while (node.firstChild) node.removeChild(node.firstChild);
 	}
 
-	private drawSquares(light: string, dark: string, g: BoardGeometry) {
+	private drawSquares(light: string, dark: string, g: RenderGeometry) {
 		const layer = this.layerSquares;
 		this.clear(layer);
 
@@ -135,7 +135,7 @@ export class SvgRenderer implements Renderer {
 		}
 	}
 
-	private drawHighlights(state: StateSnapshot, g: BoardGeometry) {
+	private drawHighlights(state: StateSnapshot, g: RenderGeometry) {
 		const layer = this.layerHighlights;
 		this.clear(layer);
 
@@ -150,7 +150,7 @@ export class SvgRenderer implements Renderer {
 		}
 	}
 
-	private drawHighlightRect(g: BoardGeometry, sq: Square, color: string) {
+	private drawHighlightRect(g: RenderGeometry, sq: Square, color: string) {
 		const r = g.squareRect(sq);
 		const rect = document.createElementNS(SVG_NS, 'rect');
 		rect.setAttribute('x', r.x.toString());
@@ -168,7 +168,7 @@ export class SvgRenderer implements Renderer {
 	 * - Removes nodes whose piece ids disappeared.
 	 * - Keeps sprite sheet approach.
 	 */
-	private drawPieces(state: StateSnapshot, g: BoardGeometry) {
+	private drawPieces(state: StateSnapshot, g: RenderGeometry) {
 		const tileSize = g.squareSize;
 		const imgW = tileSize * 6;
 		const imgH = tileSize * 2;
