@@ -143,6 +143,7 @@ export interface Move extends MoveInputSquare {
 // Read-only snapshot shape exposed to consumers.
 export interface StateSnapshot {
 	readonly pieces: ReadonlyDeep<Uint8Array>;
+	readonly ids: ReadonlyDeep<Int16Array>;
 	readonly orientation: Color;
 	readonly turn: Color;
 	readonly selected: Square | null;

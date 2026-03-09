@@ -11,6 +11,13 @@ type SvgRendererOptions = {
 	spriteUrl?: string;
 };
 
+type PieceNodeRecord = {
+	root: SVGGElement;
+	clipPath: SVGClipPathElement;
+	clipRect: SVGRectElement;
+	image: SVGImageElement;
+};
+
 /**
  * Minimal SVG renderer with invalidation awareness.
  * Layers:
@@ -34,6 +41,9 @@ export class SvgRenderer implements Renderer {
 	private defsDynamic!: SVGDefsElement; // holds per-render clipPaths for pieces
 	private spriteUrl: string;
 	private uidPrefix: string;
+
+	// Incremental piece DOM cache keyed by stable piece id from state.ids
+	private pieceNodes: Map<number, PieceNodeRecord> = new Map();
 
 	constructor(opts: SvgRendererOptions = {}) {
 		this.spriteUrl = opts.spriteUrl ?? cburnettSpriteUrl();
@@ -79,6 +89,8 @@ export class SvgRenderer implements Renderer {
 			this.root.parentNode.removeChild(this.root);
 		}
 		this.root = null!;
+		// Do not clear caches here; a future mount will recreate DOM afresh
+		this.pieceNodes.clear();
 	}
 
 	render(state: StateSnapshot, geometry: BoardGeometry, invalidation: Invalidation): void {
@@ -149,54 +161,93 @@ export class SvgRenderer implements Renderer {
 		this.layerHighlights.appendChild(rect);
 	}
 
+	/**
+	 * Incremental piece rendering using stable piece ids (state.ids).
+	 * - Updates existing nodes for moved/promoted pieces.
+	 * - Creates nodes only for new piece ids.
+	 * - Removes nodes whose piece ids disappeared.
+	 * - Keeps sprite sheet approach.
+	 */
 	private drawPieces(state: StateSnapshot, g: BoardGeometry) {
-		const layer = this.layerPieces;
-		this.clear(layer);
-		this.clear(this.defsDynamic);
-
 		const tileSize = g.squareSize;
 		const imgW = tileSize * 6;
 		const imgH = tileSize * 2;
+
+		const seenIds = new Set<number>();
 
 		for (let sq = 0 as Square; sq < 64; sq++) {
 			const code = state.pieces[sq];
 			const piece = decodePiece(code);
 			if (!piece) continue;
 
+			const id = state.ids[sq] ?? -1;
+			if (id <= 0) continue;
+
 			const { col, row } = spriteTileFor(piece.color, piece.role);
 			const r = g.squareRect(sq);
+			const clipId = `${this.uidPrefix}clip-${id}`;
 
-			// Create a unique clipPath for this square
-			const clipId = `${this.uidPrefix}clip-${sq}`;
-			const cp = document.createElementNS(SVG_NS, 'clipPath');
-			cp.setAttribute('id', clipId);
-			cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
-			const cpRect = document.createElementNS(SVG_NS, 'rect');
-			cpRect.setAttribute('x', r.x.toString());
-			cpRect.setAttribute('y', r.y.toString());
-			cpRect.setAttribute('width', r.size.toString());
-			cpRect.setAttribute('height', r.size.toString());
-			cp.appendChild(cpRect);
-			this.defsDynamic.appendChild(cp);
+			let rec = this.pieceNodes.get(id);
+			if (rec) {
+				// Update clip rect to new square
+				rec.clipRect.setAttribute('x', r.x.toString());
+				rec.clipRect.setAttribute('y', r.y.toString());
+				rec.clipRect.setAttribute('width', r.size.toString());
+				rec.clipRect.setAttribute('height', r.size.toString());
 
-			// Image positioned so the desired tile aligns into the clipped square
-			const img = document.createElementNS(SVG_NS, 'image');
-			// href
-			img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.spriteUrl);
-			// modern attribute for browsers supporting it
-			img.setAttribute('href', this.spriteUrl);
+				// Ensure sprite hrefs are up to date (in case of spriteUrl change)
+				rec.image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.spriteUrl);
+				rec.image.setAttribute('href', this.spriteUrl);
 
-			img.setAttribute('x', (r.x - col * tileSize).toString());
-			img.setAttribute('y', (r.y - row * tileSize).toString());
-			img.setAttribute('width', imgW.toString());
-			img.setAttribute('height', imgH.toString());
-			img.setAttribute('preserveAspectRatio', 'none');
+				// Update image placement within the clipped square
+				rec.image.setAttribute('x', (r.x - col * tileSize).toString());
+				rec.image.setAttribute('y', (r.y - row * tileSize).toString());
+				rec.image.setAttribute('width', imgW.toString());
+				rec.image.setAttribute('height', imgH.toString());
+				rec.image.setAttribute('preserveAspectRatio', 'none');
+			} else {
+				// Create clipPath for this piece id
+				const cp = document.createElementNS(SVG_NS, 'clipPath');
+				cp.setAttribute('id', clipId);
+				cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
+				const cpRect = document.createElementNS(SVG_NS, 'rect');
+				cpRect.setAttribute('x', r.x.toString());
+				cpRect.setAttribute('y', r.y.toString());
+				cpRect.setAttribute('width', r.size.toString());
+				cpRect.setAttribute('height', r.size.toString());
+				cp.appendChild(cpRect);
+				this.defsDynamic.appendChild(cp);
 
-			const gPiece = document.createElementNS(SVG_NS, 'g');
-			gPiece.setAttribute('clip-path', `url(#${clipId})`);
-			gPiece.appendChild(img);
+				// Create the sprite image positioned for this piece
+				const img = document.createElementNS(SVG_NS, 'image');
+				img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.spriteUrl);
+				img.setAttribute('href', this.spriteUrl);
+				img.setAttribute('x', (r.x - col * tileSize).toString());
+				img.setAttribute('y', (r.y - row * tileSize).toString());
+				img.setAttribute('width', imgW.toString());
+				img.setAttribute('height', imgH.toString());
+				img.setAttribute('preserveAspectRatio', 'none');
 
-			layer.appendChild(gPiece);
+				// Group with clipping applied
+				const gPiece = document.createElementNS(SVG_NS, 'g');
+				gPiece.setAttribute('clip-path', `url(#${clipId})`);
+				gPiece.appendChild(img);
+				this.layerPieces.appendChild(gPiece);
+
+				rec = { root: gPiece, clipPath: cp, clipRect: cpRect, image: img };
+				this.pieceNodes.set(id, rec);
+			}
+
+			seenIds.add(id);
+		}
+
+		// Sweep: remove nodes for ids that disappeared
+		for (const [pid, rec] of this.pieceNodes.entries()) {
+			if (!seenIds.has(pid)) {
+				if (rec.root.parentNode) rec.root.parentNode.removeChild(rec.root);
+				if (rec.clipPath.parentNode) rec.clipPath.parentNode.removeChild(rec.clipPath);
+				this.pieceNodes.delete(pid);
+			}
 		}
 	}
 }

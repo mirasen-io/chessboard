@@ -117,6 +117,7 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
 export function getSnapshot(state: InternalState): StateSnapshot {
 	const snap: StateSnapshot = {
 		pieces: new Uint8Array(state.pieces),
+		ids: new Int16Array(state.ids),
 		orientation: state.orientation,
 		turn: state.turn,
 		selected: state.selected,
