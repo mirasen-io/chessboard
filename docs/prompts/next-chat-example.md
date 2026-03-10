@@ -2,23 +2,23 @@ We are continuing work on `kt-npm-modules/chessboard`.
 
 ## Handoff summary
 
-Project: `kt-npm-modules/chessboard`, MIT-licensed modern TypeScript chessboard engine combining chessground-like interaction with cm-chessboard-like extension ideas.
-Current task: architecture-first implementation planning before Phase 2, using the loop discuss → precise Cline prompt → patch review → next narrow step.
-Completed in this chat: Pre-Phase 2 / 0.1 — `SvgRenderer` root / slot normalization.
-Confirmed renderer naming: top-level renderer fields use ownership-based `...Root` naming; `DirtyLayer` remains invalidation vocabulary.
-Confirmed renderer renames/removals: `root` → `svgRoot`, `layerSquares` → `boardRoot`, `layerPieces` → `piecesRoot`, `layerHighlights` removed, `layerOverlay` removed.
-Confirmed renderer structure: core-owned roots are `boardRoot`, `coordsRoot`, `piecesRoot`, `dragRoot`.
-Confirmed reserved extension slots: `extensionsUnderPiecesRoot`, `extensionsOverPiecesRoot`, `extensionsDragUnderRoot`, `extensionsDragOverRoot`.
-Confirmed stable SVG DOM order: `defsStatic`, `boardRoot`, `coordsRoot`, `extensionsUnderPiecesRoot`, `piecesRoot`, `extensionsOverPiecesRoot`, `extensionsDragUnderRoot`, `dragRoot`, `extensionsDragOverRoot`, `defsDynamic`.
-Confirmed renderer behavior change: legacy core highlight rendering was intentionally removed from `SvgRenderer`.
-Confirmed bug fix: repeated render no longer breaks piece `clipPath` references in `defsDynamic`; regression test was added and passes.
-Confirmed test setup: global `jsdom` is acceptable for this browser-oriented project.
-Constraints: keep steps narrow, avoid overengineering, prefer patch/diff review, focused tests are required for each implementation step, aim for ~8/10 polish during architecture phases rather than endless refinement.
-Constraints: do not redesign extension APIs, runtime composition, or state/snapshot/config boundaries unless the current step directly requires it.
-Relevant files: `src/core/renderer/SvgRenderer.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `src/core/state/types.ts`, `current-plan.md`.
-Intentionally not done: no extension API design, no runtime composition refactor, no state/snapshot/config boundary refactor, no `lastMove` migration, no `DirtyLayer.Highlights` / `DirtyLayer.LastMove` cleanup, no coords or drag rendering.
-Next step: Pre-Phase 2 / 0.2 — post-0.1 renderer cleanup and dead path confirmation.
-Goal of next step: confirm no dead renderer coupling remains after highlight removal, keep `DirtyLayer` unchanged for now, and avoid touching runtime/state/extension design.
+Project: `kt-npm-modules/chessboard` — MIT-licensed modern TypeScript chessboard engine with chessground-like interaction and cm-chessboard-like extension ideas.
+Current task: Pre-Phase 2 cleanup is complete through `0.2`; next work should start with `0.3 Post-cleanup validation`.
+Confirmed decisions: `SvgRenderer` uses ownership-based root naming and stable SVG DOM order; core-owned roots are `boardRoot`, `coordsRoot`, `piecesRoot`, `dragRoot`.
+Confirmed decisions: reserved extension slots are `extensionsUnderPiecesRoot`, `extensionsOverPiecesRoot`, `extensionsDragUnderRoot`, `extensionsDragOverRoot`.
+Confirmed decisions: legacy core highlight rendering was removed from `SvgRenderer`; `render()` before `mount()` now intentionally throws.
+Confirmed decisions: `InternalState` and `StateSnapshot` remain separate types; snapshot is not a readonly clone of full internal state.
+Confirmed decisions: `theme` was removed from core state/snapshot, renamed to renderer-owned `RenderConfig`, and moved from `src/core/state/types.ts` to `src/core/renderer/types.ts`.
+Confirmed decisions: `RenderConfig` is renderer-owned, passed through renderer construction/options, not through every `render()` call, and no public runtime config mutation API was added yet.
+Confirmed decisions: legacy overlay/highlight color fields were removed from the moved config shape; `RenderConfig` now keeps only base board-render fields (`light`, `dark`, optional `coords`).
+Confirmed decisions: `lastMove` was removed from core state/snapshot; `reducers.move()` now returns a `Move` domain result instead of storing `state.lastMove`.
+Confirmed decisions: `move()` tests were updated to assert returned metadata for quiet move, capture, en passant-like `capturedSquare`, promotion, and castling metadata.
+Confirmed decisions: `DirtyLayer.LastMove` and `DirtyLayer.Highlights` were removed; compact bit flags are now `Board`, `Coords`, `Pieces`, `Drag`, `All`.
+Confirmed decisions: `select()` and `setTurn()` no longer mark `DirtyLayer.Board`; focused reducer tests verify they update state facts without board dirty marking.
+Constraints: keep steps narrow, architecture-first, avoid overengineering, prefer small diff review loops, and do not redesign extension APIs, runtime composition, or public API prematurely.
+Relevant files: `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/types.ts`, `src/core/state/types.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `tests/core/state/reducers.spec.ts`, `current-plan.md`.
+Next step: Pre-Phase 2 / `0.3 — post-cleanup validation and dead-path sweep`.
+Next step scope: confirm no architectural leakage from `RenderConfig` into state, no dead fields or dead invalidation paths remain, and focused tests cover the new post-0.2 contracts without starting Phase 2 runtime composition.
 
 ## Attached plan
 
@@ -27,32 +27,40 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on: Pre-Phase 2 / 0.2 — post-0.1 renderer cleanup and dead path confirmation.
+Focus only on: Pre-Phase 2 / 0.3 — post-cleanup validation and dead-path sweep.
 
 Goals:
 
-- review `SvgRenderer` after 0.1 and confirm no dead renderer coupling remains from the removed core highlight model
-- confirm `render()` no longer performs any renderer-specific work for legacy highlight/lastMove paths
-- confirm no dead helper logic, stale assumptions, or leftover renderer-only highlight code remains
-- keep `DirtyLayer` definitions unchanged in this step unless dead references inside the renderer require removal of handling only
-- include focused tests only if needed for this cleanup step
-- prepare a precise implementation prompt for Cline + GPT-5
+- validate that `0.1` and `0.2` cleanup outcomes are internally consistent
+- confirm no architectural leakage from renderer/view config back into core state/snapshot
+- confirm no dead fields, dead invalidation paths, or stale assumptions remain
+- confirm focused tests reflect the new contracts (`RenderConfig`, `move(): Move`, no core-owned `lastMove`, no board dirty on `select()` / `setTurn()`)
+
+Do:
+
+1. brief audit of current implementation state
+2. identify any remaining dead paths / stale assumptions / inconsistent tests
+3. recommend only minimal follow-up changes if truly needed
+4. prepare a precise implementation prompt for Cline + GPT-5 only if a narrow fix is justified
 
 Do not:
 
-- design extension APIs yet
-- refactor runtime composition yet
-- refactor state/snapshot/render config yet
-- migrate `lastMove` out of core state yet
-- remove `DirtyLayer.Highlights` or `DirtyLayer.LastMove` from the shared invalidation vocabulary yet
+- start Phase 2 runtime composition
+- redesign extension APIs
+- redesign public config/update API
+- refactor controller/runtime wiring
+- broaden cleanup into unrelated naming or export reshuffles
 
 Working mode:
 
 1. brief analysis
 2. concrete recommendation
-3. precise implementation prompt for Cline + GPT-5
-4. focused test updates
+3. precise implementation prompt for Cline + GPT-5 (only if needed)
+4. focused test updates (only if needed)
 5. later patch review
+
+Assume previously confirmed decisions remain in force unless explicitly revised.
+Keep the step narrow and validation-focused.
 
 ## Working mode
 
