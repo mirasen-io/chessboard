@@ -26,6 +26,8 @@
 
 ### 0.2 State / snapshot / render config separation
 
+**Status: COMPLETE**
+
 - Keep `InternalState` and `StateSnapshot` as separate types
 - Do **not** make snapshot a readonly clone of full internal state
 - Split board/runtime state from visual config

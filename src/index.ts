@@ -2,7 +2,7 @@
 
 // Core state types (selected)
 export { DirtyLayer } from './core/state/types';
-export type { Color, Role, Square, SquareString, StateSnapshot, Theme } from './core/state/types';
+export type { Color, Role, Square, SquareString, StateSnapshot } from './core/state/types';
 
 /* Renderer contracts */
 export type { Invalidation, Renderer, RenderGeometry } from './core/renderer/types';
