@@ -20,25 +20,42 @@ type PieceNodeRecord = {
 
 /**
  * Minimal SVG renderer with invalidation awareness.
- * Layers:
- *  - squares: board background
- *  - highlights: last move + selection
- *  - pieces: all pieces rendered from sprite
- *  - overlay: reserved for arrows/drag previews, etc.
+ * Structure (ownership-based roots/slots):
+ *  1) defsStatic
+ *  2) boardRoot
+ *  3) coordsRoot
+ *  4) extensionsUnderPiecesRoot
+ *  5) piecesRoot
+ *  6) extensionsOverPiecesRoot
+ *  7) extensionsDragUnderRoot
+ *  8) dragRoot
+ *  9) extensionsDragOverRoot
+ * 10) defsDynamic
  *
- * Strategy for pieces with sprite:
- *  - Each piece is a <g> with a clipPath (userSpaceOnUse) exactly covering its square.
- *  - Inside the group, we place a single <image href={spriteUrl}> scaled to (squareSize*6 x squareSize*2).
- *  - We offset the image by -col*squareSize, -row*squareSize to show the desired tile.
+ * Notes:
+ * - Legacy highlight/overlay groups were removed in this step.
+ * - Clip paths remain in defsDynamic.
+ * - Pieces render into piecesRoot.
  */
 export class SvgRenderer implements Renderer {
-	private root: SVGSVGElement | null = null;
-	private layerSquares!: SVGGElement;
-	private layerHighlights!: SVGGElement;
-	private layerPieces!: SVGGElement;
-	private layerOverlay!: SVGGElement;
+	private svgRoot: SVGSVGElement | null = null;
+
+	// Core-owned roots
+	private boardRoot!: SVGGElement;
+	private coordsRoot!: SVGGElement;
+	private piecesRoot!: SVGGElement;
+	private dragRoot!: SVGGElement;
+
+	// Reserved extension slots
+	private extensionsUnderPiecesRoot!: SVGGElement;
+	private extensionsOverPiecesRoot!: SVGGElement;
+	private extensionsDragUnderRoot!: SVGGElement;
+	private extensionsDragOverRoot!: SVGGElement;
+
+	// Defs containers
 	private defsStatic!: SVGDefsElement; // persistent defs (markers, etc.)
 	private defsDynamic!: SVGDefsElement; // holds per-render clipPaths for pieces
+
 	private spriteUrl: string;
 	private uidPrefix: string;
 
@@ -51,66 +68,84 @@ export class SvgRenderer implements Renderer {
 	}
 
 	mount(container: HTMLElement): void {
-		if (this.root) this.unmount();
+		if (this.svgRoot) this.unmount();
 
 		const svg = document.createElementNS(SVG_NS, 'svg');
 		svg.setAttribute('xmlns', SVG_NS);
 		svg.setAttribute('fill', 'none');
 		svg.setAttribute('stroke', 'none');
 
+		// Containers and roots/slots
 		const defsStatic = document.createElementNS(SVG_NS, 'defs');
-		svg.appendChild(defsStatic);
 
-		const gSquares = document.createElementNS(SVG_NS, 'g');
-		const gHighlights = document.createElementNS(SVG_NS, 'g');
-		const gPieces = document.createElementNS(SVG_NS, 'g');
-		const gOverlay = document.createElementNS(SVG_NS, 'g');
+		const boardRoot = document.createElementNS(SVG_NS, 'g');
+		const coordsRoot = document.createElementNS(SVG_NS, 'g');
+
+		const extensionsUnderPiecesRoot = document.createElementNS(SVG_NS, 'g');
+		const piecesRoot = document.createElementNS(SVG_NS, 'g');
+		const extensionsOverPiecesRoot = document.createElementNS(SVG_NS, 'g');
+
+		const extensionsDragUnderRoot = document.createElementNS(SVG_NS, 'g');
+		const dragRoot = document.createElementNS(SVG_NS, 'g');
+		const extensionsDragOverRoot = document.createElementNS(SVG_NS, 'g');
+
 		const defsDynamic = document.createElementNS(SVG_NS, 'defs');
 
-		svg.appendChild(gSquares);
-		svg.appendChild(gHighlights);
-		svg.appendChild(gPieces);
-		svg.appendChild(gOverlay);
+		// Append in the required order
+		svg.appendChild(defsStatic);
+		svg.appendChild(boardRoot);
+		svg.appendChild(coordsRoot);
+		svg.appendChild(extensionsUnderPiecesRoot);
+		svg.appendChild(piecesRoot);
+		svg.appendChild(extensionsOverPiecesRoot);
+		svg.appendChild(extensionsDragUnderRoot);
+		svg.appendChild(dragRoot);
+		svg.appendChild(extensionsDragOverRoot);
 		svg.appendChild(defsDynamic);
 
-		this.root = svg;
-		this.layerSquares = gSquares;
-		this.layerHighlights = gHighlights;
-		this.layerPieces = gPieces;
-		this.layerOverlay = gOverlay;
-		this.defsDynamic = defsDynamic;
+		// Assign fields
+		this.svgRoot = svg;
+
+		this.boardRoot = boardRoot;
+		this.coordsRoot = coordsRoot;
+		this.piecesRoot = piecesRoot;
+		this.dragRoot = dragRoot;
+
+		this.extensionsUnderPiecesRoot = extensionsUnderPiecesRoot;
+		this.extensionsOverPiecesRoot = extensionsOverPiecesRoot;
+		this.extensionsDragUnderRoot = extensionsDragUnderRoot;
+		this.extensionsDragOverRoot = extensionsDragOverRoot;
+
 		this.defsStatic = defsStatic;
+		this.defsDynamic = defsDynamic;
 
 		container.appendChild(svg);
 	}
 
 	unmount(): void {
-		if (this.root && this.root.parentNode) {
-			this.root.parentNode.removeChild(this.root);
+		if (this.svgRoot && this.svgRoot.parentNode) {
+			this.svgRoot.parentNode.removeChild(this.svgRoot);
 		}
-		this.root = null!;
+		this.svgRoot = null!;
 		// Do not clear caches here; a future mount will recreate DOM afresh
 		this.pieceNodes.clear();
 	}
 
 	render(state: StateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void {
-		if (!this.root) return;
+		if (!this.svgRoot) return;
 
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
-		this.root.setAttribute('width', size);
-		this.root.setAttribute('height', size);
-		this.root.setAttribute('viewBox', `0 0 ${size} ${size}`);
+		this.svgRoot.setAttribute('width', size);
+		this.svgRoot.setAttribute('height', size);
+		this.svgRoot.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
 		// Decide what to update based on layers bitmask
 		const layers = invalidation.layers;
 		const updateBoard = (layers & DirtyLayer.Board) !== 0 || (layers & DirtyLayer.Coords) !== 0;
-		const updateHighlights =
-			(layers & DirtyLayer.Highlights) !== 0 || (layers & DirtyLayer.LastMove) !== 0 || updateBoard;
 		const updatePieces = (layers & DirtyLayer.Pieces) !== 0 || updateBoard;
 
 		if (updateBoard) this.drawSquares(state.theme.light, state.theme.dark, geometry);
-		if (updateHighlights) this.drawHighlights(state, geometry);
 		if (updatePieces) this.drawPieces(state, geometry);
 	}
 
@@ -119,7 +154,7 @@ export class SvgRenderer implements Renderer {
 	}
 
 	private drawSquares(light: string, dark: string, g: RenderGeometry) {
-		const layer = this.layerSquares;
+		const layer = this.boardRoot;
 		this.clear(layer);
 
 		for (let sq = 0 as Square; sq < 64; sq++) {
@@ -135,32 +170,6 @@ export class SvgRenderer implements Renderer {
 		}
 	}
 
-	private drawHighlights(state: StateSnapshot, g: RenderGeometry) {
-		const layer = this.layerHighlights;
-		this.clear(layer);
-
-		// last move
-		if (state.lastMove) {
-			this.drawHighlightRect(g, state.lastMove.from, state.theme.lastMove);
-			this.drawHighlightRect(g, state.lastMove.to, state.theme.lastMove);
-		}
-		// selection
-		if (state.selected != null) {
-			this.drawHighlightRect(g, state.selected, state.theme.selection);
-		}
-	}
-
-	private drawHighlightRect(g: RenderGeometry, sq: Square, color: string) {
-		const r = g.squareRect(sq);
-		const rect = document.createElementNS(SVG_NS, 'rect');
-		rect.setAttribute('x', r.x.toString());
-		rect.setAttribute('y', r.y.toString());
-		rect.setAttribute('width', r.size.toString());
-		rect.setAttribute('height', r.size.toString());
-		rect.setAttribute('fill', color);
-		this.layerHighlights.appendChild(rect);
-	}
-
 	/**
 	 * Incremental piece rendering using stable piece ids (state.ids).
 	 * - Updates existing nodes for moved/promoted pieces.
@@ -169,6 +178,10 @@ export class SvgRenderer implements Renderer {
 	 * - Keeps sprite sheet approach.
 	 */
 	private drawPieces(state: StateSnapshot, g: RenderGeometry) {
+		const layer = this.piecesRoot;
+		this.clear(layer);
+		this.clear(this.defsDynamic);
+
 		const tileSize = g.squareSize;
 		const imgW = tileSize * 6;
 		const imgH = tileSize * 2;
@@ -185,6 +198,8 @@ export class SvgRenderer implements Renderer {
 
 			const { col, row } = spriteTileFor(piece.color, piece.role);
 			const r = g.squareRect(sq);
+
+			// Create or update per-piece clipPath
 			const clipId = `${this.uidPrefix}clip-${id}`;
 
 			let rec = this.pieceNodes.get(id);
@@ -205,6 +220,16 @@ export class SvgRenderer implements Renderer {
 				rec.image.setAttribute('width', imgW.toString());
 				rec.image.setAttribute('height', imgH.toString());
 				rec.image.setAttribute('preserveAspectRatio', 'none');
+
+				// Re-append clipPath to defsDynamic (it was cleared at start of drawPieces)
+				if (rec.clipPath.parentNode !== this.defsDynamic) {
+					this.defsDynamic.appendChild(rec.clipPath);
+				}
+
+				// Ensure it's present in the current layer (if DOM moved elsewhere)
+				if (rec.root.parentNode !== layer) {
+					layer.appendChild(rec.root);
+				}
 			} else {
 				// Create clipPath for this piece id
 				const cp = document.createElementNS(SVG_NS, 'clipPath');
@@ -232,7 +257,7 @@ export class SvgRenderer implements Renderer {
 				const gPiece = document.createElementNS(SVG_NS, 'g');
 				gPiece.setAttribute('clip-path', `url(#${clipId})`);
 				gPiece.appendChild(img);
-				this.layerPieces.appendChild(gPiece);
+				layer.appendChild(gPiece);
 
 				rec = { root: gPiece, clipPath: cp, clipRect: cpRect, image: img };
 				this.pieceNodes.set(id, rec);
