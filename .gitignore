@@ -136,3 +136,5 @@ dist
 .pnp.*
 
 artifacts/git.diff
+
+docs/cline

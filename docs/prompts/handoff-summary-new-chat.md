@@ -18,3 +18,4 @@ Ignore:
 
 Maximum length: 15–20 lines.
 Output only the summary.
+Output as markdown block.
