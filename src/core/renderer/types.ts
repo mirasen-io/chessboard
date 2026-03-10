@@ -13,7 +13,10 @@ import type { Square, StateSnapshot } from '../state/types';
 export interface RenderConfig {
 	light: string; // board light square color
 	dark: string; // board dark square color
-	coords?: string; // optional coordinate text color
+	coords?: {
+		light: string; // coordinate text color on dark squares
+		dark: string; // coordinate text color on light squares
+	};
 }
 
 /**
@@ -22,7 +25,10 @@ export interface RenderConfig {
 export const DEFAULT_RENDER_CONFIG: RenderConfig = {
 	light: '#f0d9b5',
 	dark: '#b58863',
-	coords: '#333'
+	coords: {
+		light: '#f0d9b5',
+		dark: '#b58863'
+	}
 };
 
 /**

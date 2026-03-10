@@ -175,4 +175,23 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 
 		renderer.unmount();
 	});
+
+	it('render() before mount() throws', () => {
+		const renderer = new SvgRenderer();
+
+		const pieces = new Uint8Array(64);
+		const ids = new Int16Array(64);
+		const state = {
+			pieces,
+			ids,
+			orientation: 'white' as const,
+			turn: 'white' as const,
+			selected: null
+		};
+
+		const geometry = makeRenderGeometry(800, 'white');
+		const invalidation = { layers: DirtyLayer.Board };
+
+		expect(() => renderer.render(state, geometry, invalidation)).toThrow(/before mount/i);
+	});
 });

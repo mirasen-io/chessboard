@@ -85,7 +85,6 @@ export type Square =
 	| 61
 	| 62
 	| 63;
-
 // Algebraic squares like 'e4'. Use template literal types to avoid listing all 64.
 export type FileChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 export type RankChar = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
@@ -140,10 +139,9 @@ export interface StateSnapshot {
 // Use bitmask to allow combining layers; renderer/scheduler will interpret these.
 export enum DirtyLayer {
 	Board = 1, // 1 << 0,
-	Coords = 2, // 1 << 1,
-	Pieces = 4, // 1 << 2,
-	Drag = 8, // 1 << 3,
-	All = Board | Coords | Pieces | Drag
+	Pieces = 2, // 1 << 1,
+	Drag = 4, // 1 << 2,
+	All = Board | Pieces | Drag
 }
 
 // Position map acceptance forms (public inputs)

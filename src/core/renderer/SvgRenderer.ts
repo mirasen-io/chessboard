@@ -1,3 +1,5 @@
+import { PartialDeep } from 'type-fest';
+import { squareOf } from '../state/coords';
 import { decodePiece } from '../state/encode';
 import { DirtyLayer, Square, type Color, type Role, type StateSnapshot } from '../state/types';
 import { cburnettSpriteUrl } from './assets';
@@ -11,7 +13,7 @@ type SvgRendererOptions = {
 	/** Optional override for the sprite URL. Defaults to cburnettSpriteUrl(). */
 	spriteUrl?: string;
 	/** Optional renderer visual configuration. */
-	config?: Partial<RenderConfig>;
+	config?: PartialDeep<RenderConfig>;
 };
 
 type PieceNodeRecord = {
@@ -69,7 +71,14 @@ export class SvgRenderer implements Renderer {
 	constructor(opts: SvgRendererOptions = {}) {
 		this.spriteUrl = opts.spriteUrl ?? cburnettSpriteUrl();
 		this.uidPrefix = `cb-${Math.random().toString(36).slice(2)}-`;
-		this.config = { ...DEFAULT_RENDER_CONFIG, ...(opts.config ?? {}) };
+		this.config = {
+			...DEFAULT_RENDER_CONFIG,
+			...(opts.config ?? {}),
+			coords: {
+				...DEFAULT_RENDER_CONFIG.coords!,
+				...(opts.config?.coords ?? {})
+			}
+		};
 	}
 
 	mount(container: HTMLElement): void {
@@ -147,18 +156,18 @@ export class SvgRenderer implements Renderer {
 
 		// Decide what to update based on layers bitmask
 		const layers = invalidation.layers;
-		const updateBoard = (layers & DirtyLayer.Board) !== 0 || (layers & DirtyLayer.Coords) !== 0;
-		const updatePieces = (layers & DirtyLayer.Pieces) !== 0 || updateBoard;
-
-		if (updateBoard) this.drawSquares(this.config.light, this.config.dark, geometry);
-		if (updatePieces) this.drawPieces(state, geometry);
+		if (layers & DirtyLayer.Board) {
+			this.drawBoard(this.config.light, this.config.dark, geometry);
+			this.drawCoords(state.orientation, geometry);
+		}
+		if (layers & DirtyLayer.Pieces) this.drawPieces(state, geometry);
 	}
 
 	private clear(node: Element) {
 		while (node.firstChild) node.removeChild(node.firstChild);
 	}
 
-	private drawSquares(light: string, dark: string, g: RenderGeometry) {
+	private drawBoard(light: string, dark: string, g: RenderGeometry) {
 		const layer = this.boardRoot;
 		this.clear(layer);
 
@@ -172,6 +181,76 @@ export class SvgRenderer implements Renderer {
 			rect.setAttribute('fill', isLightSquare(sq) ? light : dark);
 			rect.setAttribute('shape-rendering', 'crispEdges');
 			layer.appendChild(rect);
+		}
+	}
+
+	private labelColorForSquare(sq: Square): string {
+		// Dark label on the light square and light label on the dark square
+		return isLightSquare(sq)
+			? (this.config.coords?.dark ?? this.config.dark)
+			: (this.config.coords?.light ?? this.config.light);
+	}
+
+	/**
+	 * Render board coordinates (rank/file labels) inside edge squares.
+	 * - Rank labels on visual left edge (top-left corner of squares)
+	 * - File labels on visual bottom edge (bottom-right corner of squares)
+	 * - Uses square-contrast coloring by default, or explicit config.coords if provided
+	 */
+	private drawCoords(orientation: Color, g: RenderGeometry) {
+		const layer = this.coordsRoot;
+		this.clear(layer);
+
+		const fontSize = g.squareSize * 0.12;
+		const offset = 3; // px offset from square edges
+
+		// Rank labels on visual left edge
+		const rankFile = orientation === 'white' ? 0 : 7;
+		for (let visualRank = 0; visualRank < 8; visualRank++) {
+			const logicalRank = orientation === 'white' ? 7 - visualRank : visualRank;
+			const sq = squareOf(rankFile, logicalRank);
+			const label = orientation === 'white' ? String(8 - visualRank) : String(1 + visualRank);
+
+			const r = g.squareRect(sq);
+			const color = this.labelColorForSquare(sq);
+
+			const text = document.createElementNS(SVG_NS, 'text');
+			text.setAttribute('x', (r.x + offset).toString());
+			text.setAttribute('y', (r.y + offset).toString());
+			text.setAttribute('font-size', fontSize.toString());
+			text.setAttribute('font-family', 'sans-serif');
+			text.setAttribute('font-weight', 'bold');
+			text.setAttribute('fill', color);
+			text.setAttribute('text-anchor', 'start');
+			text.setAttribute('dominant-baseline', 'hanging');
+			text.textContent = label;
+			layer.appendChild(text);
+		}
+
+		// File labels on visual bottom edge
+		const fileRank = orientation === 'white' ? 0 : 7;
+		for (let visualFile = 0; visualFile < 8; visualFile++) {
+			const logicalFile = orientation === 'white' ? visualFile : 7 - visualFile;
+			const sq = squareOf(logicalFile, fileRank);
+			const label =
+				orientation === 'white'
+					? String.fromCharCode('a'.charCodeAt(0) + visualFile)
+					: String.fromCharCode('h'.charCodeAt(0) - visualFile);
+
+			const r = g.squareRect(sq);
+			const color = this.labelColorForSquare(sq);
+
+			const text = document.createElementNS(SVG_NS, 'text');
+			text.setAttribute('x', (r.x + r.size - offset).toString());
+			text.setAttribute('y', (r.y + r.size - offset).toString());
+			text.setAttribute('font-size', fontSize.toString());
+			text.setAttribute('font-family', 'sans-serif');
+			text.setAttribute('font-weight', 'bold');
+			text.setAttribute('fill', color);
+			text.setAttribute('text-anchor', 'end');
+			text.setAttribute('dominant-baseline', 'auto');
+			text.textContent = label;
+			layer.appendChild(text);
 		}
 	}
 

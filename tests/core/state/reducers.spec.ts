@@ -33,7 +33,6 @@ describe('state/reducers', () => {
 
 		// Dirty flags set for full redraw
 		expect((state.dirtyLayers & DirtyLayer.Board) !== 0).toBe(true);
-		expect((state.dirtyLayers & DirtyLayer.Coords) !== 0).toBe(true);
 		expect((state.dirtyLayers & DirtyLayer.Pieces) !== 0).toBe(true);
 	});
 

@@ -47,5 +47,5 @@ export function makeRenderGeometry(boardSize: number, orientation: Color): Rende
 export function isLightSquare(sq: Square): boolean {
 	const f = fileOf(sq);
 	const r = rankOf(sq);
-	return ((f + r) & 1) === 0;
+	return ((f + r) & 1) === 1;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isLightSquare, makeRenderGeometry } from '../../../src/core/renderer/geometry';
-import { fromAlgebraic } from '../../../src/core/state/coords';
+import { fromAlgebraic, squareOf } from '../../../src/core/state/coords';
 
 describe('renderer/geometry', () => {
 	it('computes squareRect correctly for white orientation', () => {
@@ -58,14 +58,17 @@ describe('renderer/geometry', () => {
 	});
 
 	it('isLightSquare parity alternates across neighbors (a1 is light in current convention)', () => {
-		const a1 = fromAlgebraic('a1');
-		const b1 = fromAlgebraic('b1');
-		const a2 = fromAlgebraic('a2');
-		const h8 = fromAlgebraic('h8');
-
-		expect(isLightSquare(a1)).toBe(true);
-		expect(isLightSquare(b1)).toBe(false);
-		expect(isLightSquare(a2)).toBe(false);
-		expect(isLightSquare(h8)).toBe(true);
+		// a1 (0,0) is dark
+		expect(isLightSquare(fromAlgebraic('a1'))).toBe(false);
+		expect(isLightSquare(squareOf(0, 0))).toBe(false);
+		// b1 (1,0) is light
+		expect(isLightSquare(fromAlgebraic('b1'))).toBe(true);
+		expect(isLightSquare(squareOf(1, 0))).toBe(true);
+		// a2 (0,1) is light
+		expect(isLightSquare(fromAlgebraic('a2'))).toBe(true);
+		expect(isLightSquare(squareOf(0, 1))).toBe(true);
+		// h8 (7,7) is dark
+		expect(isLightSquare(fromAlgebraic('h8'))).toBe(false);
+		expect(isLightSquare(squareOf(7, 7))).toBe(false);
 	});
 });

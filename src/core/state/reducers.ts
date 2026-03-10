@@ -91,7 +91,7 @@ export function setPosition(state: InternalState, input: PositionInput): void {
 	}
 
 	clearDirty(state);
-	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Coords | DirtyLayer.Pieces);
+	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Pieces);
 }
 
 /**
@@ -106,7 +106,7 @@ export function setTurn(state: InternalState, c: ColorInput): void {
  */
 export function setOrientation(state: InternalState, c: ColorInput): void {
 	state.orientation = normalizeColor(c);
-	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Coords);
+	markDirtyLayer(state, DirtyLayer.Board);
 }
 
 /**
