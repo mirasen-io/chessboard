@@ -20,9 +20,9 @@
 			import { SvgRenderer } from '../../../dist/manual/renderer/SvgRenderer.js';
 			import { DirtyLayer } from '../../../dist/manual/state/types.js';
 
-			const state = createInitialState();
+			const state = createInitialState({ orientation: 'black' });
 			console.log(state);
-			const geometry = makeRenderGeometry(600, 'black');
+			const geometry = makeRenderGeometry(600, state.orientation);
 			console.log(geometry.squareRect(0));
 			const container = document.getElementById('board');
 

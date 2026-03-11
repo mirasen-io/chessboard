@@ -1,5 +1,5 @@
 import { PartialDeep } from 'type-fest';
-import { squareOf } from '../state/coords';
+import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
 import { DirtyLayer, Square, type Color, type Role, type StateSnapshot } from '../state/types';
 import { cburnettSpriteUrl } from './assets';
@@ -223,6 +223,7 @@ export class SvgRenderer implements Renderer {
 			text.setAttribute('fill', color);
 			text.setAttribute('text-anchor', 'start');
 			text.setAttribute('dominant-baseline', 'hanging');
+			text.setAttribute('data-square', toAlgebraic(sq));
 			text.textContent = label;
 			layer.appendChild(text);
 		}
@@ -249,6 +250,7 @@ export class SvgRenderer implements Renderer {
 			text.setAttribute('fill', color);
 			text.setAttribute('text-anchor', 'end');
 			text.setAttribute('dominant-baseline', 'auto');
+			text.setAttribute('data-square', toAlgebraic(sq));
 			text.textContent = label;
 			layer.appendChild(text);
 		}
