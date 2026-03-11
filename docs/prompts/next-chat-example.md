@@ -3,22 +3,21 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - Project: `kt-npm-modules/chessboard` — MIT-licensed modern TypeScript chessboard engine with chessground-like interaction and cm-chessboard-like extension ideas.
-- Current task completed: Phase 2.2 — runtime-owned host resize / geometry refresh with minimal internal destroy cleanup.
+- Current task completed: Phase 2.3a — internal-only movability feeding into runtime/state/snapshot.
 - Confirmed: runtime remains internal POJO/factory style via `createBoardRuntime(...)`, not a class.
-- Confirmed: runtime owns mount state, host-derived board size, geometry, scheduler wiring, render permission, and resize observation.
-- Confirmed: board size is host-derived via `Math.min(container.clientWidth, container.clientHeight)`.
-- Confirmed: geometry is immutable derived data; runtime recreates geometry on orientation change and host resize instead of mutating it.
-- Confirmed: initial mount still validates positive size and throws on invalid zero/non-positive container size.
-- Confirmed: later resize to zero/non-positive size is ignored, not thrown.
-- Confirmed: resize refresh marks `DirtyLayer.Board | DirtyLayer.Pieces` and schedules render through the existing scheduler.
-- Confirmed: resize after orientation change uses the latest orientation when recreating geometry.
-- Confirmed: runtime now has minimal internal-only `destroy()` because resize observation introduced an external resource.
-- Confirmed: `destroy()` is idempotent, disconnects `ResizeObserver`, clears host reference, sets mounted false, prevents further resize-triggered render effects, and rejects remount.
-- Confirmed: no scheduler redesign, no renderer redesign, no public API shaping, no extension/input/drag work was introduced in Phase 2.2.
-- Confirmed: runtime remains internal-only; do not export it publicly.
-- Confirmed: review workflow for coding projects is chat architecture discussion -> prompt for Cline -> Cline plan -> delta prompt -> Act -> git diff review; request changed files if diff looks glitched/incomplete.
-- Relevant files: `src/core/runtime/boardRuntime.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `src/core/scheduler/scheduler.ts`, `src/core/scheduler/invalidation.ts`, `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/geometry.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `src/core/state/types.ts`, `current-plan.md`.
-- Next step: move to the next narrow Phase 2 runtime/composition step from `current-plan.md`, keeping the same architecture-first constraints and internal-only scope.
+- Confirmed: runtime owns mount state, host-derived board size, geometry, scheduler wiring, render permission, resize observation, and minimal internal-only `destroy()`.
+- Confirmed: board remains rule-agnostic; legality source stays external and host/controller-owned.
+- Confirmed: external interaction policy now enters runtime via `setMovability(...)`, not `setDestinations(...)`.
+- Confirmed movability model: `MovableColor = 'white' | 'black' | 'both'`; `Movability = StrictMovability | FreeMovability | DisabledMovability`.
+- Confirmed `StrictMovability` carries external `destinations`; `FreeMovability` allows unrestricted move interaction; `DisabledMovability` means move interaction disabled only.
+- Confirmed: renderer does not consume movability in Phase 2.3a; movability lives in internal state/snapshot for runtime read model and future input/extensions.
+- Confirmed: `turn` and `movability` are independent inputs; board must not infer one from the other.
+- Confirmed: internal state/snapshot use normalized `null` rather than `undefined`; optionality is only at input/options boundary.
+- Confirmed: `setMovability` reducer returns `boolean` changed-flag; runtime schedules only when `mounted && changed`.
+- Confirmed: no renderer redesign, no scheduler redesign, no drag/input/controller implementation, no public API shaping, no extension model work in Phase 2.3a.
+- Relevant files: `src/core/state/types.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `src/core/runtime/boardRuntime.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `tests/core/renderer/svgRenderer.coords.spec.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `current-plan.md`.
+- Known follow-up note: movability is currently stored by reference; later consider defensive cloning/normalization or an explicit immutable-input contract.
+- Next step: Phase 2.3b — runtime/input begins consulting movability for move-attempt eligibility while keeping scope narrow and avoiding drag lifecycle/public API work.
 
 ## Attached plan
 
@@ -29,12 +28,12 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 We are continuing work on `kt-npm-modules/chessboard`.
 
-Phase 2.2 is complete and accepted. Use the attached `current-plan.md` as the roadmap source of truth, and pick up the next narrow step immediately after Phase 2.2.
+Phase 2.3a is complete and accepted. Use the attached `current-plan.md` as the roadmap source of truth, and continue with the next narrow step: **Phase 2.3b — runtime/input begins consulting movability**.
 
 Working mode for this chat:
 
-1. brief audit of the current implementation relevant to the next step
-2. identify the smallest correct step to implement now
+1. brief audit of the current implementation relevant to Phase 2.3b
+2. identify the smallest correct behavioral step to implement now
 3. recommend only minimal changes needed
 4. prepare a precise implementation prompt for Cline
 5. later review the patch in a narrow diff loop
@@ -42,22 +41,45 @@ Working mode for this chat:
 Keep these confirmed decisions in force unless explicitly revised:
 
 - runtime is internal POJO/factory style via `createBoardRuntime(...)`, not a class
-- runtime owns mount state, host-derived board size, geometry, scheduler wiring, render permission, and resize observation
-- board size is host-derived via `Math.min(container.clientWidth, container.clientHeight)`
-- geometry is immutable and recreated on orientation change / resize, never mutated
-- initial mount invalid size throws; later zero/non-positive resize is ignored
-- resize refresh marks `DirtyLayer.Board | DirtyLayer.Pieces`
-- runtime has minimal internal-only `destroy()`; it is idempotent, disconnects `ResizeObserver`, clears host reference, sets mounted false, prevents further resize-triggered render effects, and rejects remount
+- runtime owns mount state, host-derived board size, geometry, scheduler wiring, render permission, resize observation, and minimal internal-only `destroy()`
+- board remains rule-agnostic; legality source stays external
+- external interaction policy enters runtime via `setMovability(...)`
+- movability model is:
+  - `MovableColor = 'white' | 'black' | 'both'`
+  - `StrictMovability`
+  - `FreeMovability`
+  - `DisabledMovability`
+  - `Movability = StrictMovability | FreeMovability | DisabledMovability`
+- `StrictMovability` carries external `destinations`
+- `DisabledMovability` means move interaction disabled only, not all board interaction
+- renderer does not consume movability directly
+- `turn` and `movability` are independent; board must not infer one from the other
+- internal normalized state/snapshot use `null`, not `undefined`
 - runtime remains internal-only; do not export it publicly
 
 Do not:
 
 - redesign renderer or scheduler unless strictly necessary
-- start drag/input/controller work early
+- start full drag lifecycle work early
 - broaden into public API design
 - redesign extension model
 - refactor unrelated code
 - introduce speculative abstractions
+
+Goal for this chat:
+
+- determine the smallest way for runtime/input to begin consulting movability for move-attempt eligibility
+- keep this behavioral step narrow
+- avoid pulling in full drag/drop/controller architecture prematurely
+
+Likely boundary of the step:
+
+- `DisabledMovability` blocks move attempts
+- `StrictMovability` allows only destinations-driven move attempts
+- `FreeMovability` allows move attempts without destinations
+- no full drag lifecycle redesign
+- no public API shaping
+- no extension work
 
 Cline workflow preference:
 
@@ -67,6 +89,14 @@ Cline workflow preference:
 - do not write prompts that say `Go to Act` / `toggle to Act`
 - in chat, separately say that the prompt can be sent in Act and that an updated plan is not needed
 - review actual staged diff; if diff looks glitched or inconsistent, request the changed files explicitly
+
+Prefer:
+
+1. brief analysis
+2. concrete recommendation
+3. precise implementation prompt for Cline + GPT-5
+4. focused test updates
+5. later patch review
 
 ## Working mode
 
