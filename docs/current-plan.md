@@ -65,6 +65,8 @@
 
 ### 2.2 Update flow / invalidation flow
 
+**Status: COMPLETE**
+
 - Define state update path
 - Define render request path
 - Define invalidation routing into renderer
