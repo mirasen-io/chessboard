@@ -38,12 +38,12 @@
 
 ### 0.3 Post-cleanup validation
 
+**Status: COMPLETE**
+
 - Update focused tests for renderer roots/DOM structure
 - Update state/snapshot tests after separation
 - Confirm no architectural leakage from render config into state
 - Confirm no dead fields / dead invalidation paths remain
-
-**Status: COMPLETE**
 
 ---
 
@@ -52,6 +52,8 @@
 **Status: IN PROGRESS**
 
 ### 2.1 Internal runtime model
+
+**Status: COMPLETE**
 
 - Define internal board runtime/controller responsibilities
 - Define how state, renderer, scheduler, and input collaborate
