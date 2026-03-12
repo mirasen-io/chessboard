@@ -2,25 +2,24 @@ We are continuing work on `kt-npm-modules/chessboard`.
 
 ## Handoff summary
 
-- Project: `kt-npm-modules/chessboard` — modern TypeScript chessboard engine with internal runtime, renderer, and future extension model.
-- Recently completed: Phase 2.3a and 2.3b are accepted and complete.
-- Confirmed: runtime stays internal POJO/factory style via `createBoardRuntime(...)`, not a class.
-- Confirmed: board remains rule-agnostic; legality source stays external.
-- Confirmed: movability is the external interaction-policy input; `turn` and movability remain independent.
-- Confirmed: 2.3b added internal runtime movability eligibility queries and tests.
-- Completed follow-up: coordinate labels gained `data-square` attributes for inspectability/tests.
-- Important finding: the apparent black-orientation coords bug was not a renderer bug; it was a manual/demo wiring mismatch between `state.orientation` and geometry orientation.
-- Confirmed cleanup already done: render path now uses `geometry.orientation` as the authoritative orientation source.
-- Confirmed cleanup already done: `RenderGeometry` now includes `orientation`.
-- Confirmed cleanup already done: renderer-facing state type was narrowed (`RenderStateSnapshot`) so renderer no longer depends on `StateSnapshot.orientation`.
-- Confirmed cleanup already done: `InternalState` was moved into `src/core/state/types.ts`; `InternalState` and `StateSnapshot` remain separate types but now live side by side.
-- Confirmed type cleanup: keep `Orientation` alias; keep `turn` as `Color` (do not keep `SideToMove` alias).
-- Key architectural conclusion: the correct boundary is “facts about the position” vs presentation/interaction state.
-- Position facts: `pieces`, `ids`, `turn`.
-- Likely non-position state: `orientation`, `selected`, and future drag/presentation state; these should move toward a view-state layer.
-- Constraint: do not introduce a full controller yet; establish the logical board-state / view-state split first.
-- Relevant files: `src/core/state/types.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/runtime/movability.ts`, `src/core/renderer/types.ts`, `src/core/renderer/geometry.ts`, `src/core/renderer/SvgRenderer.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `tests/core/renderer/svgRenderer.coords.spec.ts`, `current-plan.md`.
-- Next step: work on the new unnumbered plan section `Board state / view state split`, then continue to `2.4 Runtime tests`.
+- **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
+- **Current task:** Pre-Phase 2 and Phase 2.3 are complete; phase 2.4 is the next step.
+- **Confirmed decisions:** board/view split is final.
+- **Board state:** `BoardStateInternal` owns only `pieces`, `ids`, `turn`, `nextId`; `BoardStateSnapshot` exposes only `pieces`, `ids`, `turn`.
+- **View state:** `ViewStateInternal` owns `orientation`, `selected`, `movability`; `ViewStateSnapshot` mirrors view-owned state only.
+- **Invalidation:** separate from both board and view state; invalidation reducers are internal plumbing, not public runtime API.
+- **Scheduler contract:** scheduler works with `BoardStateSnapshot` and `InvalidationStateSnapshot`.
+- **Renderer contract:** core renderer no longer depends on full view state; orientation for core rendering is derived through geometry, not board snapshot.
+- **Reducer/runtime contract:** if a reducer takes `InvalidationWriter`, runtime schedules after successful change; if a reducer does not take `InvalidationWriter`, runtime does not schedule.
+- **Runtime shape:** runtime owns `boardState`, `viewState`, and `invalidationState`; runtime orchestrates scheduler calls and future extension hooks.
+- **API decisions:** `move()` returns `Move`; simple setters return `boolean`.
+- **2.3 result:** movability is stored internally, consulted by runtime/input, and remains renderer-independent.
+- **Bugfix completed:** black-orientation coordinate label placement was fixed with focused renderer test coverage.
+- **Tests:** targeted test rewrite for the split is complete; mirrored `tests/...` structure now follows `src/...` per-file naming.
+- **Comments:** narrow comment/docstring pass is complete; stale combined-state comments were corrected without bloating docs.
+- **Constraints:** keep steps narrow, no redesign of settled architecture, do not invent speculative APIs, and mirror test structure to source structure.
+- **Relevant files:** `src/core/state/{boardState,viewState,boardReducers,viewReducers,boardTypes,viewTypes}.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/scheduler/{scheduler,invalidationState,reducers,types}.ts`, `src/core/renderer/{types,SvgRenderer}.ts`, matching `tests/core/...` files, plus attached `current-plan.md`.
+- **Next step:** Phase 2.4 — review and tighten runtime tests around wiring and invalidation flow: state change → invalidation → render scheduling, plus no-op and narrow-update behavior.
 
 ## Attached plan
 
@@ -29,64 +28,18 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-We are continuing `kt-npm-modules/chessboard`.
+Focus only on: **Phase 2.4 runtime tests**
 
-Use the attached updated `current-plan.md` as the source of truth. In this chat, work only on the new step inserted before `2.4 Runtime tests`:
+Goals:
 
-### Board state / view state split
+- Review whether current runtime tests adequately cover wiring between board/view state, invalidation, scheduler, and renderer.
+- Identify any missing focused tests for state change → invalidation → render scheduling and for no-op / narrow updates.
+- Produce a narrow implementation prompt for Cline if test gaps are found.
 
-Working mode for this chat:
+Do not:
 
-1. brief audit of current ownership/state boundaries
-2. identify the smallest correct refactor step now
-3. recommend only minimal changes needed
-4. prepare a precise implementation prompt for Cline
-5. later review the patch in a narrow diff loop
-
-Confirmed decisions to keep in force unless explicitly revised:
-
-- board state should contain facts about the position
-- current stable position facts are:
-  - `pieces`
-  - `ids`
-  - `turn`
-- presentation / interaction state should move toward view state:
-  - `orientation`
-  - `selected`
-  - future drag / presentation state
-- do not introduce a full controller yet
-- establish the logical split first
-- renderer should continue to consume board snapshot + geometry/view-derived inputs
-- avoid duplicated orientation sources in the render path
-- runtime remains internal POJO/factory style via `createBoardRuntime(...)`
-- board remains rule-agnostic; legality stays external
-- do not broaden public API
-- do not redesign renderer, scheduler, or extension model unless strictly necessary
-- do not refactor unrelated code
-
-Goal for this chat:
-
-- define and implement the smallest correct board-state / view-state split
-- keep board state focused on facts about the position
-- move clearly non-position state out of board snapshot/state contracts where appropriate
-- avoid overreaching into full controller architecture
-
-Likely scope boundary for this step:
-
-- audit current use of `orientation` and `selected`
-- decide what moves now vs what stays temporarily
-- prefer the smallest ownership refactor that clarifies the boundary
-- do not try to solve full drag/controller architecture yet
-- do not broaden into public API shaping
-
-Cline workflow preference:
-
-- discuss architecture here first
-- then generate a precise prompt for Cline
-- once the plan is good enough, provide only delta/corrections to the plan in the prompt itself
-- do not write prompts that say `Go to Act` / `toggle to Act`
-- in chat, separately say that the prompt can be sent in Act and that an updated plan is not needed
-- review the actual staged diff; if diff looks glitched or inconsistent, request the changed files explicitly
+- Redesign runtime architecture or reopen the board/view split.
+- Expand into phase 2.5 piece rendering review or phase 3 drag/interaction work.
 
 ## Working mode
 
