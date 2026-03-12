@@ -1,21 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { OverlayView } from '../../../src/core/input/types';
-import type { Invalidation } from '../../../src/core/renderer/types';
 import { createScheduler, type RenderCallback } from '../../../src/core/scheduler/scheduler';
-import type { StateSnapshot } from '../../../src/core/state/types';
-import { DirtyLayer } from '../../../src/core/state/types';
+import type { InvalidationStateSnapshot } from '../../../src/core/scheduler/types';
+import { DirtyLayer } from '../../../src/core/scheduler/types';
+import type { BoardStateSnapshot } from '../../../src/core/state/boardTypes';
 
 describe('scheduler/scheduler (rAF-only)', () => {
 	let renders: Array<{
-		snapshot: StateSnapshot;
-		invalidation: Invalidation;
-		overlay?: OverlayView;
+		board: BoardStateSnapshot;
+		invalidation: InvalidationStateSnapshot;
 	}>;
 	let cleared: number;
 
-	const fakeSnapshot = {} as unknown as StateSnapshot;
-	const fakeInvalidation = (): Invalidation => ({ layers: DirtyLayer.Pieces, squares: new Set() });
-	const fakeOverlay: OverlayView = { hover: null };
+	const fakeBoardSnapshot = {} as unknown as BoardStateSnapshot;
+	const fakeInvalidation = (): InvalidationStateSnapshot => ({
+		layers: DirtyLayer.Pieces,
+		squares: new Set()
+	});
 
 	let render: RenderCallback;
 	let scheduler: ReturnType<typeof createScheduler>;
@@ -23,17 +23,16 @@ describe('scheduler/scheduler (rAF-only)', () => {
 	beforeEach(() => {
 		renders = [];
 		cleared = 0;
-		render = (snapshot, invalidation, overlay) => {
-			renders.push({ snapshot, invalidation, overlay });
+		render = (board, invalidation) => {
+			renders.push({ board, invalidation });
 		};
 		scheduler = createScheduler({
 			render,
-			getSnapshot: () => fakeSnapshot,
-			getInvalidation: () => fakeInvalidation(),
+			getBoardSnapshot: () => fakeBoardSnapshot,
+			getInvalidationSnapshot: () => fakeInvalidation(),
 			clearDirty: () => {
 				cleared++;
-			},
-			getOverlay: () => undefined
+			}
 		});
 	});
 
@@ -42,7 +41,7 @@ describe('scheduler/scheduler (rAF-only)', () => {
 	});
 
 	it('coalesces multiple schedule() calls into a single rAF render', async () => {
-		// Polyfill rAF/c for Node
+		// Polyfill rAF/cAF for Node
 		const originalRaf = globalThis.requestAnimationFrame;
 		const originalCaf = globalThis.cancelAnimationFrame;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,7 +61,6 @@ describe('scheduler/scheduler (rAF-only)', () => {
 			expect(renders.length).toBe(1);
 			expect(cleared).toBe(1);
 		} finally {
-			// Restore rAF/cAF
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(globalThis as any).requestAnimationFrame = originalRaf;
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,41 +81,12 @@ describe('scheduler/scheduler (rAF-only)', () => {
 		expect(cleared).toBe(1);
 	});
 
-	it('passes overlay from getOverlay to render', async () => {
-		// Polyfill rAF/cAF for Node
-		const originalRaf = globalThis.requestAnimationFrame;
-		const originalCaf = globalThis.cancelAnimationFrame;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(globalThis as any).requestAnimationFrame = (cb: (t: number) => void): number =>
-			setTimeout(() => cb(Date.now()), 0) as unknown as number;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(globalThis as any).cancelAnimationFrame = (h: number) => clearTimeout(h as unknown as number);
+	it('flushNow passes board snapshot and invalidation snapshot to render', () => {
+		scheduler.flushNow();
 
-		try {
-			// Recreate scheduler with overlay provider
-			scheduler.destroy();
-			scheduler = createScheduler({
-				render,
-				getSnapshot: () => fakeSnapshot,
-				getInvalidation: () => fakeInvalidation(),
-				clearDirty: () => {
-					cleared++;
-				},
-				getOverlay: () => fakeOverlay
-			});
-
-			scheduler.schedule();
-			await new Promise((r) => setTimeout(r, 0));
-
-			expect(renders.length).toBe(1);
-			expect(renders[0].overlay).toBe(fakeOverlay);
-		} finally {
-			// Restore rAF/cAF
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(globalThis as any).requestAnimationFrame = originalRaf;
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(globalThis as any).cancelAnimationFrame = originalCaf;
-		}
+		expect(renders.length).toBe(1);
+		expect(renders[0].board).toBe(fakeBoardSnapshot);
+		expect(renders[0].invalidation.layers).toBe(DirtyLayer.Pieces);
 	});
 
 	it('schedule throws if requestAnimationFrame is unavailable', () => {
@@ -130,6 +99,32 @@ describe('scheduler/scheduler (rAF-only)', () => {
 		} finally {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(globalThis as any).requestAnimationFrame = originalRaf;
+		}
+	});
+
+	it('destroy cancels pending rAF and prevents further renders', async () => {
+		// Polyfill rAF/cAF for Node
+		const originalRaf = globalThis.requestAnimationFrame;
+		const originalCaf = globalThis.cancelAnimationFrame;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(globalThis as any).requestAnimationFrame = (cb: (t: number) => void): number =>
+			setTimeout(() => cb(Date.now()), 0) as unknown as number;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(globalThis as any).cancelAnimationFrame = (h: number) => clearTimeout(h as unknown as number);
+
+		try {
+			scheduler.schedule();
+			scheduler.destroy();
+
+			await new Promise((r) => setTimeout(r, 0));
+
+			// No render should have occurred after destroy
+			expect(renders.length).toBe(0);
+		} finally {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(globalThis as any).requestAnimationFrame = originalRaf;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(globalThis as any).cancelAnimationFrame = originalCaf;
 		}
 	});
 });

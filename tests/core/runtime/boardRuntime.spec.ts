@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import type { Renderer } from '../../../src/core/renderer/types';
 import { createBoardRuntime } from '../../../src/core/runtime/boardRuntime';
-import { DirtyLayer } from '../../../src/core/state/types';
+import { DirtyLayer } from '../../../src/core/scheduler/types';
 
 // Local manual ResizeObserver mock for this spec only
 class MockResizeObserver {
@@ -27,10 +27,8 @@ class MockResizeObserver {
 		this.targets.clear();
 	}
 
-	// Manual trigger for tests
 	trigger(): void {
 		if (this.disconnected || this.targets.size === 0) return;
-
 		const entries = Array.from(this.targets).map((target) => ({
 			target,
 			contentRect: target.getBoundingClientRect(),
@@ -38,19 +36,14 @@ class MockResizeObserver {
 			contentBoxSize: [],
 			devicePixelContentBoxSize: []
 		})) as ResizeObserverEntry[];
-
 		this.callback(entries, this);
 	}
 }
 
-// Store reference to active observer for manual triggering
 let activeObserver: MockResizeObserver | null = null;
-
-// Preserve original ResizeObserver (if any)
 const originalResizeObserver = globalThis.ResizeObserver;
 
 describe('core/runtime/boardRuntime', () => {
-	// Helper to wait for next animation frame
 	function waitForRender(): Promise<void> {
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => resolve());
@@ -58,7 +51,6 @@ describe('core/runtime/boardRuntime', () => {
 	}
 
 	beforeAll(() => {
-		// Replace global ResizeObserver with mock that captures instance
 		globalThis.ResizeObserver = class extends MockResizeObserver {
 			constructor(callback: ResizeObserverCallback) {
 				super(callback);
@@ -73,9 +65,9 @@ describe('core/runtime/boardRuntime', () => {
 	});
 
 	afterAll(() => {
-		// Restore original ResizeObserver
 		globalThis.ResizeObserver = originalResizeObserver;
 	});
+
 	function createMockContainer(width: number, height: number): HTMLElement {
 		const container = document.createElement('div');
 		Object.defineProperty(container, 'clientWidth', {
@@ -95,47 +87,44 @@ describe('core/runtime/boardRuntime', () => {
 		return new SvgRenderer();
 	}
 
+	// ── Pre-mount / mount ──────────────────────────────────────────────────────
+
 	it('allows pre-mount state mutations without rendering', () => {
-		// Verifies: Pre-mount state mutations are safe and don't trigger rendering
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const mountSpy = vi.spyOn(renderer, 'mount');
 
-		const runtime = createBoardRuntime({ renderer, position: 'start' });
-		runtime.setPosition({ e2: { color: 'w', role: 'p' } });
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.setBoardPosition({ e2: { color: 'w', role: 'p' } });
 		runtime.setOrientation('black');
 
-		// Verify: no renderer calls before mount
 		expect(mountSpy).not.toHaveBeenCalled();
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
 	it('mount triggers initial render with latest state', async () => {
-		// Verifies: mount() calls renderer.mount, then schedules render with accumulated pre-mount state
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const mountSpy = vi.spyOn(renderer, 'mount');
 		const container = createMockContainer(400, 400);
 
 		const runtime = createBoardRuntime({ renderer });
-		runtime.setPosition('start'); // pre-mount mutation
+		runtime.setBoardPosition('start'); // pre-mount mutation
 
 		runtime.mount(container);
 
-		// Verify renderer.mount was called
 		expect(mountSpy).toHaveBeenCalledTimes(1);
 		expect(mountSpy).toHaveBeenCalledWith(container);
 
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [snapshot, , invalidation] = renderSpy.mock.calls[0];
+		// render(board, invalidation, geometry)
+		const [snapshot, invalidation] = renderSpy.mock.calls[0];
 
-		// Verify start position is reflected (accumulated pre-mount state)
 		expect(snapshot.pieces[0]).not.toBe(0); // a1 has a piece in start position
-
-		// Verify exact initial dirty layers (Phase 2.1 contract)
-		expect(invalidation.layers).toBe(DirtyLayer.Board | DirtyLayer.Pieces);
+		// mount marks DirtyLayer.All (Board | Pieces | Drag = 7)
+		expect(invalidation.layers).toBe(DirtyLayer.All);
 	});
 
 	it('mount measures container correctly (min of width/height)', async () => {
@@ -149,9 +138,9 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [, geometry] = renderSpy.mock.calls[0];
-		// Board size should be min(600, 400) = 400
-		expect(geometry.boardSize).toBe(400);
+		// render(board, invalidation, geometry)
+		const [, , geometry] = renderSpy.mock.calls[0];
+		expect(geometry.boardSize).toBe(400); // min(600, 400)
 	});
 
 	it('post-mount state mutation schedules render', () => {
@@ -164,16 +153,13 @@ describe('core/runtime/boardRuntime', () => {
 
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
-				// Clear initial render
 				renderSpy.mockClear();
 
-				// Mutate state post-mount
-				runtime.setPosition({ e4: { color: 'w', role: 'p' } });
+				runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
 
 				requestAnimationFrame(() => {
 					expect(renderSpy).toHaveBeenCalled();
 					const [snapshot] = renderSpy.mock.calls[0];
-					// Verify updated position
 					expect(snapshot.pieces[28]).not.toBe(0); // e4 = 28
 					resolve();
 				});
@@ -182,33 +168,29 @@ describe('core/runtime/boardRuntime', () => {
 	});
 
 	it('orientation change recreates geometry', () => {
-		// Verifies: setOrientation recreates geometry (immutable) and reflects new orientation in square positions
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
 
-		const runtime = createBoardRuntime({ renderer, orientation: 'white' });
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
 		runtime.mount(container);
 
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
-				const [, geom1] = renderSpy.mock.calls[0];
+				// render(board, invalidation, geometry)
+				const [, , geom1] = renderSpy.mock.calls[0];
 				const a1BeforeChange = geom1.squareRect(0);
 				renderSpy.mockClear();
 
-				// Change orientation
 				runtime.setOrientation('black');
 
 				requestAnimationFrame(() => {
 					expect(renderSpy).toHaveBeenCalled();
-					const [, geom2] = renderSpy.mock.calls[0];
+					const [, , geom2] = renderSpy.mock.calls[0];
 
-					// Verify geometry was recreated (immutable - different object)
-					expect(geom1).not.toBe(geom2);
+					expect(geom1).not.toBe(geom2); // immutable — new object
 
-					// Verify geometry reflects new orientation through observable square positions
-					// For white: a1 (sq=0) is at bottom-left
-					// For black: a1 (sq=0) is at top-right
+					// a1 moves from bottom-left (white) to top-right (black)
 					const a1AfterChange = geom2.squareRect(0);
 					expect(a1BeforeChange.x).not.toBe(a1AfterChange.x);
 					expect(a1BeforeChange.y).not.toBe(a1AfterChange.y);
@@ -220,7 +202,6 @@ describe('core/runtime/boardRuntime', () => {
 	});
 
 	it('each render receives fresh dirty flags from preceding mutations', () => {
-		// Verifies: dirty state is cleared after each render (non-accumulation proves cleanup)
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -230,32 +211,25 @@ describe('core/runtime/boardRuntime', () => {
 
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
-				// First render complete - verify it had dirty layers
-				const [, , invalidation1] = renderSpy.mock.calls[0];
-				expect(invalidation1.layers).toBe(DirtyLayer.Board | DirtyLayer.Pieces);
+				// render(board, invalidation, geometry)
+				const [, invalidation1] = renderSpy.mock.calls[0];
+				// mount marks DirtyLayer.All (Board | Pieces | Drag = 7)
+				expect(invalidation1.layers).toBe(DirtyLayer.All);
 
-				// Now mutate state and capture the second render
-				runtime.setPosition({ e4: { color: 'w', role: 'p' } });
+				runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
 
 				requestAnimationFrame(() => {
-					// Second render complete - verify it had dirty layers from mutation
 					expect(renderSpy).toHaveBeenCalledTimes(2);
-					const [, , invalidation2] = renderSpy.mock.calls[1];
-
-					// Verify second render has Pieces layer (from setPosition)
+					const [, invalidation2] = renderSpy.mock.calls[1];
 					expect(invalidation2.layers & DirtyLayer.Pieces).not.toBe(0);
-
-					// Observable behavior: each render gets fresh dirty flags from its preceding mutation,
-					// not accumulated dirty from previous renders (which proves cleanup is working)
-
 					resolve();
 				});
 			});
 		});
 	});
 
-	it('initial render uses Board and Pieces layers', async () => {
-		// Verifies: Phase 2.1 contract - initial mount marks exactly Board | Pieces dirty
+	it('initial render uses DirtyLayer.All', async () => {
+		// mount() marks DirtyLayer.All (Board | Pieces | Drag) for a full initial redraw
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -266,10 +240,9 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [, , invalidation] = renderSpy.mock.calls[0];
-
-		// Verify exact initial dirty layers (Phase 2.1 contract)
-		expect(invalidation.layers).toBe(DirtyLayer.Board | DirtyLayer.Pieces);
+		// render(board, invalidation, geometry)
+		const [, invalidation] = renderSpy.mock.calls[0];
+		expect(invalidation.layers).toBe(DirtyLayer.All);
 	});
 
 	it('throws error when mounting twice', () => {
@@ -291,10 +264,9 @@ describe('core/runtime/boardRuntime', () => {
 		expect(() => runtime.mount(container)).toThrow('invalid container size');
 	});
 
-	// Phase 2.2: Resize and destroy tests
+	// ── Resize and destroy ─────────────────────────────────────────────────────
 
 	it('host resize triggers rerender with new geometry', async () => {
-		// Verifies: ResizeObserver detects size change and refreshes geometry
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -304,32 +276,28 @@ describe('core/runtime/boardRuntime', () => {
 
 		await waitForRender();
 
-		const [, geom1] = renderSpy.mock.calls[0];
+		const [, , geom1] = renderSpy.mock.calls[0];
 		expect(geom1.boardSize).toBe(400);
 		renderSpy.mockClear();
 
-		// Resize container
 		Object.defineProperty(container, 'clientWidth', { value: 600, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 600, configurable: true });
 
-		// Manually trigger ResizeObserver callback
 		activeObserver?.trigger();
 
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [, geom2, invalidation] = renderSpy.mock.calls[0];
+		// render(board, invalidation, geometry)
+		const [, invalidation, geom2] = renderSpy.mock.calls[0];
 
-		// Verify new geometry
 		expect(geom2.boardSize).toBe(600);
 		expect(geom1).not.toBe(geom2); // immutable
 
-		// Verify resize marks Board + Pieces dirty
 		expect(invalidation.layers).toBe(DirtyLayer.Board | DirtyLayer.Pieces);
 	});
 
 	it('no rerender when measured size unchanged', async () => {
-		// Verifies: resize with same size is a no-op
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -340,19 +308,15 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 		renderSpy.mockClear();
 
-		// "Resize" to same dimensions
 		Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 400, configurable: true });
 
-		// Manually trigger ResizeObserver callback
 		activeObserver?.trigger();
 
-		// No new render should have been scheduled
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
 	it('zero-size resize is ignored without throwing', async () => {
-		// Verifies: non-positive size during resize is silently ignored
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -363,52 +327,42 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 		renderSpy.mockClear();
 
-		// Resize to zero (e.g., container hidden)
 		Object.defineProperty(container, 'clientWidth', { value: 0, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 0, configurable: true });
 
-		// Manually trigger ResizeObserver callback
 		activeObserver?.trigger();
 
-		// No error thrown, no render
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
 	it('resize uses latest orientation', async () => {
-		// Verifies: resize after orientation change uses new orientation
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
 
-		const runtime = createBoardRuntime({ renderer, orientation: 'white' });
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
 		runtime.mount(container);
 
 		await waitForRender();
 
-		// Change orientation
 		runtime.setOrientation('black');
 
 		await waitForRender();
 		renderSpy.mockClear();
 
-		// Now resize
 		Object.defineProperty(container, 'clientWidth', { value: 500, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 500, configurable: true });
 
-		// Manually trigger ResizeObserver callback
 		activeObserver?.trigger();
 
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [, geomAfterResize] = renderSpy.mock.calls[0];
-
-		// Verify resize used black orientation and new size
+		const [, , geomAfterResize] = renderSpy.mock.calls[0];
 		expect(geomAfterResize.boardSize).toBe(500);
 	});
 
 	it('destroy disconnects resize observer', async () => {
-		// Verifies: destroy() prevents further resize effects
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -419,36 +373,29 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 		renderSpy.mockClear();
 
-		// Destroy runtime
 		runtime.destroy();
 
-		// Resize container after destroy
 		Object.defineProperty(container, 'clientWidth', { value: 600, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 600, configurable: true });
 
-		// Manually trigger ResizeObserver callback
 		activeObserver?.trigger();
 
-		// No render should occur after destroy
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
 	it('destroy is idempotent', () => {
-		// Verifies: calling destroy multiple times is safe
 		const renderer = createTestRenderer();
 		const container = createMockContainer(400, 400);
 
 		const runtime = createBoardRuntime({ renderer });
 		runtime.mount(container);
 
-		// Should not throw
 		runtime.destroy();
 		runtime.destroy();
 		runtime.destroy();
 	});
 
 	it('resize after destroy does not trigger render effects', async () => {
-		// Verifies: resize observation is fully disconnected after destroy
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -462,29 +409,22 @@ describe('core/runtime/boardRuntime', () => {
 
 		runtime.destroy();
 
-		// Multiple resizes after destroy
 		Object.defineProperty(container, 'clientWidth', { value: 500, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 500, configurable: true });
-
-		// Manually trigger ResizeObserver callback
 		activeObserver?.trigger();
 
 		await waitForRender();
 
 		Object.defineProperty(container, 'clientWidth', { value: 600, configurable: true });
 		Object.defineProperty(container, 'clientHeight', { value: 600, configurable: true });
-
-		// Manually trigger ResizeObserver callback again
 		activeObserver?.trigger();
 
 		await waitForRender();
 
-		// No new renders after destroy
 		expect(renderSpy.mock.calls.length).toBe(initialRenderCount);
 	});
 
 	it('throws error when mounting after destroy', () => {
-		// Verifies: mount after destroy is rejected
 		const renderer = createTestRenderer();
 		const container = createMockContainer(400, 400);
 
@@ -495,35 +435,84 @@ describe('core/runtime/boardRuntime', () => {
 		expect(() => runtime.mount(container)).toThrow('cannot mount after destroy');
 	});
 
-	// Phase 2.3a: Movability tests
+	// ── Board state / view state split: selection and orientation ──────────────
 
-	it('first render observes the latest pre-mount movability value', async () => {
-		// Verifies: pre-mount movability updates are accumulated and reflected in first render
+	it('setBoardPosition clears selection after a successful change', () => {
+		// Verifies: runtime clears viewState.selected when board position changes
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.mount(container);
+
+		// Set a selection
+		const selChanged = runtime.select(12); // e2
+		expect(selChanged).toBe(true);
+
+		// Change board position — should clear selection
+		runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
+
+		// Observable: select(null) returns false only if selection is already null
+		const clearResult = runtime.select(null);
+		expect(clearResult).toBe(false); // already null — confirms selection was cleared
+	});
+
+	it('setOrientation before mount does not throw and persists orientation', () => {
+		// Verifies: setOrientation is safe pre-mount and stores the new orientation
+		const renderer = createTestRenderer();
+
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
+
+		// Must not throw
+		expect(() => runtime.setOrientation('black')).not.toThrow();
+
+		// Orientation must be persisted: verify via geometry after mount
+		const container = createMockContainer(400, 400);
+		const renderSpy = vi.spyOn(renderer, 'render');
+		runtime.mount(container);
+
+		return new Promise<void>((resolve) => {
+			requestAnimationFrame(() => {
+				expect(renderSpy).toHaveBeenCalled();
+				// render(board, invalidation, geometry)
+				const [, , geometry] = renderSpy.mock.calls[0];
+
+				// Black orientation: a1 (sq=0) should be at top-right, not bottom-left
+				// For white: a1.y = 7 * squareSize (bottom row)
+				// For black: a1.y = 0 (top row)
+				const a1 = geometry.squareRect(0);
+				expect(a1.y).toBe(0); // top row confirms black orientation
+				expect(geometry.orientation).toBe('black');
+
+				resolve();
+			});
+		});
+	});
+
+	it('setOrientation no-op before mount does not schedule render on mount', async () => {
+		// Verifies: no-op setOrientation (same value) does not cause extra scheduling
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
 
-		const runtime = createBoardRuntime({ renderer });
-		runtime.setMovability({ mode: 'free', color: 'white' });
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28] } });
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
+
+		// No-op: same orientation
+		const changed = runtime.setOrientation('white');
+		expect(changed).toBe(false);
 
 		runtime.mount(container);
 
 		await waitForRender();
 
-		expect(renderSpy).toHaveBeenCalled();
-		const [snapshot] = renderSpy.mock.calls[0];
-
-		// Verify latest pre-mount movability is in snapshot
-		expect(snapshot.movability).toEqual({
-			mode: 'strict',
-			color: 'white',
-			destinations: { 12: [28] }
-		});
+		// Only the initial mount render should have occurred
+		expect(renderSpy).toHaveBeenCalledTimes(1);
 	});
 
-	it('post-mount movability update schedules render', async () => {
-		// Verifies: post-mount movability changes schedule render
+	// ── Scheduling contract ────────────────────────────────────────────────────
+
+	it('setBoardPosition schedules render when mounted', async () => {
+		// setBoardPosition has InvalidationWriter → runtime schedules after change
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
@@ -534,304 +523,341 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 		renderSpy.mockClear();
 
-		// Update movability post-mount
-		runtime.setMovability({ mode: 'free', color: 'black' });
+		runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
 
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [snapshot] = renderSpy.mock.calls[0];
-		expect(snapshot.movability).toEqual({ mode: 'free', color: 'black' });
 	});
 
-	it('no-op movability update does not schedule extra render', async () => {
-		// Verifies: structurally equal movability update is a no-op
+	it('setTurn does not schedule render', async () => {
+		// setTurn has no InvalidationWriter → runtime does not schedule
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.setTurn('black');
+
+		await waitForRender();
+
+		expect(renderSpy).not.toHaveBeenCalled();
+	});
+
+	it('move schedules render when mounted', async () => {
+		// move has InvalidationWriter → runtime schedules after move
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
 
 		const runtime = createBoardRuntime({
 			renderer,
-			movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } }
+			board: { position: { e2: { color: 'w', role: 'p' } } }
+		});
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.move({ from: 'e2', to: 'e4' });
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalled();
+	});
+
+	it('setOrientation schedules render when mounted and changed', async () => {
+		// setOrientation has InvalidationWriter → runtime schedules after change
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.setOrientation('black');
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalled();
+	});
+
+	it('setOrientation no-op does not schedule render', async () => {
+		// No-op setOrientation (same value) → returns false → no scheduling
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		const changed = runtime.setOrientation('white'); // no-op
+		expect(changed).toBe(false);
+
+		await waitForRender();
+
+		expect(renderSpy).not.toHaveBeenCalled();
+	});
+
+	it('select does not schedule render', async () => {
+		// select has no InvalidationWriter → runtime does not schedule
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.select(12); // e2
+
+		await waitForRender();
+
+		expect(renderSpy).not.toHaveBeenCalled();
+	});
+
+	it('setMovability does not schedule render', async () => {
+		// setMovability has no InvalidationWriter → runtime does not schedule
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.setMovability({ mode: 'free', color: 'white' });
+
+		await waitForRender();
+
+		expect(renderSpy).not.toHaveBeenCalled();
+	});
+
+	it('no-op setMovability (structurally equal) does not schedule render', async () => {
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
 		});
 		runtime.mount(container);
 
 		await waitForRender();
 		const initialCallCount = renderSpy.mock.calls.length;
 
-		// Set same movability (structurally equal)
 		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
 
 		await waitForRender();
 
-		// No new render should be scheduled (call count should remain the same)
 		expect(renderSpy.mock.calls.length).toBe(initialCallCount);
 	});
 
-	it('movability change marks Pieces layer dirty', async () => {
-		// Verifies: movability changes mark DirtyLayer.Pieces
+	// ── Movability consultation ────────────────────────────────────────────────
+
+	it('null movability blocks all move attempts', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: undefined }
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
+	});
+
+	it('disabled movability blocks all move attempts', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'disabled' } }
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
+	});
+
+	it('free movability allows start from allowed color piece', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'free', color: 'white' } }
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(12)).toBe(true); // white pawn e2
+		expect(runtime.canStartMoveFrom(1)).toBe(true); // white knight b1
+	});
+
+	it('free movability rejects start from disallowed color piece', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'free', color: 'white' } }
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(52)).toBe(false); // black pawn e7
+		expect(runtime.canStartMoveFrom(57)).toBe(false); // black knight b8
+	});
+
+	it('strict movability allows start only when source has destinations', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: {
+				movability: {
+					mode: 'strict',
+					color: 'white',
+					destinations: { 12: [28, 20] }
+				}
+			}
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(12)).toBe(true); // e2 has destinations
+		expect(runtime.canStartMoveFrom(11)).toBe(false); // d2 has no destinations
+	});
+
+	it('strict movability allows only listed target squares', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: {
+				movability: {
+					mode: 'strict',
+					color: 'white',
+					destinations: { 12: [28, 20] }
+				}
+			}
+		});
+		runtime.mount(container);
+
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(true); // e2->e4 listed
+		expect(runtime.isMoveAttemptAllowed(12, 20)).toBe(true); // e2->e3 listed
+		expect(runtime.isMoveAttemptAllowed(12, 36)).toBe(false); // e2->e5 not listed
+	});
+
+	it('changing movability via setMovability changes eligibility behavior', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'disabled' } }
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+
+		runtime.setMovability({ mode: 'free', color: 'white' });
+		expect(runtime.canStartMoveFrom(12)).toBe(true);
+
+		runtime.setMovability({ mode: 'free', color: 'black' });
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+		expect(runtime.canStartMoveFrom(52)).toBe(true);
+	});
+
+	it('turn does not affect movability eligibility', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' }, // turn is white
+			view: { movability: { mode: 'free', color: 'black' } }
+		});
+		runtime.mount(container);
+
+		// Even though turn is white, black pieces are movable (movability says black)
+		expect(runtime.canStartMoveFrom(52)).toBe(true); // black pawn e7
+		expect(runtime.isMoveAttemptAllowed(52, 36)).toBe(true); // e7->e5
+
+		// White pieces are NOT movable
+		expect(runtime.canStartMoveFrom(12)).toBe(false); // white pawn e2
+	});
+
+	// ── Core rendering path: geometry/orientation flow ─────────────────────────
+
+	it('render geometry carries orientation — board snapshot does not', async () => {
+		// Verifies: orientation is delivered to the renderer via RenderGeometry,
+		// not via BoardStateSnapshot. BoardStateSnapshot has no orientation field.
 		const renderer = createTestRenderer();
 		const renderSpy = vi.spyOn(renderer, 'render');
 		const container = createMockContainer(400, 400);
 
-		const runtime = createBoardRuntime({ renderer });
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'black' } });
+		runtime.mount(container);
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalled();
+		// render(board, invalidation, geometry)
+		const [boardSnapshot, , geometry] = renderSpy.mock.calls[0];
+
+		// Geometry carries orientation
+		expect(geometry.orientation).toBe('black');
+
+		// Board snapshot does NOT carry orientation
+		expect('orientation' in boardSnapshot).toBe(false);
+	});
+
+	it('geometry orientation updates when setOrientation is called', async () => {
+		// Verifies: after setOrientation, the next render receives geometry with the new orientation
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
 		runtime.mount(container);
 
 		await waitForRender();
 		renderSpy.mockClear();
 
-		runtime.setMovability({ mode: 'disabled' });
+		runtime.setOrientation('black');
 
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [, , invalidation] = renderSpy.mock.calls[0];
-
-		// Verify Pieces layer is marked dirty
-		expect(invalidation.layers & DirtyLayer.Pieces).not.toBe(0);
-	});
-
-	it('movability and turn remain independent', async () => {
-		// Verifies: turn and movability do not infer from each other
-		const renderer = createTestRenderer();
-		const renderSpy = vi.spyOn(renderer, 'render');
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start', // white to move
-			movability: { mode: 'free', color: 'black' }
-		});
-		runtime.mount(container);
-
-		await waitForRender();
-
-		const [snapshot] = renderSpy.mock.calls[0];
-
-		// Verify turn is white (from start position)
-		expect(snapshot.turn).toBe('white');
-		// Verify movability is black (independent)
-		expect(snapshot.movability).toEqual({ mode: 'free', color: 'black' });
-	});
-
-	// Phase 2.3b: Movability consultation tests
-
-	it('null movability blocks all move attempts', () => {
-		// Verifies: null movability returns false for all queries
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: undefined
-		});
-		runtime.mount(container);
-
-		// Try to start move from white pawn on e2 (square 12)
-		expect(runtime.canStartMoveFrom(12)).toBe(false);
-		// Try to attempt move from e2 to e4
-		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
-	});
-
-	it('disabled movability blocks all move attempts', () => {
-		// Verifies: disabled mode returns false for all queries
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: { mode: 'disabled' }
-		});
-		runtime.mount(container);
-
-		// Try to start move from white pawn on e2 (square 12)
-		expect(runtime.canStartMoveFrom(12)).toBe(false);
-		// Try to attempt move from e2 to e4
-		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
-	});
-
-	it('free movability allows start from allowed color piece', () => {
-		// Verifies: free mode with white allows starting from white pieces
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: { mode: 'free', color: 'white' }
-		});
-		runtime.mount(container);
-
-		// White pawn on e2 (square 12) should be allowed
-		expect(runtime.canStartMoveFrom(12)).toBe(true);
-		// White knight on b1 (square 1) should be allowed
-		expect(runtime.canStartMoveFrom(1)).toBe(true);
-	});
-
-	it('free movability rejects start from disallowed color piece', () => {
-		// Verifies: free mode with white rejects starting from black pieces
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: { mode: 'free', color: 'white' }
-		});
-		runtime.mount(container);
-
-		// Black pawn on e7 (square 52) should be rejected
-		expect(runtime.canStartMoveFrom(52)).toBe(false);
-		// Black knight on b8 (square 57) should be rejected
-		expect(runtime.canStartMoveFrom(57)).toBe(false);
-	});
-
-	it('strict movability allows start only when source has destinations', () => {
-		// Verifies: strict mode requires destinations[from] to exist and have length > 0
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: {
-				mode: 'strict',
-				color: 'white',
-				destinations: {
-					12: [28, 20] // e2 can move to e4 or e3
-				}
-			}
-		});
-		runtime.mount(container);
-
-		// e2 (square 12) has destinations, should be allowed
-		expect(runtime.canStartMoveFrom(12)).toBe(true);
-		// d2 (square 11) has no destinations, should be rejected
-		expect(runtime.canStartMoveFrom(11)).toBe(false);
-	});
-
-	it('strict movability rejects start when source has no destinations', () => {
-		// Verifies: strict mode rejects pieces without destinations
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: {
-				mode: 'strict',
-				color: 'white',
-				destinations: {
-					12: [28] // only e2 has destinations
-				}
-			}
-		});
-		runtime.mount(container);
-
-		// f2 (square 13) has no destinations, should be rejected
-		expect(runtime.canStartMoveFrom(13)).toBe(false);
-		// g1 (square 6) knight has no destinations, should be rejected
-		expect(runtime.canStartMoveFrom(6)).toBe(false);
-	});
-
-	it('strict movability allows only listed target squares', () => {
-		// Verifies: strict mode allows moves only to listed destinations
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: {
-				mode: 'strict',
-				color: 'white',
-				destinations: {
-					12: [28, 20] // e2 can move to e4 (28) or e3 (20)
-				}
-			}
-		});
-		runtime.mount(container);
-
-		// e2 to e4 (12 -> 28) is in list, should be allowed
-		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(true);
-		// e2 to e3 (12 -> 20) is in list, should be allowed
-		expect(runtime.isMoveAttemptAllowed(12, 20)).toBe(true);
-	});
-
-	it('strict movability rejects unlisted target squares', () => {
-		// Verifies: strict mode rejects moves to unlisted destinations
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: {
-				mode: 'strict',
-				color: 'white',
-				destinations: {
-					12: [28] // e2 can only move to e4 (28)
-				}
-			}
-		});
-		runtime.mount(container);
-
-		// e2 to e3 (12 -> 20) is NOT in list, should be rejected
-		expect(runtime.isMoveAttemptAllowed(12, 20)).toBe(false);
-		// e2 to e5 (12 -> 36) is NOT in list, should be rejected
-		expect(runtime.isMoveAttemptAllowed(12, 36)).toBe(false);
-	});
-
-	it('changing movability via setMovability changes eligibility behavior', () => {
-		// Verifies: setMovability updates affect query results
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start',
-			movability: { mode: 'disabled' }
-		});
-		runtime.mount(container);
-
-		// Initially disabled, should reject
-		expect(runtime.canStartMoveFrom(12)).toBe(false);
-
-		// Change to free white
-		runtime.setMovability({ mode: 'free', color: 'white' });
-
-		// Now should allow white pieces
-		expect(runtime.canStartMoveFrom(12)).toBe(true);
-
-		// Change to free black
-		runtime.setMovability({ mode: 'free', color: 'black' });
-
-		// Now should reject white pieces
-		expect(runtime.canStartMoveFrom(12)).toBe(false);
-		// But allow black pieces
-		expect(runtime.canStartMoveFrom(52)).toBe(true);
-	});
-
-	it('turn does not affect movability eligibility', () => {
-		// Verifies: movability is independent of turn
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			position: 'start', // turn is white
-			movability: { mode: 'free', color: 'black' }
-		});
-		runtime.mount(container);
-
-		// Even though turn is white, black pieces should be movable
-		// because movability says black
-		expect(runtime.canStartMoveFrom(52)).toBe(true); // black pawn on e7
-		expect(runtime.isMoveAttemptAllowed(52, 36)).toBe(true); // e7 to e5
-
-		// White pieces should NOT be movable
-		expect(runtime.canStartMoveFrom(12)).toBe(false); // white pawn on e2
+		// render(board, invalidation, geometry)
+		const [, , geometry] = renderSpy.mock.calls[0];
+		expect(geometry.orientation).toBe('black');
 	});
 });

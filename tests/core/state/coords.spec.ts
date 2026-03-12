@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { Square } from '../../../src/core/state/boardTypes';
 import {
 	assertValidSquare,
 	fileOf,
@@ -8,7 +9,6 @@ import {
 	squareOf,
 	toAlgebraic
 } from '../../../src/core/state/coords';
-import { Square } from '../../../src/core/state/types';
 
 describe('coords', () => {
 	it('fromAlgebraic maps algebraic to numeric index correctly', () => {

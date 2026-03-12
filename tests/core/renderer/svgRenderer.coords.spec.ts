@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import { makeRenderGeometry } from '../../../src/core/renderer/geometry';
+import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import { DEFAULT_RENDER_CONFIG } from '../../../src/core/renderer/types';
-import { DirtyLayer, StateSnapshot } from '../../../src/core/state/types';
+import { DirtyLayer } from '../../../src/core/scheduler/types';
+import type { BoardStateSnapshot } from '../../../src/core/state/boardTypes';
+
+/** Minimal board snapshot for coordinate rendering tests (no pieces needed) */
+const emptyBoard: BoardStateSnapshot = {
+	pieces: new Uint8Array(64),
+	ids: new Int16Array(64).fill(-1),
+	turn: 'white'
+};
 
 describe('SvgRenderer coordinates rendering', () => {
 	it('renders 16 coordinate labels total (8 ranks + 8 files)', () => {
@@ -13,21 +21,10 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'white',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
 		const geometry = makeRenderGeometry(800, 'white');
-		const invalidation = { layers: DirtyLayer.Board };
+		// render(board, invalidation, geometry)
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
-		renderer.render(state, geometry, invalidation);
-
-		// Total labels should be 16 (8 ranks + 8 files)
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 		expect(labels.length).toBe(16);
 
@@ -42,27 +39,15 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'white',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
 		const geometry = makeRenderGeometry(800, 'white');
-		const invalidation = { layers: DirtyLayer.Board };
-
-		renderer.render(state, geometry, invalidation);
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
-		// Rank labels should be anchored to a-file squares for white orientation
 		const rankLabels = labels.filter((el) => el.getAttribute('text-anchor') === 'start');
 		expect(rankLabels.length).toBe(8);
 
-		// Verify semantic mapping: rank labels "8" through "1" map to squares a8 through a1
+		// Rank labels "8" through "1" map to squares a8 through a1
 		const expectedMapping = [
 			{ text: '8', square: 'a8' },
 			{ text: '7', square: 'a7' },
@@ -91,27 +76,15 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'white',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
 		const geometry = makeRenderGeometry(800, 'white');
-		const invalidation = { layers: DirtyLayer.Board };
-
-		renderer.render(state, geometry, invalidation);
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
-		// File labels should be anchored to rank 1 squares for white orientation
 		const fileLabels = labels.filter((el) => el.getAttribute('text-anchor') === 'end');
 		expect(fileLabels.length).toBe(8);
 
-		// Verify semantic mapping: file labels "a" through "h" map to squares a1 through h1
+		// File labels "a" through "h" map to squares a1 through h1
 		const expectedMapping = [
 			{ text: 'a', square: 'a1' },
 			{ text: 'b', square: 'b1' },
@@ -140,27 +113,16 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'black',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
+		// Orientation is passed via geometry, not board snapshot
 		const geometry = makeRenderGeometry(800, 'black');
-		const invalidation = { layers: DirtyLayer.Board };
-
-		renderer.render(state, geometry, invalidation);
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
-		// Rank labels should be anchored to h-file squares for black orientation
 		const rankLabels = labels.filter((el) => el.getAttribute('text-anchor') === 'start');
 		expect(rankLabels.length).toBe(8);
 
-		// Verify semantic mapping: rank labels "1" through "8" map to squares h1 through h8
+		// Rank labels "1" through "8" map to squares h1 through h8
 		const expectedMapping = [
 			{ text: '1', square: 'h1' },
 			{ text: '2', square: 'h2' },
@@ -189,27 +151,16 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'black',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
+		// Orientation is passed via geometry, not board snapshot
 		const geometry = makeRenderGeometry(800, 'black');
-		const invalidation = { layers: DirtyLayer.Board };
-
-		renderer.render(state, geometry, invalidation);
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
-		// File labels should be anchored to rank 8 squares for black orientation
 		const fileLabels = labels.filter((el) => el.getAttribute('text-anchor') === 'end');
 		expect(fileLabels.length).toBe(8);
 
-		// Verify semantic mapping: file labels "h" through "a" map to squares h8 through a8
+		// File labels "h" through "a" map to squares h8 through a8
 		const expectedMapping = [
 			{ text: 'h', square: 'h8' },
 			{ text: 'g', square: 'g8' },
@@ -238,30 +189,18 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'white',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
 		const geometry = makeRenderGeometry(800, 'white');
-		const invalidation = { layers: DirtyLayer.Board };
-
-		renderer.render(state, geometry, invalidation);
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
-		// Check a few specific labels
-		// a8 (sq=56) is light square, should use dark color for contrast (dark text on light square)
+		// a8 (sq=56) is light square → dark text for contrast
 		const a8Label = labels.find((el) => el.textContent === '8');
-		expect(a8Label?.getAttribute('fill')).toBe(DEFAULT_RENDER_CONFIG.coords?.dark); // default coords.dark
+		expect(a8Label?.getAttribute('fill')).toBe(DEFAULT_RENDER_CONFIG.coords?.dark);
 
-		// a1 (sq=0) is dark square, should use light color for contrast (light text on dark square)
+		// a1 (sq=0) is dark square → light text for contrast
 		const a1Label = labels.find((el) => el.textContent === '1');
-		expect(a1Label?.getAttribute('fill')).toBe(DEFAULT_RENDER_CONFIG.coords?.light); // default coords.light
+		expect(a1Label?.getAttribute('fill')).toBe(DEFAULT_RENDER_CONFIG.coords?.light);
 
 		renderer.unmount();
 	});
@@ -270,8 +209,8 @@ describe('SvgRenderer coordinates rendering', () => {
 		const opts = {
 			config: {
 				coords: {
-					light: '#ff0000', // red text on dark squares
-					dark: '#00ff00' // green text on light squares
+					light: '#ff0000',
+					dark: '#00ff00'
 				}
 			}
 		};
@@ -282,28 +221,16 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const state: StateSnapshot = {
-			pieces: new Uint8Array(64),
-			ids: new Int16Array(64),
-			orientation: 'white',
-			turn: 'white',
-			selected: null,
-			movability: null
-		};
-
 		const geometry = makeRenderGeometry(800, 'white');
-		const invalidation = { layers: DirtyLayer.Board };
-
-		renderer.render(state, geometry, invalidation);
+		renderer.render(emptyBoard, { layers: DirtyLayer.Board }, geometry);
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
-		// Check that labels use the custom colors based on square type
-		// a8 (sq=56) is light square, should use coords.dark (dark text on light square)
+		// a8 (sq=56) is light square → coords.dark text
 		const a8Label = labels.find((el) => el.textContent === '8');
 		expect(a8Label?.getAttribute('fill')).toBe(opts.config?.coords?.dark);
 
-		// a1 (sq=0) is dark square, should use coords.light (light text on dark square)
+		// a1 (sq=0) is dark square → coords.light text
 		const a1Label = labels.find((el) => el.textContent === '1');
 		expect(a1Label?.getAttribute('fill')).toBe(opts.config?.coords?.light);
 
