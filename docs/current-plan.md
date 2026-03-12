@@ -98,7 +98,7 @@
 
 ### Board state / view state split
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 - Separate facts about the position from presentation / interaction state
 - Keep board state focused on position facts:
