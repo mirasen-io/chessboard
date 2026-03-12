@@ -2,22 +2,25 @@ We are continuing work on `kt-npm-modules/chessboard`.
 
 ## Handoff summary
 
-- Project: `kt-npm-modules/chessboard` — MIT-licensed modern TypeScript chessboard engine with chessground-like interaction and cm-chessboard-like extension ideas.
-- Current task completed: Phase 2.3a — internal-only movability feeding into runtime/state/snapshot.
-- Confirmed: runtime remains internal POJO/factory style via `createBoardRuntime(...)`, not a class.
-- Confirmed: runtime owns mount state, host-derived board size, geometry, scheduler wiring, render permission, resize observation, and minimal internal-only `destroy()`.
-- Confirmed: board remains rule-agnostic; legality source stays external and host/controller-owned.
-- Confirmed: external interaction policy now enters runtime via `setMovability(...)`, not `setDestinations(...)`.
-- Confirmed movability model: `MovableColor = 'white' | 'black' | 'both'`; `Movability = StrictMovability | FreeMovability | DisabledMovability`.
-- Confirmed `StrictMovability` carries external `destinations`; `FreeMovability` allows unrestricted move interaction; `DisabledMovability` means move interaction disabled only.
-- Confirmed: renderer does not consume movability in Phase 2.3a; movability lives in internal state/snapshot for runtime read model and future input/extensions.
-- Confirmed: `turn` and `movability` are independent inputs; board must not infer one from the other.
-- Confirmed: internal state/snapshot use normalized `null` rather than `undefined`; optionality is only at input/options boundary.
-- Confirmed: `setMovability` reducer returns `boolean` changed-flag; runtime schedules only when `mounted && changed`.
-- Confirmed: no renderer redesign, no scheduler redesign, no drag/input/controller implementation, no public API shaping, no extension model work in Phase 2.3a.
-- Relevant files: `src/core/state/types.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `src/core/runtime/boardRuntime.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `tests/core/renderer/svgRenderer.coords.spec.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `current-plan.md`.
-- Known follow-up note: movability is currently stored by reference; later consider defensive cloning/normalization or an explicit immutable-input contract.
-- Next step: Phase 2.3b — runtime/input begins consulting movability for move-attempt eligibility while keeping scope narrow and avoiding drag lifecycle/public API work.
+- Project: `kt-npm-modules/chessboard` — modern TypeScript chessboard engine with internal runtime, renderer, and future extension model.
+- Recently completed: Phase 2.3a and 2.3b are accepted and complete.
+- Confirmed: runtime stays internal POJO/factory style via `createBoardRuntime(...)`, not a class.
+- Confirmed: board remains rule-agnostic; legality source stays external.
+- Confirmed: movability is the external interaction-policy input; `turn` and movability remain independent.
+- Confirmed: 2.3b added internal runtime movability eligibility queries and tests.
+- Completed follow-up: coordinate labels gained `data-square` attributes for inspectability/tests.
+- Important finding: the apparent black-orientation coords bug was not a renderer bug; it was a manual/demo wiring mismatch between `state.orientation` and geometry orientation.
+- Confirmed cleanup already done: render path now uses `geometry.orientation` as the authoritative orientation source.
+- Confirmed cleanup already done: `RenderGeometry` now includes `orientation`.
+- Confirmed cleanup already done: renderer-facing state type was narrowed (`RenderStateSnapshot`) so renderer no longer depends on `StateSnapshot.orientation`.
+- Confirmed cleanup already done: `InternalState` was moved into `src/core/state/types.ts`; `InternalState` and `StateSnapshot` remain separate types but now live side by side.
+- Confirmed type cleanup: keep `Orientation` alias; keep `turn` as `Color` (do not keep `SideToMove` alias).
+- Key architectural conclusion: the correct boundary is “facts about the position” vs presentation/interaction state.
+- Position facts: `pieces`, `ids`, `turn`.
+- Likely non-position state: `orientation`, `selected`, and future drag/presentation state; these should move toward a view-state layer.
+- Constraint: do not introduce a full controller yet; establish the logical board-state / view-state split first.
+- Relevant files: `src/core/state/types.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/runtime/movability.ts`, `src/core/renderer/types.ts`, `src/core/renderer/geometry.ts`, `src/core/renderer/SvgRenderer.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `tests/core/renderer/svgRenderer.coords.spec.ts`, `current-plan.md`.
+- Next step: work on the new unnumbered plan section `Board state / view state split`, then continue to `2.4 Runtime tests`.
 
 ## Attached plan
 
@@ -26,60 +29,55 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-We are continuing work on `kt-npm-modules/chessboard`.
+We are continuing `kt-npm-modules/chessboard`.
 
-Phase 2.3a is complete and accepted. Use the attached `current-plan.md` as the roadmap source of truth, and continue with the next narrow step: **Phase 2.3b — runtime/input begins consulting movability**.
+Use the attached updated `current-plan.md` as the source of truth. In this chat, work only on the new step inserted before `2.4 Runtime tests`:
+
+### Board state / view state split
 
 Working mode for this chat:
 
-1. brief audit of the current implementation relevant to Phase 2.3b
-2. identify the smallest correct behavioral step to implement now
+1. brief audit of current ownership/state boundaries
+2. identify the smallest correct refactor step now
 3. recommend only minimal changes needed
 4. prepare a precise implementation prompt for Cline
 5. later review the patch in a narrow diff loop
 
-Keep these confirmed decisions in force unless explicitly revised:
+Confirmed decisions to keep in force unless explicitly revised:
 
-- runtime is internal POJO/factory style via `createBoardRuntime(...)`, not a class
-- runtime owns mount state, host-derived board size, geometry, scheduler wiring, render permission, resize observation, and minimal internal-only `destroy()`
-- board remains rule-agnostic; legality source stays external
-- external interaction policy enters runtime via `setMovability(...)`
-- movability model is:
-  - `MovableColor = 'white' | 'black' | 'both'`
-  - `StrictMovability`
-  - `FreeMovability`
-  - `DisabledMovability`
-  - `Movability = StrictMovability | FreeMovability | DisabledMovability`
-- `StrictMovability` carries external `destinations`
-- `DisabledMovability` means move interaction disabled only, not all board interaction
-- renderer does not consume movability directly
-- `turn` and `movability` are independent; board must not infer one from the other
-- internal normalized state/snapshot use `null`, not `undefined`
-- runtime remains internal-only; do not export it publicly
-
-Do not:
-
-- redesign renderer or scheduler unless strictly necessary
-- start full drag lifecycle work early
-- broaden into public API design
-- redesign extension model
-- refactor unrelated code
-- introduce speculative abstractions
+- board state should contain facts about the position
+- current stable position facts are:
+  - `pieces`
+  - `ids`
+  - `turn`
+- presentation / interaction state should move toward view state:
+  - `orientation`
+  - `selected`
+  - future drag / presentation state
+- do not introduce a full controller yet
+- establish the logical split first
+- renderer should continue to consume board snapshot + geometry/view-derived inputs
+- avoid duplicated orientation sources in the render path
+- runtime remains internal POJO/factory style via `createBoardRuntime(...)`
+- board remains rule-agnostic; legality stays external
+- do not broaden public API
+- do not redesign renderer, scheduler, or extension model unless strictly necessary
+- do not refactor unrelated code
 
 Goal for this chat:
 
-- determine the smallest way for runtime/input to begin consulting movability for move-attempt eligibility
-- keep this behavioral step narrow
-- avoid pulling in full drag/drop/controller architecture prematurely
+- define and implement the smallest correct board-state / view-state split
+- keep board state focused on facts about the position
+- move clearly non-position state out of board snapshot/state contracts where appropriate
+- avoid overreaching into full controller architecture
 
-Likely boundary of the step:
+Likely scope boundary for this step:
 
-- `DisabledMovability` blocks move attempts
-- `StrictMovability` allows only destinations-driven move attempts
-- `FreeMovability` allows move attempts without destinations
-- no full drag lifecycle redesign
-- no public API shaping
-- no extension work
+- audit current use of `orientation` and `selected`
+- decide what moves now vs what stays temporarily
+- prefer the smallest ownership refactor that clarifies the boundary
+- do not try to solve full drag/controller architecture yet
+- do not broaden into public API shaping
 
 Cline workflow preference:
 
@@ -88,15 +86,7 @@ Cline workflow preference:
 - once the plan is good enough, provide only delta/corrections to the plan in the prompt itself
 - do not write prompts that say `Go to Act` / `toggle to Act`
 - in chat, separately say that the prompt can be sent in Act and that an updated plan is not needed
-- review actual staged diff; if diff looks glitched or inconsistent, request the changed files explicitly
-
-Prefer:
-
-1. brief analysis
-2. concrete recommendation
-3. precise implementation prompt for Cline + GPT-5
-4. focused test updates
-5. later patch review
+- review the actual staged diff; if diff looks glitched or inconsistent, request the changed files explicitly
 
 ## Working mode
 

@@ -91,10 +91,25 @@
 
 ### Immediate renderer bugfix
 
-**Status: TODO**
+**Status: COMPLETE**
 
 - Fix coordinate label placement under black orientation
 - Add/adjust focused renderer test for black orientation label placement
+
+### Board state / view state split
+
+- Separate facts about the position from presentation / interaction state
+- Keep board state focused on position facts:
+  - pieces
+  - ids
+  - turn
+- Introduce view state for non-position board UI state:
+  - orientation
+  - selected
+  - future drag / presentation state
+- Remove presentation state from board snapshot / state contracts where appropriate
+- Keep renderer fed by board snapshot + geometry/view-derived inputs, not duplicated orientation sources
+- Do not introduce a full controller yet; establish the logical split first
 
 ### 2.4 Runtime tests
 
