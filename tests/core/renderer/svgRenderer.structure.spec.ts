@@ -58,6 +58,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 	});
 
 	it('piece rendering appends nodes under piecesRoot (5th child)', () => {
+		// Each piece is a locally-bounded <image> element, not a <g clip-path>.
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
 
@@ -67,10 +68,10 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		const piecesRoot = svg!.children[4] as SVGGElement; // 5th child (index 4)
 
 		// Place a white pawn on e2 (square 12)
-		// Encode: white=0, pawn=5 -> (0 << 3) | 5 = 5
+		// Encoding: pawn=1, white → code 1
 		const pieces = new Uint8Array(64);
 		const ids = new Int16Array(64).fill(-1);
-		pieces[12] = 5;
+		pieces[12] = 1; // white pawn
 		ids[12] = 1; // stable piece id
 
 		const board = makeBoardSnapshot({ pieces, ids });
@@ -79,12 +80,19 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		renderer.render(board, { layers: DirtyLayer.Pieces }, geometry);
 
 		expect(piecesRoot.children.length).toBe(1);
-		expect(piecesRoot.children[0].tagName).toBe('g');
+		const pieceNode = piecesRoot.children[0];
+		expect(pieceNode.tagName).toBe('image');
+		// Piece node is locally bounded: x, y, width, height are set to the square rect
+		expect(pieceNode.getAttribute('x')).toBeTruthy();
+		expect(pieceNode.getAttribute('y')).toBeTruthy();
+		expect(pieceNode.getAttribute('width')).toBeTruthy();
+		expect(pieceNode.getAttribute('height')).toBeTruthy();
 
 		renderer.unmount();
 	});
 
-	it('defsDynamic receives clipPaths during piece rendering', () => {
+	it('defsDynamic is not used for piece rendering', () => {
+		// Pieces use per-piece <image> elements; no per-piece clipPath defs are needed.
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
 
@@ -95,7 +103,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 
 		const pieces = new Uint8Array(64);
 		const ids = new Int16Array(64).fill(-1);
-		pieces[12] = 5;
+		pieces[12] = 1; // white pawn
 		ids[12] = 1;
 
 		const board = makeBoardSnapshot({ pieces, ids });
@@ -103,25 +111,23 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		// render(board, invalidation, geometry)
 		renderer.render(board, { layers: DirtyLayer.Pieces }, geometry);
 
-		expect(defsDynamic.children.length).toBe(1);
-		expect(defsDynamic.children[0].tagName).toBe('clipPath');
+		expect(defsDynamic.children.length).toBe(0);
 
 		renderer.unmount();
 	});
 
-	it('clipPaths remain valid after repeated render', () => {
+	it('piece node is reused across renders', () => {
+		// Verifies stable per-piece DOM-node reuse keyed by piece id.
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
 		renderer.mount(container);
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const defsDynamic = (renderer as any).defsDynamic as SVGDefsElement;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const piecesRoot = (renderer as any).piecesRoot as SVGGElement;
 
 		const pieces = new Uint8Array(64);
 		const ids = new Int16Array(64).fill(-1);
-		pieces[12] = 5; // white pawn on e2
+		pieces[12] = 1; // white pawn on e2 (encoding: pawn=1, white → code 1)
 		ids[12] = 1;
 
 		const board = makeBoardSnapshot({ pieces, ids });
@@ -130,22 +136,15 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 
 		// First render
 		renderer.render(board, invalidation, geometry);
+		const pieceNode1 = piecesRoot.children[0] as SVGImageElement;
+		expect(pieceNode1.tagName).toBe('image');
+		// href references the per-piece asset for white pawn
+		expect(pieceNode1.getAttribute('href')).toContain('wp.svg');
 
-		const clipPath1 = defsDynamic.children[0] as SVGClipPathElement;
-		const clipId = clipPath1.getAttribute('id')!;
-		expect(clipId).toBeTruthy();
-
-		// Second render (same state)
+		// Second render (same state) — same DOM node must be reused, not recreated
 		renderer.render(board, invalidation, geometry);
-
-		expect(defsDynamic.children.length).toBe(1);
-
-		const liveClipPath = defsDynamic.querySelector(`#${clipId}`);
-		expect(liveClipPath).toBeTruthy();
-		expect(liveClipPath!.tagName).toBe('clipPath');
-
-		const pieceGroup = piecesRoot.children[0] as SVGGElement;
-		expect(pieceGroup.getAttribute('clip-path')).toBe(`url(#${clipId})`);
+		const pieceNode2 = piecesRoot.children[0];
+		expect(pieceNode2).toBe(pieceNode1); // same object reference
 
 		renderer.unmount();
 	});

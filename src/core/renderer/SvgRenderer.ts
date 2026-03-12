@@ -1,10 +1,10 @@
 import { PartialDeep } from 'type-fest';
 import { DirtyLayer } from '../..';
 import type { InvalidationStateSnapshot } from '../scheduler/types';
-import type { BoardStateSnapshot, Color, Role, Square } from '../state/boardTypes';
+import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
-import { cburnettSpriteUrl } from './assets';
+import { cburnettPieceUrl } from './assets';
 import { isLightSquare } from './geometry';
 import type { RenderConfig, Renderer, RenderGeometry } from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
@@ -12,17 +12,12 @@ import { DEFAULT_RENDER_CONFIG } from './types';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 type SvgRendererOptions = {
-	/** Optional override for the sprite URL. Defaults to cburnettSpriteUrl(). */
-	spriteUrl?: string;
 	/** Optional renderer visual configuration. */
 	config?: PartialDeep<RenderConfig>;
 };
 
 type PieceNodeRecord = {
-	root: SVGGElement;
-	clipPath: SVGClipPathElement;
-	clipRect: SVGRectElement;
-	image: SVGImageElement;
+	root: SVGImageElement; // per-piece <image> — locally bounded piece node
 };
 
 /**
@@ -40,9 +35,9 @@ type PieceNodeRecord = {
  * 10) defsDynamic
  *
  * Notes:
- * - Legacy highlight/overlay groups were removed in this step.
- * - Clip paths remain in defsDynamic.
- * - Pieces render into piecesRoot.
+ * - Legacy highlight/overlay groups were removed.
+ * - Pieces render into piecesRoot as per-piece <image> elements (one per stable piece id).
+ * - defsDynamic is reserved for future extension use; piece rendering does not use it.
  */
 export class SvgRenderer implements Renderer {
 	private svgRoot: SVGSVGElement | null = null;
@@ -61,18 +56,14 @@ export class SvgRenderer implements Renderer {
 
 	// Defs containers
 	private defsStatic!: SVGDefsElement; // persistent defs (markers, etc.)
-	private defsDynamic!: SVGDefsElement; // holds per-render clipPaths for pieces
+	private defsDynamic!: SVGDefsElement; // reserved for future extension use
 
-	private spriteUrl: string;
-	private uidPrefix: string;
 	private config: RenderConfig;
 
 	// Incremental piece DOM cache keyed by stable piece id from state.ids
 	private pieceNodes: Map<number, PieceNodeRecord> = new Map();
 
 	constructor(opts: SvgRendererOptions = {}) {
-		this.spriteUrl = opts.spriteUrl ?? cburnettSpriteUrl();
-		this.uidPrefix = `cb-${Math.random().toString(36).slice(2)}-`;
 		this.config = {
 			...DEFAULT_RENDER_CONFIG,
 			...(opts.config ?? {}),
@@ -267,16 +258,13 @@ export class SvgRenderer implements Renderer {
 	 * - Updates existing nodes for moved/promoted pieces.
 	 * - Creates nodes only for new piece ids.
 	 * - Removes nodes whose piece ids disappeared.
-	 * - Keeps sprite sheet approach.
+	 * - Each piece is a single <image> element sized to the square, referencing its own SVG asset.
+	 * - defsDynamic is not used; no per-piece clipPaths are created.
 	 */
 	private drawPieces(board: BoardStateSnapshot, g: RenderGeometry) {
 		const layer = this.piecesRoot;
 		this.clear(layer);
-		this.clear(this.defsDynamic);
-
-		const tileSize = g.squareSize;
-		const imgW = tileSize * 6;
-		const imgH = tileSize * 2;
+		// defsDynamic is not used for piece rendering; do not clear or write it here.
 
 		const seenIds = new Set<number>();
 
@@ -288,70 +276,35 @@ export class SvgRenderer implements Renderer {
 			const id = board.ids[sq] ?? -1;
 			if (id <= 0) continue;
 
-			const { col, row } = spriteTileFor(piece.color, piece.role);
 			const r = g.squareRect(sq);
-
-			// Create or update per-piece clipPath
-			const clipId = `${this.uidPrefix}clip-${id}`;
+			const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
 
 			let rec = this.pieceNodes.get(id);
 			if (rec) {
-				// Update clip rect to new square
-				rec.clipRect.setAttribute('x', r.x.toString());
-				rec.clipRect.setAttribute('y', r.y.toString());
-				rec.clipRect.setAttribute('width', r.size.toString());
-				rec.clipRect.setAttribute('height', r.size.toString());
-
-				// Ensure sprite hrefs are up to date (in case of spriteUrl change)
-				rec.image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.spriteUrl);
-				rec.image.setAttribute('href', this.spriteUrl);
-
-				// Update image placement within the clipped square
-				rec.image.setAttribute('x', (r.x - col * tileSize).toString());
-				rec.image.setAttribute('y', (r.y - row * tileSize).toString());
-				rec.image.setAttribute('width', imgW.toString());
-				rec.image.setAttribute('height', imgH.toString());
-				rec.image.setAttribute('preserveAspectRatio', 'none');
-
-				// Re-append clipPath to defsDynamic (it was cleared at start of drawPieces)
-				if (rec.clipPath.parentNode !== this.defsDynamic) {
-					this.defsDynamic.appendChild(rec.clipPath);
-				}
+				// Update position, size, and asset URL (handles moves and promotions)
+				rec.root.setAttribute('x', r.x.toString());
+				rec.root.setAttribute('y', r.y.toString());
+				rec.root.setAttribute('width', r.size.toString());
+				rec.root.setAttribute('height', r.size.toString());
+				rec.root.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
+				rec.root.setAttribute('href', pieceUrl);
 
 				// Ensure it's present in the current layer (if DOM moved elsewhere)
 				if (rec.root.parentNode !== layer) {
 					layer.appendChild(rec.root);
 				}
 			} else {
-				// Create clipPath for this piece id
-				const cp = document.createElementNS(SVG_NS, 'clipPath');
-				cp.setAttribute('id', clipId);
-				cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
-				const cpRect = document.createElementNS(SVG_NS, 'rect');
-				cpRect.setAttribute('x', r.x.toString());
-				cpRect.setAttribute('y', r.y.toString());
-				cpRect.setAttribute('width', r.size.toString());
-				cpRect.setAttribute('height', r.size.toString());
-				cp.appendChild(cpRect);
-				this.defsDynamic.appendChild(cp);
-
-				// Create the sprite image positioned for this piece
+				// Create a locally-bounded per-piece <image> element
 				const img = document.createElementNS(SVG_NS, 'image');
-				img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.spriteUrl);
-				img.setAttribute('href', this.spriteUrl);
-				img.setAttribute('x', (r.x - col * tileSize).toString());
-				img.setAttribute('y', (r.y - row * tileSize).toString());
-				img.setAttribute('width', imgW.toString());
-				img.setAttribute('height', imgH.toString());
-				img.setAttribute('preserveAspectRatio', 'none');
+				img.setAttribute('x', r.x.toString());
+				img.setAttribute('y', r.y.toString());
+				img.setAttribute('width', r.size.toString());
+				img.setAttribute('height', r.size.toString());
+				img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
+				img.setAttribute('href', pieceUrl);
 
-				// Group with clipping applied
-				const gPiece = document.createElementNS(SVG_NS, 'g');
-				gPiece.setAttribute('clip-path', `url(#${clipId})`);
-				gPiece.appendChild(img);
-				layer.appendChild(gPiece);
-
-				rec = { root: gPiece, clipPath: cp, clipRect: cpRect, image: img };
+				layer.appendChild(img);
+				rec = { root: img };
 				this.pieceNodes.set(id, rec);
 			}
 
@@ -362,40 +315,8 @@ export class SvgRenderer implements Renderer {
 		for (const [pid, rec] of this.pieceNodes.entries()) {
 			if (!seenIds.has(pid)) {
 				if (rec.root.parentNode) rec.root.parentNode.removeChild(rec.root);
-				if (rec.clipPath.parentNode) rec.clipPath.parentNode.removeChild(rec.clipPath);
 				this.pieceNodes.delete(pid);
 			}
 		}
 	}
-}
-
-/**
- * Map piece (color, role) to tile coordinates (col, row) in the 6x2 sprite grid.
- * Sprite columns left→right: K Q B N R P
- * Rows top→bottom: white (0), black (1)
- */
-function spriteTileFor(color: Color, role: Role): { col: number; row: number } {
-	const row = color === 'white' ? 0 : 1;
-	let col = 0;
-	switch (role) {
-		case 'king':
-			col = 0;
-			break;
-		case 'queen':
-			col = 1;
-			break;
-		case 'bishop':
-			col = 2;
-			break;
-		case 'knight':
-			col = 3;
-			break;
-		case 'rook':
-			col = 4;
-			break;
-		case 'pawn':
-			col = 5;
-			break;
-	}
-	return { col, row };
 }
