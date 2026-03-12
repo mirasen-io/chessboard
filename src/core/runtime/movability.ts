@@ -9,8 +9,9 @@
  * - For strict mode, consult destinations map
  */
 
+import type { BoardStateInternal, Square } from '../state/boardTypes';
 import { isBlackCode, isEmpty, isWhiteCode } from '../state/encode';
-import type { InternalState, MovableColor, Square } from '../state/types';
+import type { MovableColor, ViewStateInternal } from '../state/viewTypes';
 
 /**
  * Check if a piece color matches the movability color policy.
@@ -37,11 +38,16 @@ function isPieceColorAllowed(pieceCode: number, movabilityColor: MovableColor): 
  * Does NOT consult state.turn.
  * Does NOT require a target square.
  */
-export function canStartMoveFrom(state: InternalState, from: Square): boolean {
-	const { movability, pieces } = state;
+export function canStartMoveFrom(
+	board: BoardStateInternal,
+	view: ViewStateInternal,
+	from: Square
+): boolean {
+	const movability = view.movability;
+	const pieces = board.pieces;
 
 	// No movability policy or disabled
-	if (movability === null || movability.mode === 'disabled') {
+	if (movability.mode === 'disabled') {
 		return false;
 	}
 
@@ -81,11 +87,17 @@ export function canStartMoveFrom(state: InternalState, from: Square): boolean {
  * Does NOT consult state.turn.
  * Requires both source and target squares.
  */
-export function isMoveAttemptAllowed(state: InternalState, from: Square, to: Square): boolean {
-	const { movability, pieces } = state;
+export function isMoveAttemptAllowed(
+	board: BoardStateInternal,
+	view: ViewStateInternal,
+	from: Square,
+	to: Square
+): boolean {
+	const movability = view.movability;
+	const pieces = board.pieces;
 
 	// No movability policy or disabled
-	if (movability === null || movability.mode === 'disabled') {
+	if (movability.mode === 'disabled') {
 		return false;
 	}
 

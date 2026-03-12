@@ -5,10 +5,7 @@
  * - Internals use numeric squares (0..63) and compact encodings; those details are hidden from consumers.
  */
 
-import { ReadonlyDeep } from 'type-fest';
-
 export type Color = 'white' | 'black';
-export type Orientation = Color; // For clarity in context where it applies
 export type ColorShort = 'w' | 'b';
 export type ColorInput = Color | ColorShort;
 
@@ -91,6 +88,8 @@ export type FileChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 export type RankChar = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
 export type SquareString = `${FileChar}${RankChar}`;
 
+export type SquareInput = Square | SquareString;
+
 export interface Piece {
 	color: Color;
 	role: Role;
@@ -127,64 +126,26 @@ export interface Move extends MoveInputSquare {
 	capturedSquare?: Square; // Optional: where the captured piece was (for en passant)
 	castle?: CastleSquare;
 }
-// Movability types for externally-provided interaction policy
-export type MovableColor = 'white' | 'black' | 'both';
-
-export type StrictMovability = {
-	mode: 'strict';
-	color: MovableColor;
-	destinations: Partial<Record<Square, readonly Square[]>>;
-};
-
-export type FreeMovability = {
-	mode: 'free';
-	color: MovableColor;
-};
-
-// Disables move interaction only, not all board interaction
-export type DisabledMovability = {
-	mode: 'disabled';
-};
-
-export type Movability = StrictMovability | FreeMovability | DisabledMovability;
 
 /**
  * Internal mutable board state used by reducers/runtime.
  * Not intended as a renderer- or consumer-facing contract.
  */
-export interface InternalState {
+export interface BoardStateInternal {
 	pieces: Uint8Array;
 	ids: Int16Array;
-	nextId: number;
-
-	orientation: Orientation;
 	turn: Color;
-	selected: Square | null;
-	movability: Movability | null;
 
-	dirtySquares: Set<Square>;
-	dirtyLayers: number;
+	nextId: number;
 }
 
 /**
  * State snapshot shape exposed to consumers.
  */
-export interface StateSnapshot {
-	readonly pieces: ReadonlyDeep<Uint8Array>;
-	readonly ids: ReadonlyDeep<Int16Array>;
-	readonly orientation: Orientation;
+export interface BoardStateSnapshot {
+	readonly pieces: Readonly<Uint8Array>;
+	readonly ids: Readonly<Int16Array>;
 	readonly turn: Color;
-	readonly selected: Square | null;
-	readonly movability: Movability | null;
-}
-
-// Dirty layer flags for precise invalidation.
-// Use bitmask to allow combining layers; renderer/scheduler will interpret these.
-export enum DirtyLayer {
-	Board = 1, // 1 << 0,
-	Pieces = 2, // 1 << 1,
-	Drag = 4, // 1 << 2,
-	All = Board | Pieces | Drag
 }
 
 // Position map acceptance forms (public inputs)

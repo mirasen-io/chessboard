@@ -135,6 +135,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-artifacts/git.diff
+artifacts/*
 
 docs/cline

@@ -1,4 +1,4 @@
-import type { Color, Role } from '../state/types';
+import type { Color, Role } from '../state/boardTypes';
 
 /**
  * FEN utilities (notation-only). Converts between FEN strings and internal piece arrays.

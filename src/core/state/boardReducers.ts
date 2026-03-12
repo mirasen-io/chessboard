@@ -1,15 +1,13 @@
 import { START_FEN, parseFenPlacement, parseFenTurn } from '../notation/fen';
-import { assertValidSquare, fromAlgebraic, toValidSquare } from './coords';
-import { decodePiece, encodePiece, isEmpty } from './encode';
-import { normalizeColor, normalizeRole } from './normalize';
+import { DirtyLayer, InvalidationWriter } from '../scheduler/types';
 import type {
+	BoardStateInternal,
 	CastleSquare,
 	Color,
 	ColorInput,
-	InternalState,
-	Movability,
 	Move,
 	MoveInput,
+	Piece,
 	PieceShort,
 	PositionInput,
 	PositionMap,
@@ -18,8 +16,10 @@ import type {
 	RolePromotionInput,
 	Square,
 	SquareString
-} from './types';
-import { DirtyLayer, Piece } from './types';
+} from './boardTypes';
+import { fromAlgebraic, toValidSquare } from './coords';
+import { decodePiece, encodePiece, isEmpty } from './encode';
+import { normalizeColor, normalizeRole } from './normalize';
 
 /**
  * Replace the entire board position from one of the accepted inputs.
@@ -51,11 +51,15 @@ import { DirtyLayer, Piece } from './types';
  * @param input 'start' | FEN | PositionMap | PositionMapShort
  * @returns void
  * @example
- * setPosition(state, 'start');                      // standard start, white to move
- * setPosition(state, '8/8/8/8/8/8/8/8 w - - 0 1');  // empty board, white to move
- * setPosition(state, { e2: { color: 'w', role: 'p' }, e7: { color: 'b', role: 'p' } });
+ * setBoardPosition(state, 'start');                      // standard start, white to move
+ * setBoardPosition(state, '8/8/8/8/8/8/8/8 w - - 0 1');  // empty board, white to move
+ * setBoardPosition(state, { e2: { color: 'w', role: 'p' }, e7: { color: 'b', role: 'p' } });
  */
-export function setPosition(state: InternalState, input: PositionInput): void {
+export function setBoardPosition(
+	state: BoardStateInternal,
+	invalidation: InvalidationWriter,
+	input: PositionInput
+): boolean {
 	let pieces: Uint8Array;
 	let turnFromPosition: Color | undefined;
 
@@ -84,94 +88,23 @@ export function setPosition(state: InternalState, input: PositionInput): void {
 		}
 	}
 
-	state.selected = null;
-
 	// Update turn from position if provided (do not override explicitly-set turn elsewhere)
 	if (turnFromPosition) {
 		state.turn = turnFromPosition;
 	}
 
-	clearDirty(state);
-	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Pieces);
+	invalidation.markLayer(DirtyLayer.Board | DirtyLayer.Pieces);
+	return true;
 }
 
 /**
  * Set active color turn.
  */
-export function setTurn(state: InternalState, c: ColorInput): void {
-	state.turn = normalizeColor(c);
-}
-
-/**
- * Set board orientation (view).
- */
-export function setOrientation(state: InternalState, c: ColorInput): void {
-	state.orientation = normalizeColor(c);
-	markDirtyLayer(state, DirtyLayer.Board);
-}
-
-/**
- * Set movability (externally-provided interaction policy).
- * No-op if movability is structurally equal to current value.
- */
-export function setMovability(state: InternalState, m: Movability | null): boolean {
-	if (movabilityEquals(state.movability, m)) return false; // no-op
-	state.movability = m;
-	markDirtyLayer(state, DirtyLayer.Pieces);
+export function setTurn(state: BoardStateInternal, c: ColorInput): boolean {
+	const turn = normalizeColor(c);
+	if (state.turn === turn) return false; // no-op
+	state.turn = turn;
 	return true;
-}
-
-/**
- * Local helper for structural movability equality.
- */
-function movabilityEquals(a: Movability | null, b: Movability | null): boolean {
-	if (a === b) return true;
-	if (a === null || b === null) return false;
-	if (a.mode !== b.mode) return false;
-
-	if (a.mode === 'disabled' && b.mode === 'disabled') return true; // both disabled
-
-	// Both have color (free or strict)
-	if (a.mode === 'free' && b.mode === 'free') {
-		return a.color === b.color;
-	}
-
-	// Both strict - compare color and destinations
-	if (a.mode === 'strict' && b.mode === 'strict') {
-		if (a.color !== b.color) return false;
-
-		const aDests = a.destinations;
-		const bDests = b.destinations;
-		const aKeys = Object.keys(aDests).map(Number) as Square[];
-		const bKeys = Object.keys(bDests).map(Number) as Square[];
-
-		if (aKeys.length !== bKeys.length) return false;
-
-		// Check if all keys in a exist in b with same values
-		for (const sq of aKeys) {
-			const aArr = aDests[sq];
-			const bArr = bDests[sq];
-			if (!aArr || !bArr) return false;
-			if (aArr.length !== bArr.length) return false;
-			for (let i = 0; i < aArr.length; i++) {
-				if (aArr[i] !== bArr[i]) return false;
-			}
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * Select a square or clear selection with null.
- * Accepts numeric or algebraic square.
- */
-export function select(state: InternalState, sq: Square | SquareString | null): void {
-	const newSel: Square | null = sq === null ? null : toValidSquare(sq as Square | SquareString); // toValidSquare will validate the square input
-	if (state.selected === newSel) return;
-	state.selected = newSel;
 }
 
 type CastleString = {
@@ -224,7 +157,12 @@ export interface MoveOptions {
  * move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' }); // en passant-like move where the captured piece is on a different square
  * move(state, { from: 20, to: 27 }, { capturedSquare: 19 }); // en passant-like move with numeric captured square
  */
-export function move(state: InternalState, move: MoveInput, opts?: MoveOptions): Move {
+export function move(
+	state: BoardStateInternal,
+	invalidation: InvalidationWriter,
+	move: MoveInput,
+	opts?: MoveOptions
+): Move {
 	const from = toValidSquare(move.from); // toValidSquare will validate the square input
 	const to = toValidSquare(move.to); // toValidSquare will validate the square input
 
@@ -255,7 +193,7 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 		if (captureSq !== to) {
 			state.pieces[captureSq] = 0;
 			state.ids[captureSq] = -1;
-			markDirtySquare(state, captureSq);
+			invalidation.markSquares(DirtyLayer.Pieces, captureSq);
 		}
 	}
 
@@ -265,12 +203,12 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 
 	state.pieces[to] = newPieceCode;
 	state.ids[to] = movingId;
-	markDirtySquare(state, to);
+	invalidation.markSquares(DirtyLayer.Pieces, to);
 
 	// Clear source square
 	state.pieces[from] = 0;
 	state.ids[from] = -1;
-	markDirtySquare(state, from);
+	invalidation.markSquares(DirtyLayer.Pieces, from);
 
 	// Castling rook move if provided
 	let castle: CastleSquare | undefined;
@@ -286,9 +224,7 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 			state.ids[rookFrom] = -1;
 			castle = { rookFrom, rookTo };
 
-			markDirtySquare(state, rookFrom);
-			markDirtySquare(state, rookTo);
-			markDirtyLayer(state, DirtyLayer.Pieces);
+			invalidation.markSquares(DirtyLayer.Pieces, [rookFrom, rookTo]);
 		}
 	}
 
@@ -296,9 +232,7 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 	state.turn = state.turn === 'white' ? 'black' : 'white';
 
 	// Dirty tracking
-	markDirtySquare(state, from);
-	markDirtySquare(state, to);
-	markDirtyLayer(state, DirtyLayer.Pieces);
+	invalidation.markSquares(DirtyLayer.Pieces, [from, to]);
 
 	const promotion = opts?.promotion ? (normalizeRole(opts.promotion) as RolePromotion) : undefined;
 	const result: Move = {
@@ -312,29 +246,6 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 		...(castle && { castle })
 	};
 	return result;
-}
-
-/**
- * Mark a specific square as dirty (for region-specific invalidation).
- */
-export function markDirtySquare(state: InternalState, sq: Square): void {
-	assertValidSquare(sq);
-	state.dirtySquares.add(sq);
-}
-
-/**
- * Mark one or more layers dirty (bitmask).
- */
-export function markDirtyLayer(state: InternalState, layerMask: number): void {
-	state.dirtyLayers |= layerMask;
-}
-
-/**
- * Clear all dirty flags.
- */
-export function clearDirty(state: InternalState): void {
-	state.dirtySquares.clear();
-	state.dirtyLayers = 0;
 }
 
 /**

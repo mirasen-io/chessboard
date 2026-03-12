@@ -4,7 +4,7 @@
  * - Core remains rule-agnostic; a MovePolicy adapter (e.g., chess.js) supplies rules externally.
  */
 
-import type { MoveInput, SquareString, StateSnapshot } from '../state/types';
+import type { BoardStateSnapshot, MoveInput, SquareString } from '../state/boardTypes';
 
 /**
  * DestinationsMap:
@@ -20,6 +20,6 @@ export type DestinationsMap = Partial<Record<SquareString, readonly SquareString
  *   If omitted, the caller may consult `compute()` results or accept any move.
  */
 export interface MovePolicy {
-	compute(snapshot: StateSnapshot): DestinationsMap;
-	allows?(move: MoveInput, snapshot: StateSnapshot): boolean;
+	compute(snapshot: BoardStateSnapshot): DestinationsMap;
+	allows?(move: MoveInput, snapshot: BoardStateSnapshot): boolean;
 }

@@ -1,5 +1,5 @@
 {
-	"name": "@ktarmyshov/chessboard",
+	"name": "@mirasen/chessboard",
 	"description": "A chessboard UI library for JavaScript and TypeScript projects, providing an interactive and customizable chessboard component.",
 	"version": "0.0.4",
 	"license": "MIT",

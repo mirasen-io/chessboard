@@ -1,5 +1,5 @@
+import type { Color, Square } from '../state/boardTypes';
 import { fileOf, rankOf } from '../state/coords';
-import type { Color, Square } from '../state/types';
 import type { RenderGeometry } from './types';
 
 /**

@@ -1,4 +1,4 @@
-import type { FileChar, RankChar, Square, SquareString } from './types';
+import type { FileChar, RankChar, Square, SquareString } from './boardTypes';
 
 /**
  * Square indexing:

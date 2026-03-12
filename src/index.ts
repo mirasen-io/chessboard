@@ -1,11 +1,17 @@
 // Public package entry: re-export core renderer contracts, helpers, and SVG renderer
 
 // Core state types (selected)
-export { DirtyLayer } from './core/state/types';
-export type { Color, Role, Square, SquareString, StateSnapshot } from './core/state/types';
+export { DirtyLayer, type InvalidationStateSnapshot } from './core/scheduler/types';
+export type {
+	BoardStateSnapshot,
+	Color,
+	Role,
+	Square,
+	SquareString
+} from './core/state/boardTypes';
 
 /* Renderer contracts */
-export type { Invalidation, Renderer, RenderGeometry } from './core/renderer/types';
+export type { Renderer, RenderGeometry } from './core/renderer/types';
 
 /* Geometry helpers */
 export { isLightSquare, makeRenderGeometry } from './core/renderer/geometry';

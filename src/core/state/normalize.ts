@@ -1,4 +1,4 @@
-import type { Color, Role } from './types';
+import type { Color, Role } from './boardTypes';
 
 /**
  * Normalize color inputs to canonical long names.

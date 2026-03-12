@@ -1,4 +1,4 @@
-[![NPM Version](https://img.shields.io/npm/v/%40ktarmyshov%2Fchessboard)](https://www.npmjs.com/package/@ktarmyshov/chessboard)
+[![NPM Version](https://img.shields.io/npm/v/%40mirasen%2Fchessboard)](https://www.npmjs.com/package/@mirasen/chessboard)
 [![CI](https://github.com/kt-npm-modules/chessboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kt-npm-modules/chessboard/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kt-npm-modules_chessboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=kt-npm-modules_chessboard)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=kt-npm-modules_chessboard&metric=bugs)](https://sonarcloud.io/summary/new_code?id=kt-npm-modules_chessboard)

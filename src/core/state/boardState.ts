@@ -1,38 +1,31 @@
 import { START_FEN, parseFenPlacement, parseFenTurn } from '../notation/fen';
-import { fromAlgebraic } from './coords';
-import { encodePiece } from './encode';
-import { normalizeColor, normalizeRole } from './normalize';
 import {
+	BoardStateInternal,
+	BoardStateSnapshot,
 	Color,
 	ColorInput,
-	InternalState,
-	Movability,
 	Piece,
 	PositionInput,
 	PositionMap,
 	PositionMapShort,
-	Square,
-	SquareString,
-	StateSnapshot
-} from './types';
+	SquareString
+} from './boardTypes';
+import { fromAlgebraic } from './coords';
+import { encodePiece } from './encode';
+import { normalizeColor, normalizeRole } from './normalize';
 
-export interface InitialStateOptions {
+export interface BoardStateInitOptions {
 	position?: PositionInput; // 'start' | FEN | PositionMap | PositionMapShort
-	orientation?: ColorInput; // 'white' | 'black' | 'w' | 'b'
 	turn?: ColorInput; // optional override of active color
-	movability?: Movability; // optional externally-provided interaction policy
 }
 
 /**
  * Create a fresh internal state from options.
  * - If position is 'start' or FEN, pieces and (if not overridden) turn are derived from FEN.
  * - If position is a map, it's encoded directly (short map is normalized).
- * - Orientation defaults to 'white' unless provided.
  * - All piece ids are (re)assigned freshly.
  */
-export function createInitialState(opts: InitialStateOptions = {}): InternalState {
-	const orientation: Color = opts.orientation ? normalizeColor(opts.orientation) : 'white';
-
+export function createBoardState(opts: BoardStateInitOptions = {}): BoardStateInternal {
 	let pieces: Uint8Array;
 	let turnFromPosition: Color | undefined;
 
@@ -65,13 +58,8 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
 	return {
 		pieces,
 		ids,
-		nextId,
-		orientation,
 		turn,
-		selected: null,
-		movability: opts.movability ?? null,
-		dirtySquares: new Set<Square>(),
-		dirtyLayers: 0
+		nextId
 	};
 }
 
@@ -80,14 +68,11 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
  * - Clones the pieces array to prevent external mutation.
  * - Other fields are primitives or treated as read-only by convention.
  */
-export function getSnapshot(state: InternalState): StateSnapshot {
-	const snap: StateSnapshot = {
+export function getBoardStateSnapshot(state: BoardStateInternal): BoardStateSnapshot {
+	const snap: BoardStateSnapshot = {
 		pieces: new Uint8Array(state.pieces),
 		ids: new Int16Array(state.ids),
-		orientation: state.orientation,
-		turn: state.turn,
-		selected: state.selected,
-		movability: state.movability
+		turn: state.turn
 	};
 	// Cast to the readonly deep snapshot type. Data is either cloned or immutable primitives.
 	return snap;

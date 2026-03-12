@@ -8,7 +8,7 @@
  *   bus.emit('foo', 42);
  *   off();
  */
-import type { StateSnapshot } from '../state/types';
+import type { BoardStateSnapshot } from '../state/boardTypes';
 
 export type Unsubscribe = () => void;
 
@@ -88,5 +88,5 @@ export type ChessboardEventMap = {
 	/**
 	 * A new snapshot was produced by the scheduler after state updates.
 	 */
-	'state:changed': StateSnapshot;
+	'state:changed': BoardStateSnapshot;
 };

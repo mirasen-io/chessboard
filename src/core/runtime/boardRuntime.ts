@@ -20,44 +20,67 @@
 
 import { makeRenderGeometry } from '../renderer/geometry';
 import type { Renderer, RenderGeometry } from '../renderer/types';
-import { computeInvalidation } from '../scheduler/invalidation';
+import {
+	createInitialInvalidationState,
+	createInvalidationWriter,
+	getInvalidationSnapshot
+} from '../scheduler/invalidationState';
+import { clearDirty, markDirtyLayer } from '../scheduler/reducers';
 import { createScheduler, type Scheduler } from '../scheduler/scheduler';
-import { createInitialState, getSnapshot } from '../state/boardState';
+import { DirtyLayer } from '../scheduler/types';
 import {
-	clearDirty,
-	markDirtyLayer,
+	MoveOptions,
+	move as moveReducer,
+	setBoardPosition as setBoardPositionReducer,
+	setTurn as setTurnReducer
+} from '../state/boardReducers';
+import {
+	type BoardStateInitOptions,
+	createBoardState,
+	getBoardStateSnapshot
+} from '../state/boardState';
+import type {
+	BoardStateInternal,
+	ColorInput,
+	Move,
+	MoveInput,
+	PositionInput,
+	Square,
+	SquareInput
+} from '../state/boardTypes';
+import {
+	select as selectReducer,
 	setMovability as setMovabilityReducer,
-	setOrientation,
-	setPosition
-} from '../state/reducers';
-import {
-	DirtyLayer,
-	InternalState,
-	type ColorInput,
-	type Movability,
-	type PositionInput,
-	type Square
-} from '../state/types';
+	setOrientation as setOrientationReducer
+} from '../state/viewReducers';
+import { createViewState, ViewStateInitOptions } from '../state/viewState';
+import type { Movability, ViewStateInternal } from '../state/viewTypes';
 import {
 	canStartMoveFrom as canStartMoveFromHelper,
 	isMoveAttemptAllowed as isMoveAttemptAllowedHelper
 } from './movability';
 
-export interface BoardRuntimeOptions {
+export interface BoardRuntimeInitOptions {
 	renderer: Renderer;
-	position?: PositionInput;
-	orientation?: ColorInput;
-	movability?: Movability;
+	board?: BoardStateInitOptions;
+	view?: ViewStateInitOptions;
 }
 
 export interface BoardRuntime {
+	// Lifecycle
 	mount(container: HTMLElement): void;
-	setPosition(input: PositionInput): void;
-	setOrientation(input: ColorInput): void;
-	setMovability(m: Movability | null): boolean;
+	destroy(): void;
+	// Board state reducers
+	setBoardPosition(input: PositionInput): boolean;
+	setTurn(c: ColorInput): boolean;
+	move(move: MoveInput, opts?: MoveOptions): Move;
+	// View state reducers
+	setOrientation(input: ColorInput): boolean;
+	select(sq: SquareInput | null): boolean;
+	setMovability(m: Movability): boolean;
+	// Helpers
 	canStartMoveFrom(from: Square): boolean;
 	isMoveAttemptAllowed(from: Square, to: Square): boolean;
-	destroy(): void;
 }
 
 /**
@@ -79,11 +102,14 @@ function measureBoardSize(container: HTMLElement): number {
  * @param opts Runtime options
  * @returns BoardRuntime instance
  */
-export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
-	const { renderer, position, orientation, movability } = opts;
+export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime {
+	const { renderer, board: boardOpts, view: viewOpts } = opts;
 
 	// Internal state
-	const state: InternalState = createInitialState({ position, orientation, movability });
+	const boardState: BoardStateInternal = createBoardState(boardOpts);
+	const viewState: ViewStateInternal = createViewState(viewOpts);
+	const invalidationState = createInitialInvalidationState();
+	const invalidationWriter = createInvalidationWriter(invalidationState);
 	let boardSize: number | null = null;
 	let geometry: RenderGeometry | null = null;
 	let mounted = false;
@@ -93,15 +119,15 @@ export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
 
 	// Scheduler with render callback
 	const scheduler: Scheduler = createScheduler({
-		render: (snapshot, invalidation) => {
+		render: (boardSnapshot, invalidationSnapshot) => {
 			// Guard: only render if geometry exists (implies mounted)
 			if (geometry) {
-				renderer.render(snapshot, geometry, invalidation);
+				renderer.render(boardSnapshot, invalidationSnapshot, geometry);
 			}
 		},
-		getSnapshot: () => getSnapshot(state),
-		getInvalidation: () => computeInvalidation(state),
-		clearDirty: () => clearDirty(state)
+		getBoardSnapshot: () => getBoardStateSnapshot(boardState),
+		getInvalidationSnapshot: () => getInvalidationSnapshot(invalidationState),
+		clearDirty: () => clearDirty(invalidationState)
 	});
 
 	/**
@@ -116,8 +142,8 @@ export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
 		if (newSize === boardSize) return; // no-op if unchanged
 
 		boardSize = newSize;
-		geometry = makeRenderGeometry(boardSize, state.orientation);
-		markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Pieces);
+		geometry = makeRenderGeometry(boardSize, viewState.orientation);
+		markDirtyLayer(invalidationState, DirtyLayer.Board | DirtyLayer.Pieces);
 		scheduler.schedule();
 	}
 
@@ -137,58 +163,88 @@ export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
 
 			host = container;
 			boardSize = measuredSize;
-			geometry = makeRenderGeometry(boardSize, state.orientation);
+			geometry = makeRenderGeometry(boardSize, viewState.orientation);
 			mounted = true;
 
 			// Start observing resize
 			resizeObserver = new ResizeObserver(() => refreshGeometry());
 			resizeObserver.observe(container);
 
-			// Mark initial redraw (Board + Pieces only)
-			markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Pieces);
+			// Mark initial redraw
+			markDirtyLayer(invalidationState, DirtyLayer.All);
+			// TODO: extension hooks here as well??
+
 			// Schedule initial render
 			scheduler.schedule();
 		},
 
-		setPosition(input: PositionInput): void {
-			// Mutate state via reducer
-			setPosition(state, input);
+		setBoardPosition(input: PositionInput): boolean {
+			const changed = setBoardPositionReducer(boardState, invalidationWriter, input);
+			if (changed) {
+				selectReducer(viewState, null); // clear selection on new position, we ignore the return value, cause board already changed
+				// TODO: extension hooks to process the change
+				if (mounted) {
+					scheduler.schedule();
+				}
+			}
+			return changed;
+		},
 
-			// Schedule render if mounted
+		setTurn(c: ColorInput): boolean {
+			const changed = setTurnReducer(boardState, c);
+			if (changed) {
+				// TODO: extension hooks to process the change
+			}
+			return changed;
+		},
+
+		move(move: MoveInput, opts?: MoveOptions): Move {
+			const appliedMove = moveReducer(boardState, invalidationWriter, move, opts);
+			// TODO: extension hooks to process the change
 			if (mounted) {
 				scheduler.schedule();
 			}
+			return appliedMove;
 		},
 
-		setOrientation(input: ColorInput): void {
-			// Mutate state via reducer
-			setOrientation(state, input);
-
-			// If mounted, recreate geometry and schedule render
-			if (mounted) {
-				// Recreate immutable geometry with new orientation
-				geometry = makeRenderGeometry(boardSize!, state.orientation);
-				scheduler.schedule();
+		setOrientation(input: ColorInput): boolean {
+			const changed = setOrientationReducer(viewState, invalidationWriter, input);
+			if (changed) {
+				// TODO: extension hooks to process the change
+				if (mounted) {
+					// Recreate immutable geometry with new orientation
+					geometry = makeRenderGeometry(boardSize!, viewState.orientation);
+					scheduler.schedule();
+				}
 			}
+
+			return changed;
 		},
 
-		setMovability(m: Movability | null): boolean {
-			// Mutate state via reducer
-			const changed = setMovabilityReducer(state, m);
+		select(sq: SquareInput | null): boolean {
+			const changed = selectReducer(viewState, sq);
+			if (changed) {
+				// TODO: extension hooks here to process the change as well
+			}
+			return changed;
+		},
 
-			// Schedule render if mounted and state changed
-			if (mounted && changed) {
-				scheduler.schedule();
+		setMovability(m: Movability): boolean {
+			const changed = setMovabilityReducer(viewState, m);
+			if (changed) {
+				// TODO: run extension hooks here, cause we don't update anything visual directly from this reducer
+				// View state changed, but core renderer has no direct visual work for movability.
+				// Future extension update hooks should run from here.
 			}
 			return changed;
 		},
 
 		canStartMoveFrom(from: Square): boolean {
-			return canStartMoveFromHelper(state, from);
+			return canStartMoveFromHelper(boardState, viewState, from);
 		},
 
 		isMoveAttemptAllowed(from: Square, to: Square): boolean {
-			return isMoveAttemptAllowedHelper(state, from, to);
+			return isMoveAttemptAllowedHelper(boardState, viewState, from, to);
 		},
 
 		destroy(): void {
@@ -201,6 +257,9 @@ export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
 				resizeObserver.disconnect();
 				resizeObserver = null;
 			}
+
+			scheduler.destroy();
+			renderer.unmount();
 
 			host = null;
 		}

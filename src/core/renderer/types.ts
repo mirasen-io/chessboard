@@ -4,7 +4,8 @@
  * - The renderer interprets DirtyLayer bitmask and (optionally) a set of specific squares.
  */
 
-import type { Color, Square, StateSnapshot } from '../state/types';
+import type { InvalidationStateSnapshot } from '../scheduler/types';
+import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 
 /**
  * Renderer-owned visual configuration.
@@ -32,19 +33,6 @@ export const DEFAULT_RENDER_CONFIG: RenderConfig = {
 };
 
 /**
- * Invalidation payload:
- * - layers: DirtyLayer bitmask (number) indicating which visual layers need redraw.
- * - squares: optional set of affected squares for region-specific updates (e.g., piece moves, highlights).
- *
- * Note: `layers` uses the DirtyLayer enum defined in ../state/types; we keep it as `number` here
- * to allow OR-combination without importing the enum in this file.
- */
-export interface Invalidation {
-	layers: number;
-	squares?: Set<Square>;
-}
-
-/**
  * Board geometry computed for a given mount size and orientation.
  * - squareRect returns the top-left pixel position and side length for a given square index (0..63).
  *   Coordinates are in the local SVG space with origin at the top-left corner.
@@ -57,12 +45,6 @@ export interface RenderGeometry {
 }
 
 /**
- * State snapshot shape exposed to the renderer.
- * - Excludes orientation since renderer receives it separately in geometry.
- */
-export type RenderStateSnapshot = Omit<StateSnapshot, 'orientation'>;
-
-/**
  * Minimal renderer interface understood by the scheduler.
  * - mount/unmount attach/detach DOM.
  * - render applies updates according to invalidation.
@@ -70,5 +52,9 @@ export type RenderStateSnapshot = Omit<StateSnapshot, 'orientation'>;
 export interface Renderer {
 	mount(container: HTMLElement): void;
 	unmount(): void;
-	render(state: RenderStateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void;
+	render(
+		board: BoardStateSnapshot,
+		invalidation: InvalidationStateSnapshot,
+		geometry: RenderGeometry
+	): void;
 }

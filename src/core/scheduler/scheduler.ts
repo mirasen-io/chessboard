@@ -5,22 +5,19 @@
  */
 
 import assert from '@ktarmyshov/assert';
-import type { OverlayView } from '../input/types';
-import type { Invalidation } from '../renderer/types';
-import type { StateSnapshot } from '../state/types';
+import type { BoardStateSnapshot } from '../state/boardTypes';
+import type { InvalidationStateSnapshot } from './types';
 
 export type RenderCallback = (
-	snapshot: StateSnapshot,
-	invalidation: Invalidation,
-	overlay?: OverlayView
+	board: BoardStateSnapshot,
+	invalidation: InvalidationStateSnapshot
 ) => void;
 
 export interface SchedulerOptions {
 	render: RenderCallback;
-	getSnapshot: () => StateSnapshot;
-	getInvalidation: () => Invalidation;
+	getBoardSnapshot: () => BoardStateSnapshot;
+	getInvalidationSnapshot: () => InvalidationStateSnapshot;
 	clearDirty: () => void;
-	getOverlay?: () => OverlayView | undefined;
 }
 
 export interface Scheduler {
@@ -33,7 +30,7 @@ export interface Scheduler {
 }
 
 export function createScheduler(opts: SchedulerOptions): Scheduler {
-	const { render, getSnapshot, getInvalidation, clearDirty, getOverlay } = opts;
+	const { render, getBoardSnapshot, getInvalidationSnapshot, clearDirty } = opts;
 
 	let scheduled = false;
 	let runId = 0;
@@ -47,12 +44,11 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 		}
 
 		// Build snapshot and invalidation payloads
-		const snapshot = getSnapshot();
-		const invalidation = getInvalidation();
-		const overlay = getOverlay?.();
+		const boardSnapshot = getBoardSnapshot();
+		const invalidationSnapshot = getInvalidationSnapshot();
 
 		try {
-			render(snapshot, invalidation, overlay);
+			render(boardSnapshot, invalidationSnapshot);
 		} finally {
 			// Ensure dirty flags are cleared even render throws
 			clearDirty();

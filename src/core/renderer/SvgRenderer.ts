@@ -1,16 +1,12 @@
 import { PartialDeep } from 'type-fest';
+import { DirtyLayer } from '../..';
+import type { InvalidationStateSnapshot } from '../scheduler/types';
+import type { BoardStateSnapshot, Color, Role, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
-import { DirtyLayer, Square, type Color, type Role } from '../state/types';
 import { cburnettSpriteUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type {
-	Invalidation,
-	RenderConfig,
-	Renderer,
-	RenderGeometry,
-	RenderStateSnapshot
-} from './types';
+import type { RenderConfig, Renderer, RenderGeometry } from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -151,7 +147,11 @@ export class SvgRenderer implements Renderer {
 		this.pieceNodes.clear();
 	}
 
-	render(state: RenderStateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void {
+	render(
+		board: BoardStateSnapshot,
+		invalidation: InvalidationStateSnapshot,
+		geometry: RenderGeometry
+	): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
 		// Ensure size/viewBox matches geometry
@@ -166,7 +166,7 @@ export class SvgRenderer implements Renderer {
 			this.drawBoard(this.config.light, this.config.dark, geometry);
 			this.drawCoords(geometry.orientation, geometry);
 		}
-		if (layers & DirtyLayer.Pieces) this.drawPieces(state, geometry);
+		if (layers & DirtyLayer.Pieces) this.drawPieces(board, geometry);
 	}
 
 	private clear(node: Element) {
@@ -269,7 +269,7 @@ export class SvgRenderer implements Renderer {
 	 * - Removes nodes whose piece ids disappeared.
 	 * - Keeps sprite sheet approach.
 	 */
-	private drawPieces(state: RenderStateSnapshot, g: RenderGeometry) {
+	private drawPieces(board: BoardStateSnapshot, g: RenderGeometry) {
 		const layer = this.piecesRoot;
 		this.clear(layer);
 		this.clear(this.defsDynamic);
@@ -281,11 +281,11 @@ export class SvgRenderer implements Renderer {
 		const seenIds = new Set<number>();
 
 		for (let sq = 0 as Square; sq < 64; sq++) {
-			const code = state.pieces[sq];
+			const code = board.pieces[sq];
 			const piece = decodePiece(code);
 			if (!piece) continue;
 
-			const id = state.ids[sq] ?? -1;
+			const id = board.ids[sq] ?? -1;
 			if (id <= 0) continue;
 
 			const { col, row } = spriteTileFor(piece.color, piece.role);

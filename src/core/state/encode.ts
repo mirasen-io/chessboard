@@ -1,4 +1,4 @@
-import type { Color, Piece, Role } from './types';
+import type { Color, Piece, Role } from './boardTypes';
 
 /**
  * Compact piece encoding
