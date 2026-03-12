@@ -669,6 +669,79 @@ describe('core/runtime/boardRuntime', () => {
 		expect(renderSpy.mock.calls.length).toBe(initialCallCount);
 	});
 
+	it('coalesces multiple scheduling mutations into a single render in one frame', async () => {
+		// Two scheduling mutations before the next frame must produce exactly one render call.
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		// Start with an empty board so setBoardPosition below is a guaranteed state change
+		const runtime = createBoardRuntime({ renderer, board: { position: {} } });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		// Two scheduling mutations — both call scheduler.schedule() internally
+		runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
+		runtime.setOrientation('black');
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalledTimes(1);
+	});
+
+	it('setOrientation render receives DirtyLayer.All', async () => {
+		// setOrientation marks DirtyLayer.All; the render that follows must reflect that.
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, view: { orientation: 'white' } });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.setOrientation('black');
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalledTimes(1);
+		// render(board, invalidation, geometry)
+		const [, invalidation] = renderSpy.mock.calls[0];
+		expect(invalidation.layers).toBe(DirtyLayer.All);
+	});
+
+	it('move render receives DirtyLayer.Pieces and dirty squares', async () => {
+		// move marks DirtyLayer.Pieces and the affected squares; verify both reach the renderer.
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: { e2: { color: 'w', role: 'p' } } }
+		});
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		const result = runtime.move({ from: 'e2', to: 'e4' });
+		expect(result).toBeTruthy(); // move was applied
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalledTimes(1);
+		// render(board, invalidation, geometry)
+		const [, invalidation] = renderSpy.mock.calls[0];
+		expect(invalidation.layers & DirtyLayer.Pieces).toBe(DirtyLayer.Pieces);
+		expect(invalidation.squares).toBeDefined();
+		expect(invalidation.squares!.has(12)).toBe(true); // e2 = 12
+		expect(invalidation.squares!.has(28)).toBe(true); // e4 = 28
+	});
+
 	// ── Movability consultation ────────────────────────────────────────────────
 
 	it('null movability blocks all move attempts', () => {

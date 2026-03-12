@@ -115,6 +115,8 @@
 
 ### 2.4 Runtime tests
 
+**Status: COMPLETE**
+
 - Add focused tests for wiring and invalidation flow
 - Add tests for state change → invalidation → render scheduling path
 - Add tests for no-op updates / narrow updates
