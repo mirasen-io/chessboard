@@ -5,7 +5,13 @@ import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
 import { cburnettPieceUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type { RenderConfig, Renderer, RenderGeometry, RenderingContext } from './types';
+import type {
+	DragRenderInfo,
+	RenderConfig,
+	Renderer,
+	RenderGeometry,
+	RenderingContext
+} from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -140,7 +146,7 @@ export class SvgRenderer implements Renderer {
 	render(ctx: RenderingContext): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
-		const { board, invalidation, geometry } = ctx;
+		const { board, invalidation, geometry, drag } = ctx;
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
 		this.svgRoot.setAttribute('width', size);
@@ -153,7 +159,14 @@ export class SvgRenderer implements Renderer {
 			this.drawBoard(this.config.light, this.config.dark, geometry);
 			this.drawCoords(geometry.orientation, geometry);
 		}
-		if (layers & DirtyLayer.Pieces) this.drawPieces(board, geometry);
+		if (layers & DirtyLayer.Pieces) {
+			// Suppress the source square when a drag is active so the piece
+			// is not rendered twice (once in piecesRoot and once in dragRoot).
+			this.drawPieces(board, geometry, drag?.sourceSquare ?? null);
+		}
+		if (layers & DirtyLayer.Drag) {
+			this.drawDrag(drag, board, geometry);
+		}
 	}
 
 	private clear(node: Element) {
@@ -256,8 +269,16 @@ export class SvgRenderer implements Renderer {
 	 * - Removes nodes whose piece ids disappeared.
 	 * - Each piece is a single <image> element sized to the square, referencing its own SVG asset.
 	 * - defsDynamic is not used; no per-piece clipPaths are created.
+	 *
+	 * @param suppressSquare - If non-null, the piece at this square is not appended to piecesRoot
+	 *   (used during drag to hide the source piece here while it renders in dragRoot).
+	 *   Its cached node is still tracked in seenIds so the sweep does not delete it.
 	 */
-	private drawPieces(board: BoardStateSnapshot, g: RenderGeometry) {
+	private drawPieces(
+		board: BoardStateSnapshot,
+		g: RenderGeometry,
+		suppressSquare: Square | null = null
+	) {
 		const layer = this.piecesRoot;
 		this.clear(layer);
 		// defsDynamic is not used for piece rendering; do not clear or write it here.
@@ -271,6 +292,14 @@ export class SvgRenderer implements Renderer {
 
 			const id = board.ids[sq] ?? -1;
 			if (id <= 0) continue;
+
+			// Always track the id as seen — even for the suppressed square — so the
+			// sweep below does not delete the cached node while the drag is active.
+			seenIds.add(id);
+
+			// During drag: skip appending the source piece to piecesRoot.
+			// It will be rendered once in dragRoot by drawDrag().
+			if (suppressSquare !== null && sq === suppressSquare) continue;
 
 			const r = g.squareRect(sq);
 			const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
@@ -303,8 +332,6 @@ export class SvgRenderer implements Renderer {
 				rec = { root: img };
 				this.pieceNodes.set(id, rec);
 			}
-
-			seenIds.add(id);
 		}
 
 		// Sweep: remove nodes for ids that disappeared
@@ -314,5 +341,35 @@ export class SvgRenderer implements Renderer {
 				this.pieceNodes.delete(pid);
 			}
 		}
+	}
+
+	/**
+	 * Render the active drag piece preview into dragRoot.
+	 * - Clears dragRoot on every call.
+	 * - If drag is null (no active drag), leaves dragRoot empty.
+	 * - Otherwise derives the piece from board.pieces[drag.sourceSquare] and renders
+	 *   exactly one <image> at the source square position (source-anchored preview).
+	 * - No node caching: dragRoot is always rebuilt from scratch (drag is transient).
+	 */
+	private drawDrag(drag: DragRenderInfo | null, board: BoardStateSnapshot, g: RenderGeometry) {
+		this.clear(this.dragRoot);
+		if (drag === null) return;
+
+		const sq = drag.sourceSquare;
+		const piece = decodePiece(board.pieces[sq]);
+		if (!piece) return; // no piece at source square — defensive, should not occur in normal flow
+
+		const r = g.squareRect(sq);
+		const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
+
+		const img = document.createElementNS(SVG_NS, 'image');
+		img.setAttribute('x', r.x.toString());
+		img.setAttribute('y', r.y.toString());
+		img.setAttribute('width', r.size.toString());
+		img.setAttribute('height', r.size.toString());
+		img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
+		img.setAttribute('href', pieceUrl);
+
+		this.dragRoot.appendChild(img);
 	}
 }

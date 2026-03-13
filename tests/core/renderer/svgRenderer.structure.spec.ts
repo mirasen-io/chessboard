@@ -76,7 +76,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 
 		const board = makeBoardSnapshot({ pieces, ids });
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board, invalidation: { layers: DirtyLayer.Pieces }, geometry });
+		renderer.render({ board, invalidation: { layers: DirtyLayer.Pieces }, geometry, drag: null });
 
 		expect(piecesRoot.children.length).toBe(1);
 		const pieceNode = piecesRoot.children[0];
@@ -107,7 +107,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 
 		const board = makeBoardSnapshot({ pieces, ids });
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board, invalidation: { layers: DirtyLayer.Pieces }, geometry });
+		renderer.render({ board, invalidation: { layers: DirtyLayer.Pieces }, geometry, drag: null });
 
 		expect(defsDynamic.children.length).toBe(0);
 
@@ -133,14 +133,14 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		const invalidation = { layers: DirtyLayer.Pieces };
 
 		// First render
-		renderer.render({ board, invalidation, geometry });
+		renderer.render({ board, invalidation, geometry, drag: null });
 		const pieceNode1 = piecesRoot.children[0] as SVGImageElement;
 		expect(pieceNode1.tagName).toBe('image');
 		// href references the per-piece asset for white pawn
 		expect(pieceNode1.getAttribute('href')).toContain('wp.svg');
 
 		// Second render (same state) — same DOM node must be reused, not recreated
-		renderer.render({ board, invalidation, geometry });
+		renderer.render({ board, invalidation, geometry, drag: null });
 		const pieceNode2 = piecesRoot.children[0];
 		expect(pieceNode2).toBe(pieceNode1); // same object reference
 
@@ -154,7 +154,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 
 		expect(() =>
-			renderer.render({ board, invalidation: { layers: DirtyLayer.Board }, geometry })
+			renderer.render({ board, invalidation: { layers: DirtyLayer.Board }, geometry, drag: null })
 		).toThrow(/before mount/i);
 	});
 

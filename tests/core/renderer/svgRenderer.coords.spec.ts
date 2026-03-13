@@ -22,7 +22,12 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 		expect(labels.length).toBe(16);
@@ -39,7 +44,12 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
@@ -76,7 +86,12 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
@@ -114,7 +129,12 @@ describe('SvgRenderer coordinates rendering', () => {
 
 		// Orientation is passed via geometry, not board snapshot
 		const geometry = makeRenderGeometry(800, 'black');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
@@ -152,7 +172,12 @@ describe('SvgRenderer coordinates rendering', () => {
 
 		// Orientation is passed via geometry, not board snapshot
 		const geometry = makeRenderGeometry(800, 'black');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
@@ -189,7 +214,12 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 
@@ -221,7 +251,12 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({ board: emptyBoard, invalidation: { layers: DirtyLayer.Board }, geometry });
+		renderer.render({
+			board: emptyBoard,
+			invalidation: { layers: DirtyLayer.Board },
+			geometry,
+			drag: null
+		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
 

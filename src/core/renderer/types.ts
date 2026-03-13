@@ -8,6 +8,15 @@ import type { InvalidationStateSnapshot } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 
 /**
+ * Curated drag render info passed to the renderer.
+ * Contains only what the renderer needs to render the drag preview.
+ * No pointer coordinates — drag preview is source-anchored.
+ */
+export interface DragRenderInfo {
+	sourceSquare: Square;
+}
+
+/**
  * Renderer-owned visual configuration.
  * Contains only base board rendering config actually owned by the core renderer.
  */
@@ -48,6 +57,8 @@ export type RenderingContext = {
 	board: BoardStateSnapshot;
 	invalidation: InvalidationStateSnapshot;
 	geometry: RenderGeometry;
+	/** Active drag info, or null if no drag is in progress. */
+	drag: DragRenderInfo | null;
 };
 
 /**

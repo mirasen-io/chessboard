@@ -184,7 +184,18 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		render: (boardSnapshot, invalidationSnapshot) => {
 			// Guard: only render if geometry exists (implies mounted)
 			if (geometry) {
-				renderer.render({ board: boardSnapshot, invalidation: invalidationSnapshot, geometry });
+				// Build curated drag info from interaction state.
+				// Only sourceSquare is passed — no pointer coordinates.
+				const drag =
+					interactionState.dragSession !== null
+						? { sourceSquare: interactionState.dragSession.fromSquare }
+						: null;
+				renderer.render({
+					board: boardSnapshot,
+					invalidation: invalidationSnapshot,
+					geometry,
+					drag
+				});
 			}
 		},
 		getBoardSnapshot: () => getBoardStateSnapshot(boardState),
@@ -326,6 +337,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			const session: DragSession = { fromSquare: from };
 			setDragSessionReducer(interactionState, session);
 			setCurrentTargetReducer(interactionState, null);
+			// Drag started: source piece moves from piecesRoot to dragRoot.
+			markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
+			if (mounted) scheduler.schedule();
 			return true;
 		},
 
@@ -345,6 +359,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// Legal completion: apply move, clear all interaction.
 				const appliedMove = moveReducer(boardState, invalidationWriter, { from: source, to });
 				clearInteractionReducer(interactionState);
+				// moveReducer already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
+				// OR in DirtyLayer.Drag directly to avoid clearing those squares.
+				invalidationState.layers |= DirtyLayer.Drag;
 				if (mounted) {
 					scheduler.schedule();
 				}
@@ -354,10 +371,13 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			// Illegal completion — outcome is mode-dependent:
 			if (interactionState.dragSession !== null) {
 				// Lifted-piece mode: clear dragSession + currentTarget, keep selectedSquare + destinations.
-				// The piece snaps back to its source square (Phase 3.3 rendering concern).
+				// The piece snaps back to its source square.
 				// The user can retry by releasing on a different target.
 				setDragSessionReducer(interactionState, null);
 				setCurrentTargetReducer(interactionState, null);
+				// Drag cleared: source piece returns to piecesRoot, dragRoot empties.
+				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
+				if (mounted) scheduler.schedule();
 			} else {
 				// Release-targeting mode: clear all interaction.
 				// The selection is gone; the user must re-select to try again.
@@ -371,8 +391,15 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			// Clear dragSession + currentTarget only. Keep selectedSquare + destinations.
 			// This returns to "piece selected" state, not "no interaction" state.
 			// Use select(null) to fully deselect.
+			const wasDragging = interactionState.dragSession !== null;
 			const a = setDragSessionReducer(interactionState, null);
 			const b = setCurrentTargetReducer(interactionState, null);
+			// Only mark drag dirty if a drag was actually active — currentTarget-only
+			// changes do not affect drag rendering.
+			if (wasDragging && mounted) {
+				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
+				scheduler.schedule();
+			}
 			return a || b;
 		},
 
