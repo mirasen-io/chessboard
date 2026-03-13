@@ -156,6 +156,8 @@
 
 ### 3.3 Drag rendering responsibilities
 
+**Status: COMPLETE**
+
 - Define render ownership during active drag
 - Define what belongs in `dragRoot` vs what remains in base renderer roots
 - Define how source piece vs drag preview are represented during drag

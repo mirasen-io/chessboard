@@ -78,5 +78,7 @@ https://github.com/kt-npm-modules/chessboard/tree/feat/v1
 
 When discussing the current implementation, use this branch as the source of truth.
 
+Sometimes you retrieve old version of files (probably due to cache), so attached also is the zip of src folder if you need to review some files.
+
 If you need to inspect specific files, ask for them explicitly rather than assuming their contents.
 Do not invent file contents.
