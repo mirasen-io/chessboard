@@ -44,6 +44,12 @@ export interface RenderGeometry {
 	squareRect(sq: Square): { x: number; y: number; size: number };
 }
 
+export type RenderingContext = {
+	board: BoardStateSnapshot;
+	invalidation: InvalidationStateSnapshot;
+	geometry: RenderGeometry;
+};
+
 /**
  * Minimal renderer interface called by the runtime via the scheduler render callback.
  * - mount/unmount attach/detach DOM.
@@ -52,9 +58,5 @@ export interface RenderGeometry {
 export interface Renderer {
 	mount(container: HTMLElement): void;
 	unmount(): void;
-	render(
-		board: BoardStateSnapshot,
-		invalidation: InvalidationStateSnapshot,
-		geometry: RenderGeometry
-	): void;
+	render(ctx: RenderingContext): void;
 }

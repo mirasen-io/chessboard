@@ -1,12 +1,11 @@
 import { PartialDeep } from 'type-fest';
 import { DirtyLayer } from '../..';
-import type { InvalidationStateSnapshot } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
 import { cburnettPieceUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type { RenderConfig, Renderer, RenderGeometry } from './types';
+import type { RenderConfig, Renderer, RenderGeometry, RenderingContext } from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -138,13 +137,10 @@ export class SvgRenderer implements Renderer {
 		this.pieceNodes.clear();
 	}
 
-	render(
-		board: BoardStateSnapshot,
-		invalidation: InvalidationStateSnapshot,
-		geometry: RenderGeometry
-	): void {
+	render(ctx: RenderingContext): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
+		const { board, invalidation, geometry } = ctx;
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
 		this.svgRoot.setAttribute('width', size);
