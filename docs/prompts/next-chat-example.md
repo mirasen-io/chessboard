@@ -1,8 +1,8 @@
-We are continuing work on `kt-npm-modules/chessboard`.
+We are continuing work on `mirasen-io/chessboard`.
 
 ## Handoff summary
 
-- **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
+- **Project:** `mirasen-io/chessboard` on branch `feat/v1`.
 - **Current task completed:** reviewed and accepted **Phase 3.6 Input / UI adapter wiring**.
 - **Confirmed implementation:** added internal `src/core/input/inputAdapter.ts` as the DOM/pointer → controller bridge.
 - **Confirmed adapter boundary:** adapter remains internal-only; no public API/package export expansion was accepted.
@@ -88,7 +88,7 @@ Do not introduce speculative APIs unless clearly justified.
 
 The working branch of the project is here:
 
-https://github.com/kt-npm-modules/chessboard/tree/feat/v1
+https://github.com/mirasen-io/chessboard/tree/feat/v1
 
 When discussing the current implementation, use this branch as the source of truth.
 

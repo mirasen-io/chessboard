@@ -20,10 +20,10 @@
 	"homepage": "https://mirasen.io",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/kt-npm-modules/chessboard.git"
+		"url": "git+https://github.com/mirasen-io/chessboard.git"
 	},
 	"bugs": {
-		"url": "https://github.com/kt-npm-modules/chessboard/issues"
+		"url": "https://github.com/mirasen-io/chessboard/issues"
 	},
 	"type": "module",
 	"types": "./dist/index.d.ts",

@@ -1,4 +1,4 @@
-We are continuing work on `kt-npm-modules/chessboard`.
+We are continuing work on `mirasen-io/chessboard`.
 
 ## Handoff summary
 
@@ -47,7 +47,7 @@ Do not introduce speculative APIs unless clearly justified.
 
 The working branch of the project is here:
 
-https://github.com/kt-npm-modules/chessboard/tree/feat/v1
+https://github.com/mirasen-io/chessboard/tree/feat/v1
 
 When discussing the current implementation, use this branch as the source of truth.
 
