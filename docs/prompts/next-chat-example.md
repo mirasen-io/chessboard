@@ -3,20 +3,20 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
-- **Current task:** Phase 2.4 runtime test tightening was completed; next step is Phase 2.5 from the plan.
-- **Confirmed decisions:** board/view split remains final; do not reopen settled architecture.
-- **Board state:** `BoardStateInternal` owns only `pieces`, `ids`, `turn`, `nextId`; `BoardStateSnapshot` exposes only `pieces`, `ids`, `turn`.
-- **View state:** `ViewStateInternal` owns `orientation`, `selected`, `movability`; `ViewStateSnapshot` mirrors only view-owned state.
-- **Invalidation:** separate internal plumbing state; reducers use `InvalidationWriter`; runtime schedules only after successful reducers that take invalidation.
-- **Runtime shape:** runtime owns `boardState`, `viewState`, and `invalidationState`; scheduler works with `BoardStateSnapshot` and `InvalidationStateSnapshot`.
-- **Renderer contract:** core renderer does not depend on full view state; orientation for core rendering comes through geometry, not board snapshot.
-- **API decisions:** `move()` returns `Move`; simple setters return `boolean`.
-- **Phase 2.4 result:** runtime wiring coverage is now strong enough to mark the step complete, assuming local tests pass.
-- **Phase 2.4 tests added:** coalescing multiple scheduling mutations into one render; `setOrientation()` render receives `DirtyLayer.All`; `move()` render receives `DirtyLayer.Pieces` plus dirty source/destination squares.
-- **Constraints:** keep steps narrow; no redesign of runtime architecture; no speculative APIs; mirror test structure to source structure.
-- **Relevant files:** `tests/core/runtime/boardRuntime.spec.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/scheduler/{scheduler,invalidationState,reducers,types}.ts`, `src/core/state/{boardState,viewState,boardReducers,viewReducers,boardTypes,viewTypes}.ts`, and `current-plan.md`.
-- **Patch review verdict:** the Phase 2.4 test diff was accepted as narrow and sufficient.
-- **Next step:** start Phase 2.5 only; review the plan, inspect the relevant current files, and keep the work limited to that phase’s scope.
+- **Current task completed:** Phase 2.5 is complete.
+- **Phase 2.5 result:** renderer no longer uses runtime sprite-sheet cropping for pieces.
+- **Confirmed renderer decision:** piece rendering now uses per-piece cburnett SVG assets instead of `pieces.svg` sprite slicing.
+- **Asset set in use:** `assets/pieces/cburnett/{wk,wq,wr,wb,wn,wp,bk,bq,br,bb,bn,bp}.svg`.
+- **Legacy asset status:** `assets/pieces/cburnett/pieces.svg` remains only as legacy/source reference, not runtime piece rendering input.
+- **Renderer structure decision:** one local `<image>` per piece, keyed by stable piece id; no per-piece `clipPath`, no sprite tile offset logic, no full-sheet `<image>`.
+- **DOM locality issue:** resolved; piece nodes now inspect as local square-sized image elements.
+- **Manual verification:** orientation `black` renders correctly; coordinates/labels also look correct.
+- **Tests updated:** renderer structure tests were narrowed to the new per-piece asset model and reuse behavior.
+- **Confirmed architecture decisions remain unchanged:** board/view split stays final; do not reopen settled runtime architecture.
+- **Constraints:** keep steps narrow; no redesign of runtime/state/input; no speculative drag APIs; mirror test structure to source structure.
+- **Relevant files:** `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/assets.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `assets/pieces/cburnett/*`, and `current-plan.md`.
+- **Review verdict:** Phase 2.5 accepted and closed.
+- **Next step:** start **Phase 3.1** only, using `current-plan.md` as the roadmap reference and keeping work limited to that step’s exact scope.
 
 ## Attached plan
 
@@ -25,19 +25,19 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on **Phase 2.5** from `current-plan.md`.
+Focus only on **Phase 3.1** from `current-plan.md`.
 
 Goals:
 
-- Review the current implementation only for the exact scope of Phase 2.5.
+- Review the current implementation only for the exact scope of Phase 3.1.
 - Check whether the current code already satisfies the step or whether there are narrow gaps.
 - Produce a brief verdict and, only if needed, a precise implementation prompt for Cline.
 
 Do not:
 
 - Reopen the board/view split or redesign settled runtime architecture.
-- Rework Phase 2.4 runtime tests unless a Phase 2.5 issue directly depends on them.
-- Expand into later phases.
+- Rework Phase 2.5 renderer changes unless a Phase 3.1 issue directly depends on them.
+- Expand into later Phase 3 steps.
 
 Working mode:
 

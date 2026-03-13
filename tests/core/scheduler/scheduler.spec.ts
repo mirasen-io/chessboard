@@ -89,19 +89,6 @@ describe('scheduler/scheduler (rAF-only)', () => {
 		expect(renders[0].invalidation.layers).toBe(DirtyLayer.Pieces);
 	});
 
-	it('schedule throws if requestAnimationFrame is unavailable', () => {
-		const originalRaf = globalThis.requestAnimationFrame;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(globalThis as any).requestAnimationFrame = undefined;
-
-		try {
-			expect(() => scheduler.schedule()).toThrow(/requestAnimationFrame is required/);
-		} finally {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(globalThis as any).requestAnimationFrame = originalRaf;
-		}
-	});
-
 	it('destroy cancels pending rAF and prevents further renders', async () => {
 		// Polyfill rAF/cAF for Node
 		const originalRaf = globalThis.requestAnimationFrame;

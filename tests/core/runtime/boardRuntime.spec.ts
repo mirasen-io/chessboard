@@ -119,12 +119,11 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		// render(board, invalidation, geometry)
-		const [snapshot, invalidation] = renderSpy.mock.calls[0];
+		const [ctx] = renderSpy.mock.calls[0];
 
-		expect(snapshot.pieces[0]).not.toBe(0); // a1 has a piece in start position
+		expect(ctx.board.pieces[0]).not.toBe(0); // a1 has a piece in start position
 		// mount marks DirtyLayer.All (Board | Pieces | Drag = 7)
-		expect(invalidation.layers).toBe(DirtyLayer.All);
+		expect(ctx.invalidation.layers).toBe(DirtyLayer.All);
 	});
 
 	it('mount measures container correctly (min of width/height)', async () => {
@@ -138,9 +137,8 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		// render(board, invalidation, geometry)
-		const [, , geometry] = renderSpy.mock.calls[0];
-		expect(geometry.boardSize).toBe(400); // min(600, 400)
+		const [ctx] = renderSpy.mock.calls[0];
+		expect(ctx.geometry.boardSize).toBe(400); // min(600, 400)
 	});
 
 	it('post-mount state mutation schedules render', () => {
@@ -159,8 +157,8 @@ describe('core/runtime/boardRuntime', () => {
 
 				requestAnimationFrame(() => {
 					expect(renderSpy).toHaveBeenCalled();
-					const [snapshot] = renderSpy.mock.calls[0];
-					expect(snapshot.pieces[28]).not.toBe(0); // e4 = 28
+					const [ctx] = renderSpy.mock.calls[0];
+					expect(ctx.board.pieces[28]).not.toBe(0); // e4 = 28
 					resolve();
 				});
 			});
@@ -177,8 +175,8 @@ describe('core/runtime/boardRuntime', () => {
 
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
-				// render(board, invalidation, geometry)
-				const [, , geom1] = renderSpy.mock.calls[0];
+				const [ctx1] = renderSpy.mock.calls[0];
+				const geom1 = ctx1.geometry;
 				const a1BeforeChange = geom1.squareRect(0);
 				renderSpy.mockClear();
 
@@ -186,7 +184,8 @@ describe('core/runtime/boardRuntime', () => {
 
 				requestAnimationFrame(() => {
 					expect(renderSpy).toHaveBeenCalled();
-					const [, , geom2] = renderSpy.mock.calls[0];
+					const [ctx2] = renderSpy.mock.calls[0];
+					const geom2 = ctx2.geometry;
 
 					expect(geom1).not.toBe(geom2); // immutable — new object
 
@@ -211,17 +210,16 @@ describe('core/runtime/boardRuntime', () => {
 
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
-				// render(board, invalidation, geometry)
-				const [, invalidation1] = renderSpy.mock.calls[0];
+				const [ctx1] = renderSpy.mock.calls[0];
 				// mount marks DirtyLayer.All (Board | Pieces | Drag = 7)
-				expect(invalidation1.layers).toBe(DirtyLayer.All);
+				expect(ctx1.invalidation.layers).toBe(DirtyLayer.All);
 
 				runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
 
 				requestAnimationFrame(() => {
 					expect(renderSpy).toHaveBeenCalledTimes(2);
-					const [, invalidation2] = renderSpy.mock.calls[1];
-					expect(invalidation2.layers & DirtyLayer.Pieces).not.toBe(0);
+					const [ctx2] = renderSpy.mock.calls[1];
+					expect(ctx2.invalidation.layers & DirtyLayer.Pieces).not.toBe(0);
 					resolve();
 				});
 			});
@@ -240,9 +238,8 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		// render(board, invalidation, geometry)
-		const [, invalidation] = renderSpy.mock.calls[0];
-		expect(invalidation.layers).toBe(DirtyLayer.All);
+		const [ctx] = renderSpy.mock.calls[0];
+		expect(ctx.invalidation.layers).toBe(DirtyLayer.All);
 	});
 
 	it('throws error when mounting twice', () => {
@@ -276,7 +273,8 @@ describe('core/runtime/boardRuntime', () => {
 
 		await waitForRender();
 
-		const [, , geom1] = renderSpy.mock.calls[0];
+		const [ctx1] = renderSpy.mock.calls[0];
+		const geom1 = ctx1.geometry;
 		expect(geom1.boardSize).toBe(400);
 		renderSpy.mockClear();
 
@@ -288,8 +286,8 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		// render(board, invalidation, geometry)
-		const [, invalidation, geom2] = renderSpy.mock.calls[0];
+		const [ctx2] = renderSpy.mock.calls[0];
+		const { invalidation, geometry: geom2 } = ctx2;
 
 		expect(geom2.boardSize).toBe(600);
 		expect(geom1).not.toBe(geom2); // immutable
@@ -358,8 +356,8 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		const [, , geomAfterResize] = renderSpy.mock.calls[0];
-		expect(geomAfterResize.boardSize).toBe(500);
+		const [ctx] = renderSpy.mock.calls[0];
+		expect(ctx.geometry.boardSize).toBe(500);
 	});
 
 	it('destroy disconnects resize observer', async () => {
@@ -474,8 +472,8 @@ describe('core/runtime/boardRuntime', () => {
 		return new Promise<void>((resolve) => {
 			requestAnimationFrame(() => {
 				expect(renderSpy).toHaveBeenCalled();
-				// render(board, invalidation, geometry)
-				const [, , geometry] = renderSpy.mock.calls[0];
+				const [ctx] = renderSpy.mock.calls[0];
+				const geometry = ctx.geometry;
 
 				// Black orientation: a1 (sq=0) should be at top-right, not bottom-left
 				// For white: a1.y = 7 * squareSize (bottom row)
@@ -708,9 +706,8 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalledTimes(1);
-		// render(board, invalidation, geometry)
-		const [, invalidation] = renderSpy.mock.calls[0];
-		expect(invalidation.layers).toBe(DirtyLayer.All);
+		const [ctx] = renderSpy.mock.calls[0];
+		expect(ctx.invalidation.layers).toBe(DirtyLayer.All);
 	});
 
 	it('move render receives DirtyLayer.Pieces and dirty squares', async () => {
@@ -734,12 +731,11 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalledTimes(1);
-		// render(board, invalidation, geometry)
-		const [, invalidation] = renderSpy.mock.calls[0];
-		expect(invalidation.layers & DirtyLayer.Pieces).toBe(DirtyLayer.Pieces);
-		expect(invalidation.squares).toBeDefined();
-		expect(invalidation.squares!.has(12)).toBe(true); // e2 = 12
-		expect(invalidation.squares!.has(28)).toBe(true); // e4 = 28
+		const [ctx] = renderSpy.mock.calls[0];
+		expect(ctx.invalidation.layers & DirtyLayer.Pieces).toBe(DirtyLayer.Pieces);
+		expect(ctx.invalidation.squares).toBeDefined();
+		expect(ctx.invalidation.squares!.has(12)).toBe(true); // e2 = 12
+		expect(ctx.invalidation.squares!.has(28)).toBe(true); // e4 = 28
 	});
 
 	// ── Movability consultation ────────────────────────────────────────────────
@@ -902,8 +898,8 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		// render(board, invalidation, geometry)
-		const [boardSnapshot, , geometry] = renderSpy.mock.calls[0];
+		const [ctx] = renderSpy.mock.calls[0];
+		const { board: boardSnapshot, geometry } = ctx;
 
 		// Geometry carries orientation
 		expect(geometry.orientation).toBe('black');
@@ -929,8 +925,7 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 
 		expect(renderSpy).toHaveBeenCalled();
-		// render(board, invalidation, geometry)
-		const [, , geometry] = renderSpy.mock.calls[0];
-		expect(geometry.orientation).toBe('black');
+		const [ctx] = renderSpy.mock.calls[0];
+		expect(ctx.geometry.orientation).toBe('black');
 	});
 });

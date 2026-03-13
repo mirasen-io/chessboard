@@ -122,7 +122,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		render: (boardSnapshot, invalidationSnapshot) => {
 			// Guard: only render if geometry exists (implies mounted)
 			if (geometry) {
-				renderer.render(boardSnapshot, invalidationSnapshot, geometry);
+				renderer.render({ board: boardSnapshot, invalidation: invalidationSnapshot, geometry });
 			}
 		},
 		getBoardSnapshot: () => getBoardStateSnapshot(boardState),
