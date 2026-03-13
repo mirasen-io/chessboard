@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>BoardRuntime manual test</title>
+
+		<style>
+			body {
+				font-family: system-ui, sans-serif;
+				margin: 24px;
+			}
+
+			.controls {
+				display: flex;
+				gap: 8px;
+				flex-wrap: wrap;
+				margin-bottom: 16px;
+			}
+
+			button {
+				padding: 8px 12px;
+				cursor: pointer;
+			}
+
+			#board {
+				width: 600px;
+				height: 600px;
+				border: 1px solid #ccc;
+			}
+
+			#status {
+				margin-top: 16px;
+				padding: 12px;
+				background: #f6f6f6;
+				border: 1px solid #ddd;
+				white-space: pre-wrap;
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			}
+
+			.hint {
+				margin-top: 12px;
+				color: #555;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>BoardRuntime manual test</h1>
+
+		<div class="controls">
+			<button id="whiteBtn">Orientation: white</button>
+			<button id="blackBtn">Orientation: black</button>
+			<button id="resetBtn">Reset position</button>
+			<button id="clearBtn">Clear selection</button>
+		</div>
+
+		<div id="board"></div>
+		<div id="status"></div>
+
+		<p class="hint">
+			Manual checks: free movability is enabled for both colors. Try click-select + click
+			destination, drag + release, off-board leave, and orientation flip.
+		</p>
+
+		<script type="module">
+			import { SvgRenderer } from '../../../dist/manual/core/renderer/SvgRenderer.js';
+			import { createBoardRuntime } from '../../../dist/manual/core/runtime/boardRuntime.js';
+
+			const boardEl = document.getElementById('board');
+			const statusEl = document.getElementById('status');
+			const whiteBtn = document.getElementById('whiteBtn');
+			const blackBtn = document.getElementById('blackBtn');
+			const resetBtn = document.getElementById('resetBtn');
+			const clearBtn = document.getElementById('clearBtn');
+
+			const initialPosition = {
+				a2: { color: 'w', role: 'p' },
+				b2: { color: 'w', role: 'p' },
+				c2: { color: 'w', role: 'p' },
+				d2: { color: 'w', role: 'p' },
+				e2: { color: 'w', role: 'p' },
+				f2: { color: 'w', role: 'p' },
+				g2: { color: 'w', role: 'p' },
+				h2: { color: 'w', role: 'p' },
+				a1: { color: 'w', role: 'r' },
+				b1: { color: 'w', role: 'n' },
+				c1: { color: 'w', role: 'b' },
+				d1: { color: 'w', role: 'q' },
+				e1: { color: 'w', role: 'k' },
+				f1: { color: 'w', role: 'b' },
+				g1: { color: 'w', role: 'n' },
+				h1: { color: 'w', role: 'r' },
+
+				a7: { color: 'b', role: 'p' },
+				b7: { color: 'b', role: 'p' },
+				c7: { color: 'b', role: 'p' },
+				d7: { color: 'b', role: 'p' },
+				e7: { color: 'b', role: 'p' },
+				f7: { color: 'b', role: 'p' },
+				g7: { color: 'b', role: 'p' },
+				h7: { color: 'b', role: 'p' },
+				a8: { color: 'b', role: 'r' },
+				b8: { color: 'b', role: 'n' },
+				c8: { color: 'b', role: 'b' },
+				d8: { color: 'b', role: 'q' },
+				e8: { color: 'b', role: 'k' },
+				f8: { color: 'b', role: 'b' },
+				g8: { color: 'b', role: 'n' },
+				h8: { color: 'b', role: 'r' }
+			};
+
+			const runtime = createBoardRuntime({
+				renderer: new SvgRenderer(),
+				board: { position: initialPosition },
+				view: {
+					orientation: 'white',
+					movability: {
+						mode: 'free',
+						color: 'both'
+					}
+				}
+			});
+
+			runtime.mount(boardEl);
+
+			function renderStatus() {
+				const snapshot = runtime.getInteractionSnapshot();
+				statusEl.textContent = JSON.stringify(
+					{
+						movability: 'free / both',
+						interaction: snapshot.interaction
+					},
+					null,
+					2
+				);
+			}
+
+			function wrap(action) {
+				return (...args) => {
+					const result = action(...args);
+					renderStatus();
+					return result;
+				};
+			}
+
+			whiteBtn.addEventListener(
+				'click',
+				wrap(() => runtime.setOrientation('white'))
+			);
+
+			blackBtn.addEventListener(
+				'click',
+				wrap(() => runtime.setOrientation('black'))
+			);
+
+			resetBtn.addEventListener(
+				'click',
+				wrap(() => runtime.setBoardPosition(initialPosition))
+			);
+
+			clearBtn.addEventListener(
+				'click',
+				wrap(() => runtime.select(null))
+			);
+
+			const statusEvents = [
+				'pointerdown',
+				'pointermove',
+				'pointerup',
+				'pointercancel',
+				'pointerleave'
+			];
+			for (const type of statusEvents) {
+				boardEl.addEventListener(type, () => {
+					queueMicrotask(renderStatus);
+				});
+			}
+
+			renderStatus();
+			window.runtime = runtime;
+		</script>
+	</body>
+</html>
