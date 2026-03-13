@@ -7,7 +7,6 @@ describe('state/viewState', () => {
 			const state = createViewState();
 
 			expect('orientation' in state).toBe(true);
-			expect('selected' in state).toBe(true);
 			expect('movability' in state).toBe(true);
 
 			// View state does NOT contain board-owned fields
@@ -15,12 +14,17 @@ describe('state/viewState', () => {
 			expect('ids' in state).toBe(false);
 			expect('turn' in state).toBe(false);
 			expect('nextId' in state).toBe(false);
+
+			// View state does NOT contain interaction-owned fields
+			expect('selected' in state).toBe(false);
+			expect('selectedSquare' in state).toBe(false);
+			expect('destinations' in state).toBe(false);
+			expect('dragSession' in state).toBe(false);
 		});
 
-		it('defaults: orientation=white, selected=null, movability=disabled', () => {
+		it('defaults: orientation=white, movability=disabled', () => {
 			const state = createViewState();
 			expect(state.orientation).toBe('white');
-			expect(state.selected).toBeNull();
 			expect(state.movability).toEqual({ mode: 'disabled' });
 		});
 
@@ -34,13 +38,6 @@ describe('state/viewState', () => {
 			expect(state.orientation).toBe('black');
 		});
 
-		it('respects selected override', () => {
-			const state = createViewState({
-				selected: 12 as import('../../../src/core/state/boardTypes').Square
-			});
-			expect(state.selected).toBe(12);
-		});
-
 		it('respects movability override', () => {
 			const state = createViewState({ movability: { mode: 'free', color: 'white' } });
 			expect(state.movability).toEqual({ mode: 'free', color: 'white' });
@@ -48,12 +45,11 @@ describe('state/viewState', () => {
 	});
 
 	describe('getViewStateSnapshot', () => {
-		it('snapshot contains exactly view-owned fields: orientation, selected, movability', () => {
+		it('snapshot contains exactly view-owned fields: orientation and movability', () => {
 			const state = createViewState();
 			const snap = getViewStateSnapshot(state);
 
 			expect('orientation' in snap).toBe(true);
-			expect('selected' in snap).toBe(true);
 			expect('movability' in snap).toBe(true);
 
 			// Snapshot does NOT expose board-owned fields
@@ -61,6 +57,12 @@ describe('state/viewState', () => {
 			expect('ids' in snap).toBe(false);
 			expect('turn' in snap).toBe(false);
 			expect('nextId' in snap).toBe(false);
+
+			// Snapshot does NOT expose interaction-owned fields
+			expect('selected' in snap).toBe(false);
+			expect('selectedSquare' in snap).toBe(false);
+			expect('destinations' in snap).toBe(false);
+			expect('dragSession' in snap).toBe(false);
 		});
 
 		it('snapshot reflects current state values', () => {
@@ -71,7 +73,6 @@ describe('state/viewState', () => {
 			const snap = getViewStateSnapshot(state);
 
 			expect(snap.orientation).toBe('black');
-			expect(snap.selected).toBeNull();
 			expect(snap.movability).toEqual({ mode: 'free', color: 'both' });
 		});
 

@@ -24,20 +24,20 @@ export type DisabledMovability = {
 export type Movability = StrictMovability | FreeMovability | DisabledMovability;
 
 /**
- * Internal mutable view state used by reducers/runtime.
- * Not intended as a renderer- or consumer-facing contract.
+ * Internal mutable view/config state used by reducers/runtime.
+ * Owns presentation config and interaction policy config.
+ * User interaction facts (selection, destinations, drag) live in InteractionStateInternal.
  */
 export interface ViewStateInternal {
 	orientation: Orientation;
-	selected: Square | null;
 	movability: Movability;
 }
 
 /**
  * State snapshot shape exposed to consumers. Contains only view-owned fields; board state is separate.
+ * Interaction state is separate.
  */
 export interface ViewStateSnapshot {
 	readonly orientation: Orientation;
-	readonly selected: Square | null;
 	readonly movability: Movability;
 }

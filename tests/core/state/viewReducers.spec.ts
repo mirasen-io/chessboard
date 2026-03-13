@@ -4,8 +4,7 @@ import {
 	createInvalidationWriter
 } from '../../../src/core/scheduler/invalidationState';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
-import type { Square } from '../../../src/core/state/boardTypes';
-import { select, setMovability, setOrientation } from '../../../src/core/state/viewReducers';
+import { setMovability, setOrientation } from '../../../src/core/state/viewReducers';
 import { createViewState } from '../../../src/core/state/viewState';
 
 /** Helper: fresh invalidation state + writer pair for each test */
@@ -93,57 +92,6 @@ describe('state/viewReducers', () => {
 			// setMovability signature: (state, m) — no writer parameter
 			const view = createViewState();
 			expect(() => setMovability(view, { mode: 'free', color: 'both' })).not.toThrow();
-		});
-	});
-
-	describe('select', () => {
-		it('sets selected square and returns true when changed', () => {
-			const view = createViewState();
-
-			const changed = select(view, 12 as Square);
-
-			expect(changed).toBe(true);
-			expect(view.selected).toBe(12);
-		});
-
-		it('clears selection with null and returns true when changed', () => {
-			const view = createViewState({ selected: 12 as Square });
-
-			const changed = select(view, null);
-
-			expect(changed).toBe(true);
-			expect(view.selected).toBeNull();
-		});
-
-		it('is a no-op and returns false when selection is unchanged', () => {
-			const view = createViewState({ selected: 12 as Square });
-
-			const changed = select(view, 12 as Square);
-
-			expect(changed).toBe(false);
-			expect(view.selected).toBe(12);
-		});
-
-		it('is a no-op when clearing already-null selection', () => {
-			const view = createViewState(); // selected = null
-
-			const changed = select(view, null);
-
-			expect(changed).toBe(false);
-		});
-
-		it('accepts algebraic square string', () => {
-			const view = createViewState();
-
-			select(view, 'e4');
-
-			expect(view.selected).not.toBeNull();
-		});
-
-		it('does not take an InvalidationWriter (no dirty side-effects)', () => {
-			// select signature: (state, sq) — no writer parameter
-			const view = createViewState();
-			expect(() => select(view, 12 as Square)).not.toThrow();
 		});
 	});
 });

@@ -928,4 +928,49 @@ describe('core/runtime/boardRuntime', () => {
 		const [ctx] = renderSpy.mock.calls[0];
 		expect(ctx.geometry.orientation).toBe('black');
 	});
+
+	// ── Interaction state wiring ───────────────────────────────────────────────
+
+	it('select() routes through interaction state: no-op on same square', () => {
+		// Verifies: select() is wired to interaction state, not view state.
+		// Selecting the same square twice returns false on the second call (no-op).
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.mount(container);
+
+		expect(runtime.select(12)).toBe(true); // changed: null → 12 in interaction state
+		expect(runtime.select(12)).toBe(false); // no-op: already 12 in interaction state
+	});
+
+	it('select() routes through interaction state: no-op on already-null', () => {
+		// Verifies: select(null) on a fresh runtime returns false (already null in interaction state).
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.mount(container);
+
+		expect(runtime.select(null)).toBe(false); // no-op: already null in interaction state
+	});
+
+	it('setBoardPosition resets runtime selection after position change', () => {
+		// Verifies: setBoardPosition clears the selection owned by interaction state.
+		// Observable: select(null) returns false only if selectedSquare is already null.
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer, board: { position: 'start' } });
+		runtime.mount(container);
+
+		runtime.select(12); // set selection in interaction state
+
+		runtime.setBoardPosition({ e4: { color: 'w', role: 'p' } });
+
+		// selection was cleared: select(null) is a no-op (already null)
+		expect(runtime.select(null)).toBe(false);
+		// re-selecting works cleanly after the clear
+		expect(runtime.select(12)).toBe(true);
+	});
 });

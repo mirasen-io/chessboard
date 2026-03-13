@@ -1,6 +1,5 @@
 import { DirtyLayer, InvalidationWriter } from '../scheduler/types';
-import type { ColorInput, Square, SquareInput, SquareString } from './boardTypes';
-import { toValidSquare } from './coords';
+import type { ColorInput, Square } from './boardTypes';
 import { normalizeColor } from './normalize';
 import { Movability, ViewStateInternal } from './viewTypes';
 
@@ -72,16 +71,4 @@ function movabilityEquals(a: Movability, b: Movability): boolean {
 	}
 
 	return false;
-}
-
-/**
- * Select a square or clear selection with null.
- * Accepts numeric or algebraic square.
- * Does not take an InvalidationWriter and does not directly mark invalidation.
- */
-export function select(state: ViewStateInternal, sq: SquareInput | null): boolean {
-	const newSel: Square | null = sq === null ? null : toValidSquare(sq as Square | SquareString); // toValidSquare will validate the square input
-	if (state.selected === newSel) return false; // no-op
-	state.selected = newSel;
-	return true;
 }

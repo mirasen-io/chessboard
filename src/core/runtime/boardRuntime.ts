@@ -1,11 +1,12 @@
 /**
  * Internal runtime/composition layer.
- * Wires board state, view state, invalidation, scheduler, and renderer with
+ * Wires board state, view state, interaction state, invalidation, scheduler, and renderer with
  * mount-time DOM measurement and resize observation.
  *
  * Purpose:
  * - Internal lifecycle orchestrator (not public API)
- * - Owns board state, view state, invalidation state, scheduler, mount state, and host-derived board size
+ * - Owns board state, view state, interaction state, invalidation state, scheduler, mount state,
+ *   and host-derived board size
  * - Delegates rendering to Renderer via Scheduler
  * - Supports pre-mount state mutations
  * - Recreates immutable geometry on orientation change
@@ -43,7 +44,12 @@ import type {
 	SquareInput
 } from '../state/boardTypes';
 import {
-	select as selectReducer,
+	clearInteraction as clearInteractionReducer,
+	setSelectedSquare as setSelectedSquareReducer
+} from '../state/interactionReducers';
+import { createInteractionState } from '../state/interactionState';
+import type { InteractionStateInternal } from '../state/interactionTypes';
+import {
 	setMovability as setMovabilityReducer,
 	setOrientation as setOrientationReducer
 } from '../state/viewReducers';
@@ -62,8 +68,8 @@ export interface BoardRuntimeInitOptions {
 
 /**
  * Public interface for the internal runtime.
- * Orchestrates board state, view state, and invalidation.
- * Board/view reducers own mutation logic; the runtime coordinates scheduling
+ * Orchestrates board state, view state, interaction state, and invalidation.
+ * Board/view/interaction reducers own mutation logic; the runtime coordinates scheduling
  * and geometry updates in response to state changes.
  */
 export interface BoardRuntime {
@@ -76,8 +82,9 @@ export interface BoardRuntime {
 	move(move: MoveInput, opts?: MoveOptions): Move;
 	// View state reducers
 	setOrientation(input: ColorInput): boolean;
-	select(sq: SquareInput | null): boolean;
 	setMovability(m: Movability): boolean;
+	// Interaction state reducers
+	select(sq: SquareInput | null): boolean;
 	// Helpers
 	canStartMoveFrom(from: Square): boolean;
 	isMoveAttemptAllowed(from: Square, to: Square): boolean;
@@ -108,6 +115,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	// Internal state
 	const boardState: BoardStateInternal = createBoardState(boardOpts);
 	const viewState: ViewStateInternal = createViewState(viewOpts);
+	const interactionState: InteractionStateInternal = createInteractionState();
 	const invalidationState = createInvalidationState();
 	const invalidationWriter = createInvalidationWriter(invalidationState);
 	let boardSize: number | null = null;
@@ -181,7 +189,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		setBoardPosition(input: PositionInput): boolean {
 			const changed = setBoardPositionReducer(boardState, invalidationWriter, input);
 			if (changed) {
-				selectReducer(viewState, null); // clear selection on new position, we ignore the return value, cause board already changed
+				clearInteractionReducer(interactionState); // clear all interaction state on new position
 				// TODO: extension hooks to process the change
 				if (mounted) {
 					scheduler.schedule();
@@ -222,7 +230,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		},
 
 		select(sq: SquareInput | null): boolean {
-			const changed = selectReducer(viewState, sq);
+			const changed = setSelectedSquareReducer(interactionState, sq);
 			if (changed) {
 				// TODO: extension hooks here to process the change as well
 			}
