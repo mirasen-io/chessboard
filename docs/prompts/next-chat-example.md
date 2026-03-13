@@ -3,22 +3,23 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
-- **Current task completed:** **Phase 3.1** is implemented, reviewed, and accepted.
-- **Phase 3.1 result:** core now has a dedicated `interactionState`; `selected` no longer lives in `viewState`.
-- **Confirmed state split:** `boardState` = board facts; `viewState` = presentation/config + interaction policy config; `interactionState` = active interaction facts.
-- **Confirmed `viewState` contents:** `orientation` and `movability` remain in `viewState`.
-- **Confirmed `interactionState` contents:** `selectedSquare`, `destinations`, `dragSession`, `currentTarget`.
-- **Confirmed selection modeling:** selected piece context is **derived from board state + selectedSquare**; no stored `selectedPiece` or selection object.
-- **Confirmed drag modeling:** `DragSession` is minimal and currently stores only `fromSquare`.
-- **Confirmed target modeling:** `currentTarget` is the square under active interaction focus/pointer; it is not restricted to valid destinations.
-- **Confirmed validity rule:** target validity is derived separately via membership in `destinations`; `currentTarget` is a pointer fact, not a legality fact.
-- **Confirmed destinations modeling:** `interactionState.destinations` is the **active destination set for the current selected/drag source only**, not the full strict movability map.
-- **Runtime wiring:** `runtime.select()` now routes through `interactionState`; `setBoardPosition()` clears interaction state via `clearInteraction(...)`.
-- **Tests added/updated:** new interaction state/reducer tests plus focused runtime wiring tests; local tests pass.
-- **Constraints preserved:** keep steps narrow; no reopening settled board/view/runtime architecture; no Phase 3.2+ behavior; no renderer redesign; no speculative public API expansion.
-- **Relevant files:** `src/core/state/viewTypes.ts`, `src/core/state/viewState.ts`, `src/core/state/viewReducers.ts`, `src/core/state/interactionTypes.ts`, `src/core/state/interactionState.ts`, `src/core/state/interactionReducers.ts`, `src/core/runtime/boardRuntime.ts`, `tests/core/state/*`, `tests/core/runtime/boardRuntime.spec.ts`, `current-plan.md`.
-- **Review verdict:** Phase 3.1 accepted and closed.
-- **Next step:** start the **next exact step from `current-plan.md`** only, using the same narrow architecture-first review process before implementation.
+- **Current task completed:** **Phase 3.2** is implemented, reviewed, accepted, and can be considered closed.
+- **Phase 3.2 result:** pointer interaction lifecycle is now modeled through controller methods `onPointerDown`, `onPointerMove`, `onPointerUp`, `onPointerCancel`.
+- **Confirmed lifecycle model:** no drag threshold; immediate lifted-piece entry may start on pointer-down when the square is drag-capable.
+- **Confirmed selection model:** `select(square)` remains square-based and may select any square; selection is not restricted to movable squares.
+- **Confirmed lifted-piece gating:** controller uses `canStartMoveFrom(square)` to decide whether pointer-down enters lifted-piece mode; `dragStart(square)` is not unconditional.
+- **Confirmed runtime ownership:** runtime remains the owner of semantic state synchronization and interaction transitions (`select`, `dragStart`, `setCurrentTarget`, `dropTo`, `cancelInteraction`).
+- **Confirmed controller ownership:** controller translates pointer lifecycle in board terms and reads runtime state via `getInteractionSnapshot()`.
+- **Confirmed snapshot boundary:** controller gets a curated internal read-only snapshot grouped as `{ board, view, interaction }`; in Phase 3.2 only the needed subset is exposed.
+- **Confirmed deselect rule:** deselect for the already-selected square is resolved on `pointerUp`, not eagerly on `pointerDown`.
+- **Confirmed illegal completion outcomes:** lifted-piece illegal completion keeps selection; release-targeting illegal completion clears all interaction.
+- **Confirmed `dropTo()` semantics:** runtime `dropTo(target)` is the semantic completion method and now distinguishes illegal outcomes by mode.
+- **Confirmed move timing:** completion is release-based (`pointerUp`) for the non-lifted selected-piece path to reduce misclick risk.
+- **Constraints preserved:** no public API expansion; no renderer redesign in 3.2; no pointer x/y in core interaction state; no transient visual state implementation in this phase.
+- **Relevant files:** `src/core/runtime/boardRuntime.ts`, `src/core/runtime/movability.ts`, `src/core/input/interactionController.ts`, `tests/core/input/interactionController.spec.ts`, `tests/core/runtime/boardRuntime.phase32.spec.ts`, `current-plan.md`.
+- **Minor non-blocking note:** there is a small stale/local doc-comment wording issue in `interactionController.ts`, but it does not block acceptance of Phase 3.2.
+- **Review verdict:** Phase 3.2 accepted and closed.
+- **Next step:** start **Phase 3.3** only, using the same narrow architecture-first review process against `current-plan.md`.
 
 ## Attached plan
 
@@ -27,18 +28,18 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on the **next exact step after Phase 3.1** from `current-plan.md`.
+Focus only on the **next exact step after Phase 3.2** from `current-plan.md` (Phase 3.3).
 
 Goals:
 
-- Review the current implementation only for the exact scope of that step.
-- Check whether the current code already satisfies the step or whether there are narrow gaps.
+- Review the current implementation only for the exact scope of Phase 3.3.
+- Check whether the current code already satisfies any part of that step or whether there are narrow gaps.
 - Produce a brief verdict and, only if needed, a precise implementation prompt for Cline.
 
 Do not:
 
-- Reopen the settled board/view/runtime split.
-- Rework Phase 3.1 unless the next step directly depends on it.
+- Reopen settled Phase 3.1 / 3.2 decisions.
+- Redesign controller/runtime boundaries unless Phase 3.3 directly requires it.
 - Expand into later Phase 3+ steps.
 
 Working mode:
@@ -48,9 +49,7 @@ Working mode:
 3. precise implementation prompt for Cline + GPT-5 only if gaps are found
 4. focused review of resulting diff later
 
-Use the current branch `feat/v1` and ask for specific files if needed.
-Do not invent file contents.
-Keep the step narrow and architecture-first.
+Keep the step narrow, architecture-first, and grounded in the actual current files on branch `feat/v1`.
 
 ## Working mode
 

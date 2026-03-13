@@ -156,22 +156,34 @@
 
 ### 3.3 Drag rendering responsibilities
 
-- Define what belongs in `dragRoot`
-- Define how original piece vs drag preview are handled
-- Define interaction between drag visuals and base pieces layer
-- Ensure non-drag roots remain stable during drag
+- Define render ownership during active drag
+- Define what belongs in `dragRoot` vs what remains in base renderer roots
+- Define how source piece vs drag preview are represented during drag
+- Confirm whether the source piece is hidden, suppressed, or otherwise visually neutralized while drag is active
+- Keep non-drag roots stable during drag unless a real invalidation requires update
+- Keep drag-time visuals in core only where needed for direct drag rendering; defer optional overlay-style visuals to extensions
 
 ### 3.4 Hit testing / mapping
 
-- Integrate input geometry and square mapping into drag flow
-- Keep renderer layout contract separate from input mapping concerns
-- Confirm `null` no-square convention remains consistent throughout interaction code
+- Integrate input geometry and square mapping into active interaction flow
+- Keep renderer layout contract separate from pointer interpretation and target resolution
+- Define `currentTarget` update semantics during pointer move
+- Define behavior when pointer leaves the board or maps to no square
+- Confirm `null` no-square convention remains consistent across hover, drag, cancel, and drop handling
 
 ### 3.5 Drag tests
 
-- Add focused tests for selection / drag / cancel / illegal drop / legal drop
-- Add tests for selected-piece then destination-targeting flow
-- Add tests for destinations-driven behavior
+- Add focused tests for interaction-state transitions:
+  - press/select
+  - drag start
+  - drag move
+  - cancel
+  - legal drop
+  - illegal drop
+- Add tests for selected-square → destination-targeting flow
+- Add tests for destinations-driven behavior under strict movability
+- Add tests for `currentTarget` updates, including off-board / `null` cases
+- Add tests for drag rendering behavior if source-piece suppression / drag preview ownership is renderer-visible
 
 ---
 
@@ -195,13 +207,13 @@
 ### 4.3 Interaction overlay extension
 
 - Add first-party interaction visual extension after drag/runtime stabilize
-- Read core interaction state
+- Read finalized core interaction state
 - Render:
   - selected/source square highlight
   - destination dots
-  - target highlight
-  - interaction halo/press feedback
-- Keep interaction facts in core, visuals in extension
+  - current target highlight
+  - optional press / interaction halo feedback
+- Keep interaction facts in core and interaction visuals in the extension layer
 
 ### 4.4 Extension lifecycle / invalidation contract
 
@@ -211,6 +223,7 @@
   - render
   - teardown
 - Define how extensions are notified of relevant updates
+- Keep extension invalidation aligned with core update flow
 - Avoid overdesigning a universal plugin system too early
 
 ### 4.5 Extension tests
@@ -218,7 +231,7 @@
 - Add focused tests for mount/unmount/update flow
 - Add tests for extension subtree ownership and cleanup
 - Add tests for `lastMove` behavior
-- Add tests for interaction overlay reading core state correctly
+- Add tests for interaction overlay reading core interaction state correctly
 
 ---
 
@@ -242,7 +255,9 @@
 
 ### 5.3 Public interaction API
 
-- Finalize selection/destinations-related API shape
+- Finalize public interaction API shape only after drag/runtime/overlay behavior is proven
+- Re-check what interaction facts, if any, should be externally readable
+- Re-check what interaction inputs should be externally writable or configurable
 - Keep legality source external
 - Avoid baking speculative APIs before real runtime needs are proven
 
@@ -279,6 +294,7 @@
 ### 6.3 Documentation pass
 
 - Write architecture notes for:
+  - board state vs view state vs interaction state
   - state vs snapshot vs render config
   - renderer roots and extension slots
   - interaction model
