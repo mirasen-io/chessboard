@@ -73,6 +73,27 @@ export function canStartMoveFrom(
 }
 
 /**
+ * Derive the active destinations array for a source square.
+ * Pure policy lookup — does NOT check occupancy, color, or piece movability.
+ * Selection semantics ("select a square") are separate from movability semantics.
+ *
+ * - strict mode: returns destinations[from] if non-empty, else null
+ * - free mode: returns null (any target is allowed; no pre-computed list is meaningful)
+ * - disabled: returns null
+ */
+export function getActiveDestinations(
+	view: ViewStateInternal,
+	from: Square
+): readonly Square[] | null {
+	const movability = view.movability;
+	if (movability.mode === 'disabled') return null;
+	if (movability.mode === 'free') return null;
+	// strict mode: look up the destinations map for this square
+	const dests = movability.destinations[from];
+	return dests && dests.length > 0 ? dests : null;
+}
+
+/**
  * Determine if a move attempt from source to target is allowed.
  * This answers: "Can I move from here to there?"
  *

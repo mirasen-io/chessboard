@@ -147,6 +147,8 @@
 
 ### 3.2 Drag lifecycle
 
+**Status: COMPLETE**
+
 - Define pointer-down / hold / drag-start / drag-move / drop / cancel flow
 - Unify tap-to-select and drag behavior under one interaction model
 - Support piece-selected → destination targeting flow

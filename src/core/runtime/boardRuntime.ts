@@ -43,12 +43,16 @@ import type {
 	Square,
 	SquareInput
 } from '../state/boardTypes';
+import { toValidSquare } from '../state/coords';
 import {
 	clearInteraction as clearInteractionReducer,
+	setCurrentTarget as setCurrentTargetReducer,
+	setDestinations as setDestinationsReducer,
+	setDragSession as setDragSessionReducer,
 	setSelectedSquare as setSelectedSquareReducer
 } from '../state/interactionReducers';
 import { createInteractionState } from '../state/interactionState';
-import type { InteractionStateInternal } from '../state/interactionTypes';
+import type { DragSession, InteractionStateInternal } from '../state/interactionTypes';
 import {
 	setMovability as setMovabilityReducer,
 	setOrientation as setOrientationReducer
@@ -57,8 +61,28 @@ import { createViewState, ViewStateInitOptions } from '../state/viewState';
 import type { Movability, ViewStateInternal } from '../state/viewTypes';
 import {
 	canStartMoveFrom as canStartMoveFromHelper,
+	getActiveDestinations as getActiveDestinationsHelper,
 	isMoveAttemptAllowed as isMoveAttemptAllowedHelper
 } from './movability';
+
+/**
+ * Curated read-only snapshot for controller-facing consumption.
+ * Grouped by origin. Do not expose raw full internal state slices.
+ *
+ * board: reserved for future curated controller-facing board data. Empty in Phase 3.2.
+ * view:  reserved for future curated controller-facing view data.  Empty in Phase 3.2.
+ * interaction: the minimal interaction facts the controller needs to decide lifecycle routing.
+ */
+export interface InteractionSnapshot {
+	/** Reserved for future curated controller-facing board data. Empty in Phase 3.2. */
+	readonly board: Record<string, never>;
+	/** Reserved for future curated controller-facing view data. Empty in Phase 3.2. */
+	readonly view: Record<string, never>;
+	readonly interaction: {
+		readonly selectedSquare: Square | null;
+		readonly dragSession: { readonly fromSquare: Square } | null;
+	};
+}
 
 export interface BoardRuntimeInitOptions {
 	renderer: Renderer;
@@ -83,8 +107,38 @@ export interface BoardRuntime {
 	// View state reducers
 	setOrientation(input: ColorInput): boolean;
 	setMovability(m: Movability): boolean;
-	// Interaction state reducers
+	// Interaction — semantic selection transition
+	// Synchronized: sets selectedSquare + derives destinations + clears drag/target.
+	// Throws if a drag session is active (use cancelInteraction() first).
+	// Does NOT check occupancy, color, or legality — "select a square", not "select a piece".
 	select(sq: SquareInput | null): boolean;
+	// Interaction lifecycle — internal runtime methods (not exported from public API)
+	// dragStart: strict lifecycle step — requires selectedSquare === from, throws otherwise.
+	// Controller is responsible for calling select(from) before dragStart(from).
+	dragStart(from: Square): boolean;
+	// setCurrentTarget: update the current target square during drag or hover.
+	setCurrentTarget(target: Square | null): boolean;
+	/**
+	 * Attempt semantic interaction completion toward the given target square.
+	 *
+	 * Source is determined by: dragSession.fromSquare ?? selectedSquare.
+	 * Returns null if there is no active interaction.
+	 *
+	 * Legal completion: applies move, clears all interaction, returns Move.
+	 *
+	 * Illegal completion — outcome depends on the active mode at call time:
+	 *   - Lifted-piece mode (dragSession !== null):
+	 *       clear dragSession + currentTarget, keep selectedSquare + destinations.
+	 *       The piece snaps back; the user can retry by releasing on a different target.
+	 *   - Release-targeting mode (dragSession === null, selectedSquare !== null):
+	 *       clear all interaction.
+	 *       The selection is gone; the user must re-select to try again.
+	 */
+	dropTo(to: Square | null): Move | null;
+	// cancelInteraction: clear transient drag state, keep selection.
+	cancelInteraction(): boolean;
+	// Controller-facing snapshot accessor — curated, read-only, grouped by origin.
+	getInteractionSnapshot(): InteractionSnapshot;
 	// Helpers
 	canStartMoveFrom(from: Square): boolean;
 	isMoveAttemptAllowed(from: Square, to: Square): boolean;
@@ -230,11 +284,96 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		},
 
 		select(sq: SquareInput | null): boolean {
-			const changed = setSelectedSquareReducer(interactionState, sq);
-			if (changed) {
-				// TODO: extension hooks here to process the change as well
+			// Throw if a drag is active — caller must cancelInteraction() first.
+			if (interactionState.dragSession !== null) {
+				throw new Error(
+					'BoardRuntime.select: cannot select while a drag session is active. Call cancelInteraction() first.'
+				);
 			}
-			return changed;
+
+			const newSq: Square | null = sq === null ? null : toValidSquare(sq);
+			const prevSq = interactionState.selectedSquare;
+
+			// Always synchronize all interaction fields atomically.
+			// selectedSquare
+			setSelectedSquareReducer(interactionState, sq);
+			// destinations: derived from movability policy for the new square (pure lookup, no piece check)
+			setDestinationsReducer(
+				interactionState,
+				newSq !== null ? getActiveDestinationsHelper(viewState, newSq) : null
+			);
+			// dragSession is already null (guarded above); clear explicitly for clarity
+			setDragSessionReducer(interactionState, null);
+			// currentTarget
+			setCurrentTargetReducer(interactionState, null);
+
+			// Return true if selectedSquare changed (consistent with prior contract)
+			return prevSq !== newSq;
+		},
+
+		dragStart(from: Square): boolean {
+			// Strict lifecycle contract:
+			// 1. No drag must already be active.
+			// 2. selectedSquare must already equal from — controller calls select(from) first.
+			if (interactionState.dragSession !== null) {
+				throw new Error('BoardRuntime.dragStart: drag already active.');
+			}
+			if (interactionState.selectedSquare !== from) {
+				throw new Error(
+					`BoardRuntime.dragStart: selectedSquare (${interactionState.selectedSquare}) !== from (${from}). Call select(from) before dragStart(from).`
+				);
+			}
+			const session: DragSession = { fromSquare: from };
+			setDragSessionReducer(interactionState, session);
+			setCurrentTargetReducer(interactionState, null);
+			return true;
+		},
+
+		setCurrentTarget(target: Square | null): boolean {
+			return setCurrentTargetReducer(interactionState, target);
+		},
+
+		dropTo(to: Square | null): Move | null {
+			// Determine the active source: prefer dragSession.fromSquare, fall back to selectedSquare.
+			const source = interactionState.dragSession?.fromSquare ?? interactionState.selectedSquare;
+			if (source === null) {
+				// No active interaction — nothing to complete.
+				return null;
+			}
+
+			if (to !== null && isMoveAttemptAllowedHelper(boardState, viewState, source, to)) {
+				// Legal completion: apply move, clear all interaction.
+				const appliedMove = moveReducer(boardState, invalidationWriter, { from: source, to });
+				clearInteractionReducer(interactionState);
+				if (mounted) {
+					scheduler.schedule();
+				}
+				return appliedMove;
+			}
+
+			// Illegal completion — outcome is mode-dependent:
+			if (interactionState.dragSession !== null) {
+				// Lifted-piece mode: clear dragSession + currentTarget, keep selectedSquare + destinations.
+				// The piece snaps back to its source square (Phase 3.3 rendering concern).
+				// The user can retry by releasing on a different target.
+				setDragSessionReducer(interactionState, null);
+				setCurrentTargetReducer(interactionState, null);
+			} else {
+				// Release-targeting mode: clear all interaction.
+				// The selection is gone; the user must re-select to try again.
+				clearInteractionReducer(interactionState);
+			}
+			return null;
+		},
+
+		cancelInteraction(): boolean {
+			// Cancel rule:
+			// Clear dragSession + currentTarget only. Keep selectedSquare + destinations.
+			// This returns to "piece selected" state, not "no interaction" state.
+			// Use select(null) to fully deselect.
+			const a = setDragSessionReducer(interactionState, null);
+			const b = setCurrentTargetReducer(interactionState, null);
+			return a || b;
 		},
 
 		setMovability(m: Movability): boolean {
@@ -245,6 +384,20 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// Future extension update hooks should run from here.
 			}
 			return changed;
+		},
+
+		getInteractionSnapshot(): InteractionSnapshot {
+			return {
+				board: {},
+				view: {},
+				interaction: {
+					selectedSquare: interactionState.selectedSquare,
+					dragSession:
+						interactionState.dragSession !== null
+							? { fromSquare: interactionState.dragSession.fromSquare }
+							: null
+				}
+			};
 		},
 
 		canStartMoveFrom(from: Square): boolean {
