@@ -167,6 +167,8 @@
 
 ### 3.4 Hit testing / mapping
 
+**Status: COMPLETE**
+
 - Integrate input geometry and square mapping into active interaction flow
 - Keep renderer layout contract separate from pointer interpretation and target resolution
 - Define `currentTarget` update semantics during pointer move
