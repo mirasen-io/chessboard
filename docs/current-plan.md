@@ -135,6 +135,8 @@
 
 ### 3.1 Interaction state model
 
+**Status: COMPLETE**
+
 - Define minimal core interaction facts:
   - selected square / selected piece context
   - destinations
