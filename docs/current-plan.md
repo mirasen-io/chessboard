@@ -177,6 +177,8 @@
 
 ### 3.5 Drag tests
 
+**Status: COMPLETE**
+
 - Add focused tests for interaction-state transitions:
   - press/select
   - drag start
