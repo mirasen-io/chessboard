@@ -13,6 +13,10 @@
  * - Observes host resize and refreshes geometry accordingly
  */
 
+import type { InputAdapter } from '../input/inputAdapter';
+import { createInputAdapter } from '../input/inputAdapter';
+import type { InteractionController } from '../input/interactionController';
+import { createInteractionController } from '../input/interactionController';
 import { makeRenderGeometry } from '../renderer/geometry';
 import type { Renderer, RenderGeometry } from '../renderer/types';
 import {
@@ -180,6 +184,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	let host: HTMLElement | null = null;
 	let resizeObserver: ResizeObserver | null = null;
 	let destroyed = false;
+	let controller: InteractionController | null = null;
+	let inputAdapter: InputAdapter | null = null;
 
 	// Scheduler with render callback
 	const scheduler: Scheduler = createScheduler({
@@ -222,7 +228,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		scheduler.schedule();
 	}
 
-	return {
+	const runtime: BoardRuntime = {
 		mount(container: HTMLElement): void {
 			if (destroyed) throw new Error('BoardRuntime: cannot mount after destroy');
 			if (mounted) throw new Error('BoardRuntime: already mounted');
@@ -240,6 +246,13 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			boardSize = measuredSize;
 			geometry = makeRenderGeometry(boardSize, viewState.orientation);
 			mounted = true;
+
+			controller = createInteractionController(runtime);
+			inputAdapter = createInputAdapter({
+				element: container,
+				getGeometry: () => geometry,
+				controller
+			});
 
 			// Start observing resize
 			resizeObserver = new ResizeObserver(() => refreshGeometry());
@@ -442,6 +455,10 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		destroy(): void {
 			if (destroyed) return; // idempotent
 
+			inputAdapter?.destroy();
+			inputAdapter = null;
+			controller = null;
+
 			destroyed = true;
 			mounted = false;
 
@@ -456,4 +473,6 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			host = null;
 		}
 	};
+
+	return runtime;
 }

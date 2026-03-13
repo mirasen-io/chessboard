@@ -31,7 +31,11 @@ function makeSnapshot(
 	selectedSquare: Square | null = null,
 	dragSession: { fromSquare: Square } | null = null
 ): InteractionSnapshot {
-	return { board: {}, view: {}, interaction: { selectedSquare, dragSession } };
+	return {
+		board: {},
+		view: {},
+		interaction: { selectedSquare, destinations: null, currentTarget: null, dragSession }
+	};
 }
 
 /**

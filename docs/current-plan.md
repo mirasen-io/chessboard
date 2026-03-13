@@ -193,7 +193,7 @@
 
 ### 3.6 Input / UI adapter wiring
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 - Add DOM/pointer adapter that reads board-local pointer coordinates
 - Use geometry + `mapBoardPointToSquare(...)` to resolve square or `null`
