@@ -227,6 +227,7 @@
   - drag-time invalidation / rerender path
 - Fix the missing active-drag visual path without reopening settled interaction architecture
 - Add/update focused tests for active drag rendering behavior where appropriate
+- Prevent native text selection / drag-selection artifacts during active board interaction (for example coordinate text selection while dragging)
 - Re-verify in the runtime/manual sandbox where move commit works on release but drag preview is currently missing
 
 ### 3.9 Move animation architecture + base implementation
