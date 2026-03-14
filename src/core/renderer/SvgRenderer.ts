@@ -195,10 +195,18 @@ export class SvgRenderer implements Renderer {
 			// In the current architecture, this is the DirtyLayer.Pieces path.
 			this.handleCommittedAnimationCycle(board, geometry);
 
-			// Suppress the source square when a drag is active so the piece
-			// is not rendered twice (once in piecesRoot and once in dragRoot).
-			const suppressSquare = interaction.dragSession?.fromSquare ?? null;
-			this.drawPieces(board, geometry, suppressSquare);
+			// Build combined suppression set for this render cycle
+			const suppressedIds = new Set(this.suppressedPieceIds); // start with animation IDs
+
+			// Add drag source piece ID if drag is active
+			if (interaction.dragSession) {
+				const dragId = board.ids[interaction.dragSession.fromSquare];
+				if (dragId > 0) {
+					suppressedIds.add(dragId);
+				}
+			}
+
+			this.drawPieces(board, geometry, suppressedIds);
 		}
 		if (layers & DirtyLayer.Drag) {
 			this.drawDrag(interaction, transientVisuals, board, geometry);
@@ -446,14 +454,14 @@ export class SvgRenderer implements Renderer {
 	 * - Each piece is a single <image> element sized to the square, referencing its own SVG asset.
 	 * - defsDynamic is not used; no per-piece clipPaths are created.
 	 *
-	 * @param suppressSquare - If non-null, the piece at this square is not appended to piecesRoot
-	   (used during drag to hide the source piece here while it renders in dragRoot).
-	 *   Its cached node is still tracked in seenIds so the sweep does not delete it.
+	 * @param suppressedPieceIds - Set of piece IDs that should not be appended to piecesRoot
+	 *   (used during drag and committed animation to hide pieces while they render elsewhere).
+	 *   Cached nodes are still tracked in seenIds so the sweep does not delete them.
 	 */
 	private drawPieces(
 		board: BoardStateSnapshot,
 		g: RenderGeometry,
-		suppressSquare: Square | null = null
+		suppressedPieceIds: ReadonlySet<number>
 	) {
 		const layer = this.piecesRoot;
 		this.clear(layer);
@@ -492,10 +500,8 @@ export class SvgRenderer implements Renderer {
 			rec.root.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
 			rec.root.setAttribute('href', pieceUrl);
 
-			// Decide suppression: by drag square or by committed animation pieceId
-			const suppressedBySquare = suppressSquare !== null && sq === suppressSquare;
-			const suppressedById = this.suppressedPieceIds.has(id);
-			const suppressed = suppressedBySquare || suppressedById;
+			// Decide suppression: check if this piece ID is in the suppression set
+			const suppressed = suppressedPieceIds.has(id);
 
 			// Only append to the static layer if not suppressed
 			if (!suppressed) {
