@@ -215,6 +215,48 @@
 - Confirm adapter wiring does not leak DOM concerns into controller/runtime contracts
 - Keep tests narrow and avoid re-covering controller lifecycle already validated in Phase 3.5
 
+### 3.8 Drag visual bug-fix pass
+
+**Status: TODO**
+
+- Investigate why active drag is not visually rendered in the runtime/manual sandbox
+- Confirm whether drag interaction is actually starting, or only completing on release
+- Verify renderer behavior during active drag:
+  - source piece suppression / hiding while drag is active
+  - drag preview presence in `dragRoot`
+  - drag-time invalidation / rerender path
+- Fix the missing active-drag visual path without reopening settled interaction architecture
+- Add/update focused tests for active drag rendering behavior where appropriate
+- Re-verify in the runtime/manual sandbox where move commit works on release but drag preview is currently missing
+
+### 3.9 Move animation architecture + base implementation
+
+**Status: TODO**
+
+- Add renderer-side move animation for committed move application
+- Cover click-move / release-complete flow, not only drag-drop
+- Keep animation ownership in renderer/view layer, not in core interaction state
+- Design the animation flow to support both single-piece and multi-piece committed move animation from the start
+- Define minimal animation lifecycle:
+  - animation start on committed move
+  - one or more animated pieces with source/destination squares
+  - cleanup after animation completes
+- Implement the base path for ordinary single-piece moves
+- Ensure animation does not break existing invalidation, selection, or interaction semantics
+- Add/update focused tests for animation-triggering behavior where appropriate
+- Verify manually in runtime playground
+
+### 3.10 Castling animation integration
+
+**Status: TODO**
+
+- Implement castling animation using the general multi-piece animation model from 3.9
+- Ensure both king and rook animate correctly for drag-drop and click-move completion paths
+- Keep castling-specific logic limited to producing the correct coordinated animation input
+- Avoid creating a separate castling-only animation system
+- Add/update focused tests for castling animation triggering and cleanup
+- Verify manually in runtime playground
+
 ---
 
 ## Phase 4 — Extension / overlay model
