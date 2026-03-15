@@ -200,4 +200,51 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		expect('ids' in board).toBe(true);
 		expect('turn' in board).toBe(true);
 	});
+
+	it('pieces layer refreshes when suppressedPieceIds changes even without invalidation', () => {
+		// Regression test: when suppression changes but normal invalidation doesn't request pieces redraw,
+		// the renderer should still refresh the pieces layer to restore/hide pieces correctly.
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const piecesRoot = (renderer as any).piecesRoot as SVGGElement;
+
+		// Board with one piece: white pawn on e2
+		const pieces = new Uint8Array(64);
+		const ids = new Int16Array(64).fill(-1);
+		pieces[12] = 1; // white pawn
+		ids[12] = 1; // piece id 1
+
+		const board = makeBoardSnapshot({ pieces, ids });
+		const geometry = makeRenderGeometry(800, 'white');
+
+		// First render: suppress piece id 1
+		renderer.renderBoard({
+			board,
+			invalidation: { layers: DirtyLayer.Pieces },
+			geometry,
+			suppressedPieceIds: new Set([1])
+		});
+
+		// Piece should be suppressed (not in piecesRoot)
+		expect(piecesRoot.children.length).toBe(0);
+
+		// Second render: no invalidation, but unsuppress (empty set)
+		// This should trigger a pieces refresh due to suppression change
+		renderer.renderBoard({
+			board,
+			invalidation: { layers: 0 }, // no layers marked dirty
+			geometry,
+			suppressedPieceIds: new Set() // suppression removed
+		});
+
+		// Piece should now be visible in piecesRoot
+		expect(piecesRoot.children.length).toBe(1);
+		const pieceNode = piecesRoot.children[0] as SVGImageElement;
+		expect(pieceNode.tagName).toBe('image');
+
+		renderer.unmount();
+	});
 });

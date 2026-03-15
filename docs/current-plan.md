@@ -249,7 +249,7 @@
 
 ### 3.10 Animation architecture refactor + castling integration
 
-**Status: TODO**
+**Status: COMPLETE**
 
 - Refactor committed-move animation from the current renderer-driven implementation toward a general animation pipeline
 - Introduce a minimal `AnimationPlan` model for committed transitions, designed around visual transition from previous placement to next placement

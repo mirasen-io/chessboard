@@ -72,6 +72,9 @@ export class SvgRenderer implements Renderer {
 	// Session group for active animation (owned by renderer, passed to frame renderer)
 	private activeSessionGroup: SVGGElement | null = null;
 
+	// Track last suppression state to detect changes
+	private lastSuppressedPieceIds: ReadonlySet<number> = new Set();
+
 	constructor(opts: SvgRendererOptions = {}) {
 		this.config = {
 			...DEFAULT_RENDER_CONFIG,
@@ -151,6 +154,7 @@ export class SvgRenderer implements Renderer {
 		this.svgRoot = null!;
 		this.pieceNodes.clear();
 		this.activeSessionGroup = null;
+		this.lastSuppressedPieceIds = new Set();
 	}
 
 	renderBoard(ctx: BoardRenderContext): void {
@@ -164,14 +168,22 @@ export class SvgRenderer implements Renderer {
 		this.svgRoot.setAttribute('height', size);
 		this.svgRoot.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
+		// Detect if suppression changed since last render
+		const suppressionChanged = !this.setsEqual(suppressedPieceIds, this.lastSuppressedPieceIds);
+
 		// Decide what to update on layers bitmask
 		const layers = invalidation.layers;
 		if (layers & DirtyLayer.Board) {
 			this.drawBoard(this.config.light, this.config.dark, geometry);
 			this.drawCoords(geometry.orientation, geometry);
 		}
-		if (layers & DirtyLayer.Pieces) {
+		// Update pieces if either:
+		// - normal invalidation requests it
+		// - OR suppression changed
+		if (layers & DirtyLayer.Pieces || suppressionChanged) {
 			this.drawPieces(board, geometry, suppressedPieceIds);
+			// Snapshot current suppression for next comparison
+			this.lastSuppressedPieceIds = new Set(suppressedPieceIds);
 		}
 	}
 
@@ -373,5 +385,13 @@ export class SvgRenderer implements Renderer {
 				this.pieceNodes.delete(pid);
 			}
 		}
+	}
+
+	private setsEqual<T>(a: ReadonlySet<T>, b: ReadonlySet<T>): boolean {
+		if (a.size !== b.size) return false;
+		for (const item of a) {
+			if (!b.has(item)) return false;
+		}
+		return true;
 	}
 }
