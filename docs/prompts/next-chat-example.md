@@ -1,111 +1,116 @@
 We are continuing work on `mirasen-io/chessboard`.
 
-## Handoff Summary — Phase 3.10 animation architecture refactor + castling integration
+## Handoff Summary — Phase 3.10 complete / preparing Phase 4.1
 
 - Project: `mirasen-io/chessboard` / `@mirasen/chessboard`, branch `feat/v1`.
-- Phase 3.9 is effectively complete and manually verified.
-- Current shipped state from 3.9:
-  - ordinary committed move animation works,
-  - legal drag-drop completion skips committed animation,
-  - legal non-drag completion still animates,
-  - `setBoardPosition(...)` does not falsely animate,
-  - suppression is unified through piece IDs in `SvgRenderer`,
-  - renderer-side transient animation overlay works in practice.
-- Important new decision: do **not** continue 3.10 as a narrow castling-only addition on top of the current 3.9 renderer-owned orchestration.
-- Reason: that would likely become a temporary special-case path and create migration debt.
-- New 3.10 intent: refactor committed animation architecture into a more general pipeline, then migrate ordinary move animation onto it, and implement castling on the same pipeline.
-- Target conceptual model:
-  - board state is committed **before** animation,
-  - animation is presentation over committed state,
-  - renderer should not own animation orchestration/lifecycle long-term.
-- Desired responsibilities:
-  - **Runtime/Core** computes animation input from `prev -> next` renderable piece placements,
-  - **Animator** owns RAF/timing/lifecycle of active animation sessions,
-  - **Renderer** keeps SVG scene/layer ownership and only renders static + animation passes/helpers.
-- Desired minimal animation effect vocabulary:
-  - `move`
-  - `fade-in`
-  - `fade-out`
-  - `snap-out`
-- `snap-out` is preferred over delaying board commit; delayed commit is explicitly not desired.
-- Castling should become just **2 simultaneous move tracks** (king + rook), not a sequential or renderer-special-cased path.
-- Matching direction under discussion:
-  - do not introduce persistent semantic piece IDs unless strictly necessary,
-  - prefer practical transition-time matching from previous to next placements sufficient for ordinary move + castling.
-- Renderer structure preference:
-  - main renderer still owns layers/scene graph,
-  - internal split into static render pass + animation render pass/helper is desirable,
-  - not a fully separate external renderer system.
-- Animation scene organization preference:
-  - keep one shared `animationRoot`,
-  - each active animation session gets its own `<g>` group inside it,
-  - cleanup/cancel should operate by session group ownership.
-- Extensions are not in scope for implementation now, but 3.10 should keep boundaries reusable so later extension-owned animations can coexist with core sessions and reuse standard core effects.
-- Practical next-chat goal:
-  - read current runtime/renderer animation files first,
-  - decide the smallest clean refactor toward `AnimationPlan + Animator`,
-  - ensure ordinary move + castling go through one shared pipeline.
+- Phase 3.10 is complete and can be treated as done.
+- Implemented architecture:
+  - committed animation planning moved to runtime/core,
+  - `Animator` owns RAF/timing/session lifecycle,
+  - `SvgRenderer` owns scene graph only,
+  - renderer split into:
+    - `renderBoard(...)`
+    - `renderAnimations(...)`
+    - `renderDrag(...)`
+- Standard animation drawing is delegated to `SvgAnimationFrameRenderer`, which renders one frame into its own reserved subgroup inside a provided session `<g>`.
+- Ordinary committed move and castling now go through one shared committed-animation pipeline.
+- Castling animates king and rook simultaneously and now behaves like modern board UIs (closer to lichess/chess.com than cm-chessboard).
+- Suppression cleanup bug was fixed by making `renderBoard(...)` refresh the pieces pass when `suppressedPieceIds` changes, even without normal pieces invalidation.
+- Tests are green:
+  - 24 test files passed
+  - 325 tests passed
+  - coverage:
+    - statements 92.83%
+    - branches 83.94%
+    - functions 97.98%
+    - lines 95.49%
+- Manual verification passed:
+  - drag works,
+  - click-move animation works and restores final static piece correctly,
+  - castling manual route works for white and black.
+- Current notable non-blocking test gaps:
+  - no focused `animator.spec.ts`,
+  - no automated runtime-level castling animation integration test.
+- These gaps are not considered blockers for entering Phase 4.
+- Phase 4 plan does not need a full rewrite before starting 4.1.
+- Next step: start Phase 4.1 and define the concrete extension slot model and first implementation boundaries.
 
 ## Attached plan
 
 The full implementation plan is attached to this chat as a file, not pasted inline.
 Use it as the roadmap reference, but in this chat focus only on the task below.
 
-## Task for next chat
+## Task for this chat — Phase 4.1 extension slot model
 
-Focus on **Phase 3.10 animation architecture refactor + castling integration**.
+Focus on **Phase 4.1: extension slot model / DOM ownership contract**.
 
 Before proposing a plan:
 
-1. Read the current relevant runtime/renderer animation files first.
-2. Read the relevant focused tests.
+1. Read the current relevant runtime/renderer/extension-facing files first.
+2. Read the current plan section for Phase 4.
 3. List which files you actually inspected.
 4. Only then propose the plan.
 
-Main question to answer first:
+Main goal:
 
-- What is the **smallest clean refactor** needed to move from the current 3.9 renderer-owned committed animation orchestration toward:
-  - `AnimationPlan`
-  - dedicated `Animator`
-  - renderer-owned scene/layers but renderer not owning animation lifecycle logic
+Define the **smallest clean slot model** for board extensions so that:
+
+- core owns top-level SVG roots / slot roots,
+- extensions do **not** own arbitrary top-level DOM,
+- each extension gets an assigned subtree/root inside a core-owned slot,
+- the contract is reusable for later first-party and third-party extensions.
 
 Requirements:
 
-- ordinary move and castling must go through **one shared committed-animation pipeline**
-- castling must animate **king and rook simultaneously**
-- keep board-state commit **before** animation
-- do not delay semantic board commit until animation end
-- preserve renderer ownership of SVG layers / scene graph
-- prefer renderer split into:
-  - static render pass
-  - animation render pass/helper
-- animation lifecycle / RAF ownership should move into `Animator`
-- avoid move-type special-case branches in renderer
-- compute animation input from `prev -> next` renderable placements in runtime/core
-- do not introduce persistent semantic piece IDs unless strictly necessary
-- prefer a practical matching strategy sufficient for:
-  - ordinary move
-  - castling
-- standard core animation effect vocabulary should be minimal and reusable:
-  - `move`
-  - `fade-in`
-  - `fade-out`
-  - `snap-out`
-- support per-session animation `<g>` groups inside shared `animationRoot`
-- do **not** implement extension animation hooks/API yet
-- but keep boundaries reusable so extensions can later reuse standard animation effects / session model
+- work architecture-first
+- keep the step narrow
+- avoid overengineering
+- do not implement `lastMove` yet unless the plan requires a tiny supporting shape
+- do not redesign unrelated renderer/runtime pieces
+- use current 3.10 renderer boundaries as the source of truth
+
+Need the plan to answer clearly:
+
+1. What slots exist initially, and why?
+2. What exactly does core own?
+3. What exactly does an extension own?
+4. What extension root/subtree handle is given to an extension?
+5. How are slot roots created, named, and cleaned up?
+6. How does an extension render/update without taking ownership of arbitrary top-level DOM?
+7. What is the smallest extension lifecycle/update contract needed now?
+8. What should remain deferred until after 4.1?
 
 Output expectations:
 
 - concise, implementation-oriented plan
 - no full code blocks in PLAN
-- reference files/functions only
+- reference files/functions/types only
 - explicitly separate:
   1. architecture decision
   2. minimal refactor steps
   3. file-level changes
   4. focused test updates
   5. non-goals / deferred items
+
+Important context already decided:
+
+- 3.10 is done
+- renderer split is already real:
+  - `renderBoard(...)`
+  - `renderAnimations(...)`
+  - `renderDrag(...)`
+- core animation lifecycle belongs to `Animator`
+- `SvgRenderer` owns scene graph / roots
+- extension animation API is **not** being built now
+- future extensions may later reuse existing core rendering helpers, but 4.1 should not solve all future extension problems yet
+
+Prefer:
+
+1. brief analysis
+2. concrete recommendation
+3. precise implementation prompt for Cline
+4. focused test updates
+5. later patch review
 
 ## Working mode
 
