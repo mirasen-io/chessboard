@@ -4,6 +4,7 @@
  * - The renderer interprets DirtyLayer bitmask and (optionally) a set of specific squares.
  */
 
+import type { AnimationSession } from '../animation/types';
 import type { InvalidationStateSnapshot } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import type { InteractionStateSnapshot } from '../state/interactionTypes';
@@ -63,23 +64,52 @@ export interface RenderGeometry {
 	squareRect(sq: Square): { x: number; y: number; size: number };
 }
 
-export type RenderingContext = {
+/**
+ * Pass-specific render context types for the split renderer API.
+ * Phase 3.10: Symmetric contexts for board/animation/drag rendering passes.
+ */
+
+/**
+ * Context for renderBoard pass: baseline board presentation with suppression.
+ */
+export interface BoardRenderContext {
 	board: BoardStateSnapshot;
-	invalidation: InvalidationStateSnapshot;
 	geometry: RenderGeometry;
-	/** Interaction state snapshot for renderer to derive drag source and other interaction visuals. */
+	invalidation: InvalidationStateSnapshot;
+	suppressedPieceIds: ReadonlySet<number>;
+}
+
+/**
+ * Context for renderAnimations pass: committed animation overlay.
+ */
+export interface AnimationRenderContext {
+	session: AnimationSession | null;
+	board: BoardStateSnapshot;
+	geometry: RenderGeometry;
+}
+
+/**
+ * Context for renderDrag pass: live interaction transient visuals.
+ */
+export interface DragRenderContext {
 	interaction: InteractionStateSnapshot;
-	/** Runtime-owned transient visual state for drag positioning and other transient visuals. */
 	transientVisuals: TransientVisualState;
-};
+	board: BoardStateSnapshot;
+	geometry: RenderGeometry;
+}
 
 /**
  * Minimal renderer interface called by the runtime via the scheduler render callback.
+ * Phase 3.10: Split into three explicit rendering passes.
  * - mount/unmount attach/detach DOM.
- * - render applies updates according to board snapshot, invalidation, and geometry.
+ * - renderBoard: baseline board presentation with suppression.
+ * - renderAnimations: committed animation overlay (or cleanup if session is null).
+ * - renderDrag: live interaction transient visuals.
  */
 export interface Renderer {
 	mount(container: HTMLElement): void;
 	unmount(): void;
-	render(ctx: RenderingContext): void;
+	renderBoard(ctx: BoardRenderContext): void;
+	renderAnimations(ctx: AnimationRenderContext): void;
+	renderDrag(ctx: DragRenderContext): void;
 }

@@ -13,6 +13,9 @@
  * - Observes host resize and refreshes geometry accordingly
  */
 
+import type { Animator } from '../animation/animator';
+import { createAnimator } from '../animation/animator';
+import type { AnimationPlan } from '../animation/types';
 import type { InputAdapter } from '../input/inputAdapter';
 import { createInputAdapter } from '../input/inputAdapter';
 import type { InteractionController } from '../input/interactionController';
@@ -196,31 +199,60 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	let destroyed = false;
 	let controller: InteractionController | null = null;
 	let inputAdapter: InputAdapter | null = null;
+	let animator: Animator | null = null;
 
 	// Scheduler with render callback
 	const scheduler: Scheduler = createScheduler({
 		render: (boardSnapshot, invalidationSnapshot) => {
 			// Guard: only render if geometry exists (implies mounted)
 			if (geometry) {
-				// Pass interaction snapshot and transient visuals to renderer
-				const interactionSnapshot = {
-					selectedSquare: interactionState.selectedSquare,
-					destinations: interactionState.destinations,
-					currentTarget: interactionState.currentTarget,
-					dragSession: interactionState.dragSession
-				};
-				renderer.render({
-					board: boardSnapshot,
-					invalidation: invalidationSnapshot,
-					geometry,
-					interaction: interactionSnapshot,
-					transientVisuals
-				});
+				// Fetch active animation session
+				const activeSession = animator?.getActiveSession() ?? null;
 
-				// Reset one-shot skip flag after renderer consumed it
-				if (transientVisuals.skipNextCommittedAnimation) {
-					transientVisuals.skipNextCommittedAnimation = false;
+				// Compute suppressed piece IDs from animation session and drag state
+				const suppressedIds = new Set<number>();
+				if (activeSession) {
+					for (const track of activeSession.tracks) {
+						suppressedIds.add(track.pieceId);
+					}
 				}
+				if (interactionState.dragSession) {
+					const dragId = boardSnapshot.ids[interactionState.dragSession.fromSquare];
+					if (dragId > 0) {
+						suppressedIds.add(dragId);
+					}
+				}
+
+				// Build pass-specific contexts
+				const boardCtx = {
+					board: boardSnapshot,
+					geometry,
+					invalidation: invalidationSnapshot,
+					suppressedPieceIds: suppressedIds
+				};
+
+				const animationCtx = {
+					session: activeSession,
+					board: boardSnapshot,
+					geometry
+				};
+
+				const dragCtx = {
+					interaction: {
+						selectedSquare: interactionState.selectedSquare,
+						destinations: interactionState.destinations,
+						currentTarget: interactionState.currentTarget,
+						dragSession: interactionState.dragSession
+					},
+					transientVisuals,
+					board: boardSnapshot,
+					geometry
+				};
+
+				// Call split renderer methods
+				renderer.renderBoard(boardCtx);
+				renderer.renderAnimations(animationCtx);
+				renderer.renderDrag(dragCtx);
 			}
 		},
 		getBoardSnapshot: () => getBoardStateSnapshot(boardState),
@@ -271,6 +303,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				controller
 			});
 
+			// Create animator
+			animator = createAnimator({ schedule: () => scheduler.schedule() });
+
 			// Start observing resize
 			resizeObserver = new ResizeObserver(() => refreshGeometry());
 			resizeObserver.observe(container);
@@ -288,6 +323,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			if (changed) {
 				clearInteractionReducer(interactionState); // clear all interaction state on new position
 				transientVisuals.dragPointer = null; // clear transient visuals
+				animator?.stop(); // stop any active animation
 				// TODO: extension hooks to process the change
 				if (mounted) {
 					scheduler.schedule();
@@ -305,7 +341,18 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		},
 
 		move(move: MoveInput, opts?: MoveOptions): Move {
+			// Capture prevIds before commit
+			const prevIds = boardState.ids.slice() as Int16Array;
+
+			// Commit the move
 			const appliedMove = moveReducer(boardState, invalidationWriter, move, opts);
+
+			// Compute animation plan and start animator
+			const plan = computeAnimationPlan(prevIds, boardState.ids);
+			if (plan.tracks.length > 0 && animator) {
+				animator.start(plan);
+			}
+
 			// TODO: extension hooks to process the change
 			if (mounted) {
 				scheduler.schedule();
@@ -393,14 +440,23 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// Capture whether this was a drag-drop completion before clearing state
 				const wasDragCompletion = interactionState.dragSession !== null;
 
+				// Capture prevIds before commit
+				const prevIds = boardState.ids.slice() as Int16Array;
+
 				// Legal completion: apply move, clear all interaction.
 				const appliedMove = moveReducer(boardState, invalidationWriter, { from: source, to });
 				clearInteractionReducer(interactionState);
 				transientVisuals.dragPointer = null; // clear transient visuals
 
-				// Skip committed move animation ONLY for drag-drop completion (one-shot)
+				// Decide animation: skip for drag-drop, animate for non-drag
 				if (wasDragCompletion) {
-					transientVisuals.skipNextCommittedAnimation = true;
+					// Skip animation for drag-drop completion
+				} else {
+					// Compute animation plan and start animator for non-drag completion
+					const plan = computeAnimationPlan(prevIds, boardState.ids);
+					if (plan.tracks.length > 0 && animator) {
+						animator.start(plan);
+					}
 				}
 
 				// moveReducer already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
@@ -500,6 +556,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			inputAdapter = null;
 			controller = null;
 
+			animator?.stop();
+			animator = null;
+
 			destroyed = true;
 			mounted = false;
 
@@ -514,6 +573,42 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			host = null;
 		}
 	};
+
+	/**
+	 * Compute animation plan from previous and next piece id arrays.
+	 * Detects pieces that moved between squares.
+	 */
+	function computeAnimationPlan(prevIds: Int16Array, nextIds: Int16Array): AnimationPlan {
+		// Build id->square maps for valid ids only (id > 0)
+		const prevMap = new Map<number, number>();
+		const nextMap = new Map<number, number>();
+
+		for (let i = 0; i < 64; i++) {
+			const pid = prevIds[i];
+			if (pid > 0) prevMap.set(pid, i);
+			const nid = nextIds[i];
+			if (nid > 0) nextMap.set(nid, i);
+		}
+
+		// Collect movers: id present in both maps with changed square
+		const movers: Array<{ id: number; fromSq: Square; toSq: Square }> = [];
+		for (const [id, fromIndex] of prevMap) {
+			const toIndex = nextMap.get(id);
+			if (toIndex !== undefined && toIndex !== fromIndex) {
+				movers.push({ id, fromSq: fromIndex as Square, toSq: toIndex as Square });
+			}
+		}
+
+		return {
+			tracks: movers.map((m) => ({
+				pieceId: m.id,
+				fromSq: m.fromSq,
+				toSq: m.toSq,
+				effect: 'move' as const
+			})),
+			duration: 180
+		};
+	}
 
 	return runtime;
 }

@@ -59,9 +59,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			dragSession: null
 		};
 
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: null }
@@ -95,9 +94,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer }
@@ -126,9 +124,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer }
@@ -159,9 +156,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			dragSession: { fromSquare: sq(12) }
 		};
 
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: null }
@@ -191,9 +187,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer }
@@ -230,9 +225,25 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
-		renderer.render({
+		// Establish baseline pieces with renderBoard
+		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
+			invalidation: { layers: DirtyLayer.Pieces },
+			geometry,
+			suppressedPieceIds: new Set()
+		});
+
+		// Suppress the dragged piece (pawn at sq 12, id 1) and re-render board
+		renderer.renderBoard({
+			board,
+			invalidation: { layers: DirtyLayer.Pieces },
+			geometry,
+			suppressedPieceIds: new Set([1]) // Suppress piece id 1 (the pawn)
+		});
+
+		// Now render drag visual
+		renderer.renderDrag({
+			board,
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer }
@@ -270,18 +281,16 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		// Start drag
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction: interactionActive,
 			transientVisuals: { dragPointer }
 		});
 
 		// End drag (cancel / snap back)
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction: interactionEnded,
 			transientVisuals: { dragPointer: null }
@@ -315,19 +324,33 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
-		// Start drag
-		renderer.render({
+		// Establish baseline pieces
+		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
+			invalidation: { layers: DirtyLayer.Pieces },
+			geometry,
+			suppressedPieceIds: new Set()
+		});
+
+		// Start drag
+		renderer.renderDrag({
+			board,
 			geometry,
 			interaction: interactionActive,
 			transientVisuals: { dragPointer }
 		});
 
-		// End drag
-		renderer.render({
+		// End drag - restore piece with renderBoard
+		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
+			invalidation: { layers: DirtyLayer.Pieces },
+			geometry,
+			suppressedPieceIds: new Set()
+		});
+
+		// Clear drag visual
+		renderer.renderDrag({
+			board,
 			geometry,
 			interaction: interactionEnded,
 			transientVisuals: { dragPointer: null }
@@ -372,9 +395,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		// Initial render (no drag) — capture the piece node reference
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
 			geometry,
 			interaction: interactionNone,
 			transientVisuals: { dragPointer: null }
@@ -382,9 +404,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		const nodeBeforeDrag = piecesRoot.children[0] as SVGImageElement;
 
 		// Start drag — piece leaves piecesRoot
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction: interactionActive,
 			transientVisuals: { dragPointer }
@@ -392,9 +413,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		expect(piecesRoot.children.length).toBe(0); // piece is in dragRoot
 
 		// End drag — piece returns to piecesRoot
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction: interactionEnded,
 			transientVisuals: { dragPointer: null }
@@ -426,13 +446,12 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			dragSession: null
 		};
 
-		// Full initial render to populate boardRoot
-		renderer.render({
+		// Seed baseline with renderBoard
+		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Board | DirtyLayer.Pieces | DirtyLayer.Drag },
+			invalidation: { layers: DirtyLayer.All },
 			geometry,
-			interaction,
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set()
 		});
 		expect(boardRoot.children.length).toBe(64); // 64 squares drawn
 
@@ -440,9 +459,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		const firstRect = boardRoot.children[0];
 
 		// Drag-only render — boardRoot must not be touched
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: null }
@@ -472,22 +490,20 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			dragSession: null
 		};
 
-		// Full initial render to populate coordsRoot
-		renderer.render({
+		// Seed baseline with renderBoard
+		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Board | DirtyLayer.Pieces | DirtyLayer.Drag },
+			invalidation: { layers: DirtyLayer.All },
 			geometry,
-			interaction,
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set()
 		});
 		expect(coordsRoot.children.length).toBe(16); // 16 coordinate labels
 
 		const firstLabel = coordsRoot.children[0];
 
 		// Drag-only render — coordsRoot must not be touched
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: null }
@@ -516,21 +532,19 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			dragSession: null
 		};
 
-		// Initial pieces render
-		renderer.render({
+		// Seed baseline with renderBoard
+		renderer.renderBoard({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces },
 			geometry,
-			interaction,
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set()
 		});
 		expect(piecesRoot.children.length).toBe(1);
 		const pieceNode = piecesRoot.children[0];
 
 		// Drag-only render — piecesRoot must not be touched
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: null }
@@ -559,9 +573,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		};
 		const dragPointer: BoardPoint = { x: 250, y: 350 };
 
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer }
@@ -600,9 +613,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 
 		// First render at position 1
 		const dragPointer1: BoardPoint = { x: 200, y: 300 };
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: dragPointer1 }
@@ -620,9 +632,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 
 		// Second render at position 2 (pointer moved)
 		const dragPointer2: BoardPoint = { x: 350, y: 450 };
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: dragPointer2 }
@@ -654,9 +665,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 
 		// First render at position 1 (within square 12)
 		const dragPointer1: BoardPoint = { x: 200, y: 300 };
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: dragPointer1 }
@@ -674,9 +684,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 
 		// Second render at position 2 (still within square 12, but different pixel position)
 		const dragPointer2: BoardPoint = { x: 210, y: 310 };
-		renderer.render({
+		renderer.renderDrag({
 			board,
-			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
 			interaction,
 			transientVisuals: { dragPointer: dragPointer2 }

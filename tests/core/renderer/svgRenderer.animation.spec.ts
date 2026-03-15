@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import type { AnimationSession } from '../../../src/core/animation/types';
 import { makeRenderGeometry } from '../../../src/core/renderer/geometry';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
@@ -18,148 +19,211 @@ function makeBoardSnapshot(
 	return { pieces, ids, turn: 'white', positionEpoch };
 }
 
-describe('SvgRenderer committed move animation (Phase 3.9)', () => {
-	it('initial render: no animation (ids seeded, no movers)', () => {
+describe('SvgRenderer animation rendering (Phase 3.10)', () => {
+	it('renderAnimations with null session clears animation root', () => {
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
 		renderer.mount(container);
 
-		// Single white pawn at e2 (square 12) with id=1
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64).fill(-1);
-		pieces[sq(12)] = 1;
-		ids[sq(12)] = 1;
-
-		const board = makeBoardSnapshot({ pieces, ids });
+		const board = makeBoardSnapshot();
 		const geometry = makeRenderGeometry(800, 'white');
 
-		renderer.render({
+		// Call renderAnimations with null session
+		renderer.renderAnimations({
+			session: null,
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
-			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			geometry
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const animationRoot = (renderer as any).animationRoot as SVGGElement;
-		expect(animationRoot.children.length).toBe(0);
-
-		// Second render with identical ids: still no animation
-		renderer.render({
-			board,
-			invalidation: { layers: DirtyLayer.Pieces },
-			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
-		});
 		expect(animationRoot.children.length).toBe(0);
 
 		renderer.unmount();
 	});
 
-	it('static node restoration: piece visible after animation completes without external render', () => {
+	it('renderAnimations with active session creates session group and renders frame', () => {
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
 		renderer.mount(container);
 
-		// Seed: piece at e2 (12) with id=1
-		const pieces1 = new Uint8Array(64);
-		const ids1 = new Int16Array(64).fill(-1);
-		pieces1[sq(12)] = 1;
-		ids1[sq(12)] = 1;
+		// Board with piece at e4 (28)
+		const pieces = new Uint8Array(64);
+		const ids = new Int16Array(64).fill(-1);
+		pieces[sq(28)] = 1; // white pawn
+		ids[sq(28)] = 1;
 
-		const board1 = makeBoardSnapshot({ pieces: pieces1, ids: ids1 });
+		const board = makeBoardSnapshot({ pieces, ids });
 		const geometry = makeRenderGeometry(800, 'white');
 
-		// Initial render (no animation) — seeds previousCommittedIds
-		renderer.render({
-			board: board1,
-			invalidation: { layers: DirtyLayer.Pieces },
-			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
-		});
+		// Create a mock animation session (piece moving from e2 to e4)
+		const session: AnimationSession = {
+			id: 1,
+			tracks: [
+				{
+					pieceId: 1,
+					fromSq: sq(12), // e2
+					toSq: sq(28), // e4
+					effect: 'move'
+				}
+			],
+			startTime: performance.now(),
+			duration: 180
+		};
 
-		// Next: same id=1 moves from e2 (12) to e4 (28)
-		const pieces2 = new Uint8Array(64);
-		const ids2 = new Int16Array(64).fill(-1);
-		pieces2[sq(28)] = 1; // white pawn asset code remains pawn
-		ids2[sq(28)] = 1; // moved piece keeps same ID
-
-		const board2 = makeBoardSnapshot({ pieces: pieces2, ids: ids2 });
-
-		// Stub performance.now and requestAnimationFrame to control async completion
-		const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(0);
-		const originalRAF = globalThis.requestAnimationFrame;
-		let storedCallback: FrameRequestCallback | null = null;
-		globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
-			// Store the callback instead of invoking it immediately
-			storedCallback = cb;
-			return 1 as unknown as number;
-		}) as unknown as typeof requestAnimationFrame;
-
-		// Drive the committed move render
-		renderer.render({
-			board: board2,
-			invalidation: { layers: DirtyLayer.Pieces },
-			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+		// Call renderAnimations with active session
+		renderer.renderAnimations({
+			session,
+			board,
+			geometry
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const animationRoot = (renderer as any).animationRoot as SVGGElement;
+
+		// Should have session group
+		expect(animationRoot.children.length).toBe(1);
+		const sessionGroup = animationRoot.children[0] as SVGGElement;
+		expect(sessionGroup.getAttribute('data-session-id')).toBe('1');
+
+		// Session group should have frame content (reserved child group with piece)
+		expect(sessionGroup.children.length).toBeGreaterThan(0);
+
+		renderer.unmount();
+	});
+
+	it('renderAnimations with two-track session renders both pieces', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		// Board with king at e1 and rook at h1 (castling destination)
+		const pieces = new Uint8Array(64);
+		const ids = new Int16Array(64).fill(-1);
+		pieces[sq(6)] = 6; // white king at g1
+		ids[sq(6)] = 1;
+		pieces[sq(5)] = 4; // white rook at f1
+		ids[sq(5)] = 2;
+
+		const board = makeBoardSnapshot({ pieces, ids });
+		const geometry = makeRenderGeometry(800, 'white');
+
+		// Create a two-track session (castling: king e1->g1, rook h1->f1)
+		const session: AnimationSession = {
+			id: 2,
+			tracks: [
+				{
+					pieceId: 1,
+					fromSq: sq(4), // e1
+					toSq: sq(6), // g1
+					effect: 'move'
+				},
+				{
+					pieceId: 2,
+					fromSq: sq(7), // h1
+					toSq: sq(5), // f1
+					effect: 'move'
+				}
+			],
+			startTime: performance.now(),
+			duration: 180
+		};
+
+		// Call renderAnimations
+		renderer.renderAnimations({
+			session,
+			board,
+			geometry
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const animationRoot = (renderer as any).animationRoot as SVGGElement;
+		const sessionGroup = animationRoot.children[0] as SVGGElement;
+
+		// Frame renderer should create reserved group with two pieces
+		const frameGroup = sessionGroup.querySelector('g[data-animation-frame="true"]');
+		expect(frameGroup).not.toBeNull();
+		expect(frameGroup!.children.length).toBe(2); // two animated pieces
+
+		renderer.unmount();
+	});
+
+	it('renderBoard suppresses pieces in suppressedPieceIds set', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		// Board with two pieces
+		const pieces = new Uint8Array(64);
+		const ids = new Int16Array(64).fill(-1);
+		pieces[sq(12)] = 1; // white pawn at e2
+		ids[sq(12)] = 1;
+		pieces[sq(28)] = 1; // white pawn at e4
+		ids[sq(28)] = 2;
+
+		const board = makeBoardSnapshot({ pieces, ids });
+		const geometry = makeRenderGeometry(800, 'white');
+
+		// Suppress piece id=1
+		const suppressedIds = new Set<number>([1]);
+
+		renderer.renderBoard({
+			board,
+			geometry,
+			invalidation: { layers: DirtyLayer.Pieces },
+			suppressedPieceIds: suppressedIds
+		});
+
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const piecesRoot = (renderer as any).piecesRoot as SVGGElement;
 
-		// After render() but before rAF flush: animation is in progress
-		// - transient node exists in animationRoot
-		// - static piece still suppressed from piecesRoot
-		expect(animationRoot.children.length).toBe(1);
-		expect(piecesRoot.children.length).toBe(0);
-
-		// Manually flush the stored rAF callback to complete animation
-		expect(storedCallback).not.toBeNull();
-		storedCallback!(1000); // timestamp well past duration
-
-		// After rAF completion (no second render() call):
-		// - transient node removed from animationRoot
-		// - static piece restored to piecesRoot
-		expect(animationRoot.children.length).toBe(0);
+		// Only one piece should be visible (id=2)
 		expect(piecesRoot.children.length).toBe(1);
 
-		// Verify the restored static piece is positioned at destination rect
-		const node = piecesRoot.children[0] as SVGImageElement;
-		const destRect = geometry.squareRect(sq(28));
-		expect(node.getAttribute('x')).toBe(String(destRect.x));
-		expect(node.getAttribute('y')).toBe(String(destRect.y));
-		expect(node.getAttribute('width')).toBe(String(destRect.size));
-		expect(node.getAttribute('height')).toBe(String(destRect.size));
+		renderer.unmount();
+	});
 
-		// Cleanup stubs
-		nowSpy.mockRestore();
-		globalThis.requestAnimationFrame = originalRAF;
+	it('renderAnimations replaces session group when session id changes', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		const pieces = new Uint8Array(64);
+		const ids = new Int16Array(64).fill(-1);
+		pieces[sq(28)] = 1;
+		ids[sq(28)] = 1;
+
+		const board = makeBoardSnapshot({ pieces, ids });
+		const geometry = makeRenderGeometry(800, 'white');
+
+		// First session
+		const session1: AnimationSession = {
+			id: 1,
+			tracks: [{ pieceId: 1, fromSq: sq(12), toSq: sq(28), effect: 'move' }],
+			startTime: performance.now(),
+			duration: 180
+		};
+
+		renderer.renderAnimations({ session: session1, board, geometry });
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const animationRoot = (renderer as any).animationRoot as SVGGElement;
+		expect(animationRoot.children.length).toBe(1);
+		expect((animationRoot.children[0] as SVGGElement).getAttribute('data-session-id')).toBe('1');
+
+		// Second session with different id
+		const session2: AnimationSession = {
+			id: 2,
+			tracks: [{ pieceId: 1, fromSq: sq(28), toSq: sq(44), effect: 'move' }],
+			startTime: performance.now(),
+			duration: 180
+		};
+
+		renderer.renderAnimations({ session: session2, board, geometry });
+
+		// Should still have one session group, but with new id
+		expect(animationRoot.children.length).toBe(1);
+		expect((animationRoot.children[0] as SVGGElement).getAttribute('data-session-id')).toBe('2');
 
 		renderer.unmount();
 	});

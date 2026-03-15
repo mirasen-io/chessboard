@@ -13,7 +13,12 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { Renderer, RenderingContext } from '../../../src/core/renderer/types';
+import type {
+	AnimationRenderContext,
+	BoardRenderContext,
+	DragRenderContext,
+	Renderer
+} from '../../../src/core/renderer/types';
 import { createBoardRuntime } from '../../../src/core/runtime/boardRuntime';
 import type { BoardStateSnapshot, Square } from '../../../src/core/state/boardTypes';
 
@@ -31,19 +36,47 @@ function waitForRender(): Promise<void> {
 
 /**
  * Minimal fake renderer for testing.
- * Captures the latest board snapshot and render context for test assertions.
+ * Captures the latest board snapshot and render contexts for test assertions.
+ * Phase 3.10: Updated to split renderer API.
  */
 class FakeRenderer implements Renderer {
 	lastBoardSnapshot: BoardStateSnapshot | null = null;
-	lastRenderContext: RenderingContext | null = null;
+	lastBoardContext: BoardRenderContext | null = null;
+	lastAnimationContext: AnimationRenderContext | null = null;
+	lastDragContext: DragRenderContext | null = null;
 	renderCount = 0;
 
 	mount(): void {}
 	unmount(): void {}
-	render(ctx: RenderingContext): void {
+
+	renderBoard(ctx: BoardRenderContext): void {
 		this.lastBoardSnapshot = ctx.board;
-		this.lastRenderContext = ctx;
+		this.lastBoardContext = ctx;
 		this.renderCount++;
+	}
+
+	renderAnimations(ctx: AnimationRenderContext): void {
+		this.lastAnimationContext = ctx;
+	}
+
+	renderDrag(ctx: DragRenderContext): void {
+		this.lastDragContext = ctx;
+	}
+
+	// Compatibility helpers for tests that check interaction/transientVisuals
+	get lastRenderContext() {
+		return {
+			board: this.lastBoardSnapshot,
+			interaction: this.lastDragContext?.interaction ?? {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: this.lastDragContext?.transientVisuals ?? {
+				dragPointer: null
+			}
+		};
 	}
 }
 

@@ -23,17 +23,11 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -51,17 +45,11 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -99,17 +87,11 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -148,17 +130,11 @@ describe('SvgRenderer coordinates rendering', () => {
 
 		// Orientation is passed via geometry, not board snapshot
 		const geometry = makeRenderGeometry(800, 'black');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -197,17 +173,11 @@ describe('SvgRenderer coordinates rendering', () => {
 
 		// Orientation is passed via geometry, not board snapshot
 		const geometry = makeRenderGeometry(800, 'black');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -245,17 +215,11 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -288,17 +252,11 @@ describe('SvgRenderer coordinates rendering', () => {
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
 		const geometry = makeRenderGeometry(800, 'white');
-		renderer.render({
+		renderer.renderBoard({
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			interaction: {
-				selectedSquare: null,
-				destinations: null,
-				currentTarget: null,
-				dragSession: null
-			},
-			transientVisuals: { dragPointer: null }
+			suppressedPieceIds: new Set<number>()
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));

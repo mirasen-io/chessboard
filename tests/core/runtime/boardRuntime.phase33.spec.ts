@@ -64,7 +64,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 	describe('dragStart() — drag-layer invalidation', () => {
 		it('dragStart() marks DirtyLayer.Drag', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -73,21 +73,21 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.mount(createMockContainer());
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.select(sq(12)); // e2
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			expect(ctx.invalidation.layers & DirtyLayer.Drag).toBe(DirtyLayer.Drag);
 		});
 
 		it('dragStart() also marks DirtyLayer.Pieces (source piece leaves piecesRoot)', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -96,15 +96,15 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.mount(createMockContainer());
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.select(sq(12));
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			expect(ctx.invalidation.layers & DirtyLayer.Pieces).toBe(DirtyLayer.Pieces);
 		});
 
@@ -112,7 +112,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 
 		it('dragStart() passes drag.sourceSquare to renderer', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -121,22 +121,22 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.mount(createMockContainer());
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderDragSpy.mockClear();
 
 			runtime.select(sq(12));
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderDragSpy).toHaveBeenCalled();
+			const ctx = renderDragSpy.mock.calls[0][0];
 			expect(ctx.interaction.dragSession).not.toBeNull();
 			expect(ctx.interaction.dragSession!.fromSquare).toBe(sq(12));
 		});
 
 		it('before dragStart(), renderer receives drag: null', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -147,8 +147,8 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			// Initial render — no drag active
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderDragSpy).toHaveBeenCalled();
+			const ctx = renderDragSpy.mock.calls[0][0];
 			expect(ctx.interaction.dragSession).toBeNull();
 		});
 	});
@@ -158,7 +158,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 	describe('cancelInteraction() — drag render state cleared', () => {
 		it('cancelInteraction() after drag marks DirtyLayer.Drag', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -172,20 +172,20 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.cancelInteraction();
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			expect(ctx.invalidation.layers & DirtyLayer.Drag).toBe(DirtyLayer.Drag);
 		});
 
 		it('cancelInteraction() after drag passes drag: null to renderer', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -199,20 +199,21 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderDragSpy.mockClear();
 
 			runtime.cancelInteraction();
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderDragSpy).toHaveBeenCalled();
+			const ctx = renderDragSpy.mock.calls[0][0];
 			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
 		it('cancelInteraction() with no active drag does not schedule a render', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
+			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -221,7 +222,8 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.mount(createMockContainer());
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
+			renderDragSpy.mockClear();
 
 			// No drag active — cancelInteraction should be a no-op for rendering
 			runtime.select(sq(12));
@@ -229,7 +231,8 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 
 			await waitForRender();
 
-			expect(renderSpy).not.toHaveBeenCalled();
+			expect(renderBoardSpy).not.toHaveBeenCalled();
+			expect(renderDragSpy).not.toHaveBeenCalled();
 		});
 	});
 
@@ -238,7 +241,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 	describe('dropTo() illegal lifted-piece — drag render state cleared', () => {
 		it('illegal lifted drop marks DirtyLayer.Drag', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -258,20 +261,20 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.dropTo(sq(36)); // e5 — not in destinations (illegal)
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			expect(ctx.invalidation.layers & DirtyLayer.Drag).toBe(DirtyLayer.Drag);
 		});
 
 		it('illegal lifted drop passes drag: null to renderer (piece snaps back)', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -291,20 +294,20 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderDragSpy.mockClear();
 
 			runtime.dropTo(sq(36)); // illegal
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderDragSpy).toHaveBeenCalled();
+			const ctx = renderDragSpy.mock.calls[0][0];
 			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
 		it('illegal lifted drop also marks DirtyLayer.Pieces (source piece returns to piecesRoot)', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -324,14 +327,14 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.dropTo(sq(36)); // illegal
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			expect(ctx.invalidation.layers & DirtyLayer.Pieces).toBe(DirtyLayer.Pieces);
 		});
 	});
@@ -341,7 +344,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 	describe('dropTo() legal — drag cleared, move invalidation preserved', () => {
 		it('legal drop marks DirtyLayer.Drag', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -355,20 +358,20 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.dropTo(sq(28)); // e4 — legal
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			expect(ctx.invalidation.layers & DirtyLayer.Drag).toBe(DirtyLayer.Drag);
 		});
 
 		it('legal drop passes drag: null to renderer', async () => {
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -382,14 +385,14 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderDragSpy.mockClear();
 
 			runtime.dropTo(sq(28)); // legal
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderDragSpy).toHaveBeenCalled();
+			const ctx = renderDragSpy.mock.calls[0][0];
 			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
@@ -397,7 +400,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			// moveReducer marks Pieces + squares (e2=12, e4=28).
 			// dropTo legal must OR in Drag without clearing those squares.
 			const renderer = createTestRenderer();
-			const renderSpy = vi.spyOn(renderer, 'render');
+			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -411,14 +414,14 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
-			renderSpy.mockClear();
+			renderBoardSpy.mockClear();
 
 			runtime.dropTo(sq(28)); // legal move e2→e4
 
 			await waitForRender();
 
-			expect(renderSpy).toHaveBeenCalled();
-			const [ctx] = renderSpy.mock.calls[0];
+			expect(renderBoardSpy).toHaveBeenCalled();
+			const ctx = renderBoardSpy.mock.calls[0][0];
 			// Both Pieces and Drag must be set
 			expect(ctx.invalidation.layers & DirtyLayer.Pieces).toBe(DirtyLayer.Pieces);
 			expect(ctx.invalidation.layers & DirtyLayer.Drag).toBe(DirtyLayer.Drag);
