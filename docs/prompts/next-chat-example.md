@@ -108,7 +108,7 @@ Prefer:
 
 1. brief analysis
 2. concrete recommendation
-3. precise implementation prompt for Cline
+3. precise implementation prompt for agent
 4. focused test updates
 5. later patch review
 
@@ -123,7 +123,7 @@ Prefer:
 
 1. brief analysis
 2. concrete recommendation
-3. precise implementation prompt for Cline
+3. precise implementation prompt for agent
 4. focused test updates
 5. later patch review
 
