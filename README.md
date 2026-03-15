@@ -7,8 +7,12 @@
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=kt-npm-modules_chessboard&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=kt-npm-modules_chessboard)
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@ktarmyshov/chessboard)](https://socket.dev/npm/package/@ktarmyshov/chessboard/overview)
 
-# chessboard
+# Mirasen Chessboard
 
-Web (could be used for mobile) chessboard UI
+Open-source chessboard UI library by Mirasen.
 
-in progress
+Mirasen Chessboard is built for modern web chess applications and serves as a foundation for the broader Mirasen learning ecosystem.
+
+## Status
+
+In active development.
