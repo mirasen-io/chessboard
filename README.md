@@ -5,7 +5,7 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@ktarmyshov/chessboard)](https://socket.dev/npm/package/@ktarmyshov/chessboard/overview)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@mirasen/chessboard)](https://socket.dev/npm/package/@mirasen/chessboard/overview)
 
 # Mirasen Chessboard
 

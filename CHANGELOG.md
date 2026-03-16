@@ -1,4 +1,4 @@
-# @ktarmyshov/chessboard
+# @mirasen/chessboard
 
 ## 0.0.4
 

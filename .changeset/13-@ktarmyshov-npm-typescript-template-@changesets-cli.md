@@ -1,5 +1,5 @@
 ---
-'@ktarmyshov/chessboard': patch
+'@mirasen/chessboard': patch
 ---
 
 dependabot: directory '/', update @changesets/cli
