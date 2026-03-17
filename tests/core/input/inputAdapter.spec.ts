@@ -63,6 +63,21 @@ class FakeRenderer implements Renderer {
 		this.lastDragContext = ctx;
 	}
 
+	allocateExtensionSlots<TSlots extends string>(
+		_extensionId: string,
+		slotNames: readonly TSlots[]
+	): Partial<Record<TSlots, SVGGElement>> {
+		// Provide minimal valid slot handles for runtime mount
+		const slots: Partial<Record<TSlots, SVGGElement>> = {};
+		for (const name of slotNames) {
+			// Create stub SVGGElement - runtime only needs a truthy container reference
+			slots[name] = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+		}
+		return slots;
+	}
+
+	removeExtensionSlots(_extensionId: string): void {}
+
 	// Compatibility helpers for tests that check interaction/transientVisuals
 	get lastRenderContext() {
 		return {

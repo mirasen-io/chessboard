@@ -11,6 +11,17 @@ export enum DirtyLayer {
 	All = Board | Pieces | Drag
 }
 
+export interface InvalidationStateExtensionInternal {
+	layers: number;
+	squares: Set<Square>;
+}
+
+export interface InvalidationStateExtensionSnapshot {
+	readonly layers: number;
+	// If squares is empty - full redraw is implied
+	readonly squares: ReadonlySet<Square>;
+}
+
 /**
  * Invalidation internal payload.
  * - layers: DirtyLayer bitmask
@@ -19,14 +30,26 @@ export enum DirtyLayer {
 export interface InvalidationStateInternal {
 	layers: number;
 	squares: Set<Square>;
+	extensions: Record<string, InvalidationStateExtensionInternal>;
 }
 
 /**
  * Invalidation payload shape emitted by the scheduler to the renderer.
  */
+export interface InvalidationStateRenderSnapshot {
+	readonly layers: number;
+	// If squares is empty - full redraw is implied
+	readonly squares: ReadonlySet<Square>;
+}
+
+/**
+ * Global invalidation payload shape used by runtime/scheduler.
+ */
 export interface InvalidationStateSnapshot {
 	readonly layers: number;
-	readonly squares?: ReadonlySet<Square>;
+	// If squares is empty - full redraw is implied
+	readonly squares: ReadonlySet<Square>;
+	readonly extensions: Record<string, InvalidationStateExtensionSnapshot>;
 }
 
 /**

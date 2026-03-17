@@ -49,7 +49,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 		try {
 			render(boardSnapshot, invalidationSnapshot);
 		} finally {
-			// Ensure dirty flags are cleared even render throws
+			// Ensure dirty flags are cleared even if render throws
 			clearDirty();
 		}
 	};

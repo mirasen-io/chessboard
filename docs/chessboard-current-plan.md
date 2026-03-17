@@ -297,6 +297,8 @@
 
 ### 4.2a First lifecycle-validation extension: `Selected Square (with figure)`
 
+**Status: COMPLETE**
+
 - Implement a minimal passive extension that highlights the currently selected square when it contains a piece
 - Render into the appropriate extension slot
 - Use this as the first end-to-end validation of:

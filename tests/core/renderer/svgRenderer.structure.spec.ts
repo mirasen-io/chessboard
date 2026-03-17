@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeRenderGeometry } from '../../../src/core/renderer/geometry';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
-import type { BoardStateSnapshot } from '../../../src/core/state/boardTypes';
+import { type BoardStateSnapshot, type Square } from '../../../src/core/state/boardTypes';
 
 /** Minimal valid BoardStateSnapshot fixture for renderer tests */
 function makeBoardSnapshot(
@@ -79,7 +79,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -115,7 +115,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -141,7 +141,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 
 		const board = makeBoardSnapshot({ pieces, ids });
 		const geometry = makeRenderGeometry(800, 'white');
-		const invalidation = { layers: DirtyLayer.Pieces };
+		const invalidation = { layers: DirtyLayer.Pieces, squares: new Set<Square>() };
 
 		// First render
 		renderer.renderBoard({
@@ -179,7 +179,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		expect(() =>
 			renderer.renderBoard({
 				board,
-				invalidation: { layers: DirtyLayer.Board },
+				invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 				geometry,
 				suppressedPieceIds: new Set<number>()
 			})
@@ -247,7 +247,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		// First render: suppress piece id 1
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set([1])
 		});
@@ -259,7 +259,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		// This should trigger a pieces refresh due to suppression change
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: 0 }, // no layers marked dirty
+			invalidation: { layers: 0, squares: new Set() }, // no layers marked dirty
 			geometry,
 			suppressedPieceIds: new Set() // suppression removed
 		});

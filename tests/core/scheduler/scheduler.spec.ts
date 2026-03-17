@@ -14,7 +14,8 @@ describe('scheduler/scheduler (rAF-only)', () => {
 	const fakeBoardSnapshot = {} as unknown as BoardStateSnapshot;
 	const fakeInvalidation = (): InvalidationStateSnapshot => ({
 		layers: DirtyLayer.Pieces,
-		squares: new Set()
+		squares: new Set(),
+		extensions: {}
 	});
 
 	let render: RenderCallback;

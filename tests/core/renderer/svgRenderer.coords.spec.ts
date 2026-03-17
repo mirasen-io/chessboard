@@ -25,7 +25,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -47,7 +47,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -89,7 +89,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -132,7 +132,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'black');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -175,7 +175,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'black');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -217,7 +217,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});
@@ -254,7 +254,7 @@ describe('SvgRenderer coordinates rendering', () => {
 		const geometry = makeRenderGeometry(800, 'white');
 		renderer.renderBoard({
 			board: emptyBoard,
-			invalidation: { layers: DirtyLayer.Board },
+			invalidation: { layers: DirtyLayer.Board, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set<number>()
 		});

@@ -210,7 +210,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
-		it('cancelInteraction() with no active drag does not schedule a render', async () => {
+		it('cancelInteraction() with no active drag does not schedule additional render', async () => {
 			const renderer = createTestRenderer();
 			const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
@@ -225,8 +225,16 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			renderBoardSpy.mockClear();
 			renderDragSpy.mockClear();
 
-			// No drag active — cancelInteraction should be a no-op for rendering
+			// select() schedules a render due to extension updates
 			runtime.select(sq(12));
+
+			await waitForRender();
+
+			// Clear spy after select render
+			renderBoardSpy.mockClear();
+			renderDragSpy.mockClear();
+
+			// cancelInteraction with no active drag should be a no-op for rendering
 			runtime.cancelInteraction(); // no drag was started
 
 			await waitForRender();

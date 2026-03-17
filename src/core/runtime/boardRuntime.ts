@@ -16,6 +16,12 @@
 import type { Animator } from '../animation/animator';
 import { createAnimator } from '../animation/animator';
 import type { AnimationPlan } from '../animation/types';
+import type {
+	BoardExtensionDefinitionInternal,
+	BoardExtensionMounted,
+	BoardExtensionRenderContext,
+	BoardExtensionUpdateContext
+} from '../extensions/types';
 import type { InputAdapter } from '../input/inputAdapter';
 import { createInputAdapter } from '../input/inputAdapter';
 import type { InteractionController } from '../input/interactionController';
@@ -23,13 +29,16 @@ import { createInteractionController } from '../input/interactionController';
 import { makeRenderGeometry } from '../renderer/geometry';
 import type { BoardPoint, Renderer, RenderGeometry, TransientVisualState } from '../renderer/types';
 import {
+	createExtensionInvalidationWriter,
 	createInvalidationState,
 	createInvalidationWriter,
-	getInvalidationSnapshot
+	getExtensionInvalidationSnapshot,
+	getInvalidationSnapshot,
+	initializeExtensionInvalidation
 } from '../scheduler/invalidationState';
-import { clearDirty, markDirtyLayer } from '../scheduler/reducers';
+import { clearDirtyAll, markDirtyLayer } from '../scheduler/reducers';
 import { createScheduler, type Scheduler } from '../scheduler/scheduler';
-import { DirtyLayer } from '../scheduler/types';
+import { DirtyLayer, InvalidationWriter } from '../scheduler/types';
 import {
 	MoveOptions,
 	move as moveReducer,
@@ -97,6 +106,7 @@ export interface BoardRuntimeInitOptions {
 	renderer: Renderer;
 	board?: BoardStateInitOptions;
 	view?: ViewStateInitOptions;
+	extensions?: BoardExtensionDefinitionInternal[];
 }
 
 /**
@@ -191,6 +201,28 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	const transientVisuals: TransientVisualState = {
 		dragPointer: null
 	};
+
+	// Validate and store extension definitions
+	const extensions = opts.extensions ?? [];
+	const seenIds = new Set<string>();
+	for (const ext of extensions) {
+		if (seenIds.has(ext.id)) {
+			throw new Error(`BoardRuntime: duplicate extension id '${ext.id}'`);
+		}
+		seenIds.add(ext.id);
+	}
+
+	// Extension lifecycle state
+	const mountedExtensions = new Map<string, BoardExtensionMounted<unknown>>();
+	const extensionWriters = new Map<string, InvalidationWriter>();
+
+	// Initialize extension invalidation buckets
+	for (const ext of extensions) {
+		initializeExtensionInvalidation(invalidationState, ext.id);
+		const writer = createExtensionInvalidationWriter(invalidationState, ext.id);
+		extensionWriters.set(ext.id, writer);
+	}
+
 	let boardSize: number | null = null;
 	let geometry: RenderGeometry | null = null;
 	let mounted = false;
@@ -253,12 +285,49 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				renderer.renderBoard(boardCtx);
 				renderer.renderAnimations(animationCtx);
 				renderer.renderDrag(dragCtx);
+
+				// Extension rendering
+				for (const [extId, mounted] of mountedExtensions) {
+					const extInvalidation = getExtensionInvalidationSnapshot(invalidationState, extId);
+					if (extInvalidation.layers !== 0) {
+						const renderCtx: BoardExtensionRenderContext = {
+							board: boardSnapshot,
+							view: {
+								orientation: viewState.orientation,
+								movability: viewState.movability
+							},
+							interaction: {
+								selectedSquare: interactionState.selectedSquare,
+								destinations: interactionState.destinations,
+								dragSession: interactionState.dragSession,
+								currentTarget: interactionState.currentTarget
+							},
+							geometry,
+							invalidation: extInvalidation
+						};
+						mounted.renderBoard(renderCtx);
+					}
+				}
 			}
 		},
 		getBoardSnapshot: () => getBoardStateSnapshot(boardState),
 		getInvalidationSnapshot: () => getInvalidationSnapshot(invalidationState),
-		clearDirty: () => clearDirty(invalidationState)
+		clearDirty: () => clearDirtyAll(invalidationState)
 	});
+
+	function scheduleIfAnythingDirty() {
+		if (invalidationState.layers !== 0) {
+			scheduler.schedule();
+			return;
+		}
+		// check extension buckets
+		for (const extInvalidation of Object.values(invalidationState.extensions)) {
+			if (extInvalidation.layers !== 0) {
+				scheduler.schedule();
+				return;
+			}
+		}
+	}
 
 	/**
 	 * Refresh geometry from current host size and orientation.
@@ -274,7 +343,35 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		boardSize = newSize;
 		geometry = makeRenderGeometry(boardSize, viewState.orientation);
 		markDirtyLayer(invalidationState, DirtyLayer.Board | DirtyLayer.Pieces);
-		scheduler.schedule();
+		scheduleIfAnythingDirty();
+	}
+
+	/**
+	 * Update all mounted extensions with current state.
+	 * Extensions compute deltas and mark their own invalidation buckets.
+	 * No-op if no extensions are mounted yet.
+	 */
+	function updateExtensions(): void {
+		if (mountedExtensions.size === 0) return;
+		for (const [extId, mounted] of mountedExtensions) {
+			const writer = extensionWriters.get(extId);
+			if (!writer) continue;
+			const updateCtx: BoardExtensionUpdateContext = {
+				board: getBoardStateSnapshot(boardState),
+				view: {
+					orientation: viewState.orientation,
+					movability: viewState.movability
+				},
+				interaction: {
+					selectedSquare: interactionState.selectedSquare,
+					destinations: interactionState.destinations,
+					dragSession: interactionState.dragSession,
+					currentTarget: interactionState.currentTarget
+				},
+				writer
+			};
+			mounted.update(updateCtx);
+		}
 	}
 
 	const runtime: BoardRuntime = {
@@ -306,16 +403,32 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			// Create animator
 			animator = createAnimator({ schedule: () => scheduler.schedule() });
 
+			// Mount extensions
+			for (const ext of extensions) {
+				const slots = renderer.allocateExtensionSlots(ext.id, ext.slots);
+				// Verify all requested slots were allocated
+				for (const slotName of ext.slots) {
+					if (!slots[slotName]) {
+						throw new Error(
+							`BoardRuntime: failed to allocate '${slotName}' slot for extension '${ext.id}'`
+						);
+					}
+				}
+				const mountEnv = { slotRoots: slots };
+				const mounted = ext.mount(mountEnv);
+				mountedExtensions.set(ext.id, mounted);
+			}
+
 			// Start observing resize
 			resizeObserver = new ResizeObserver(() => refreshGeometry());
 			resizeObserver.observe(container);
 
-			// Mark initial redraw
+			// Mark initial redraw and update extensions
 			markDirtyLayer(invalidationState, DirtyLayer.All);
-			// TODO: extension hooks here as well??
+			updateExtensions();
 
 			// Schedule initial render
-			scheduler.schedule();
+			scheduleIfAnythingDirty();
 		},
 
 		setBoardPosition(input: PositionInput): boolean {
@@ -324,9 +437,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				clearInteractionReducer(interactionState); // clear all interaction state on new position
 				transientVisuals.dragPointer = null; // clear transient visuals
 				animator?.stop(); // stop any active animation
-				// TODO: extension hooks to process the change
+				updateExtensions();
 				if (mounted) {
-					scheduler.schedule();
+					scheduleIfAnythingDirty();
 				}
 			}
 			return changed;
@@ -334,9 +447,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 
 		setTurn(c: ColorInput): boolean {
 			const changed = setTurnReducer(boardState, c);
-			if (changed) {
-				// TODO: extension hooks to process the change
-			}
+			// No extension update needed for turn change alone
 			return changed;
 		},
 
@@ -353,9 +464,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				animator.start(plan);
 			}
 
-			// TODO: extension hooks to process the change
+			updateExtensions();
 			if (mounted) {
-				scheduler.schedule();
+				scheduleIfAnythingDirty();
 			}
 			return appliedMove;
 		},
@@ -363,11 +474,11 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		setOrientation(input: ColorInput): boolean {
 			const changed = setOrientationReducer(viewState, invalidationWriter, input);
 			if (changed) {
-				// TODO: extension hooks to process the change
+				updateExtensions();
 				if (mounted) {
 					// Recreate immutable geometry with new orientation
 					geometry = makeRenderGeometry(boardSize!, viewState.orientation);
-					scheduler.schedule();
+					scheduleIfAnythingDirty();
 				}
 			}
 
@@ -398,6 +509,12 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			// currentTarget
 			setCurrentTargetReducer(interactionState, null);
 
+			// Update extensions after synchronized interaction state change
+			updateExtensions();
+			if (mounted) {
+				scheduleIfAnythingDirty();
+			}
+
 			// Return true if selectedSquare changed (consistent with prior contract)
 			return prevSq !== newSq;
 		},
@@ -420,7 +537,10 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			transientVisuals.dragPointer = point; // initialize drag visual immediately
 			// Drag started: source piece moves from piecesRoot to dragRoot.
 			markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
-			if (mounted) scheduler.schedule();
+			updateExtensions();
+			if (mounted) {
+				scheduleIfAnythingDirty();
+			}
 			return true;
 		},
 
@@ -462,8 +582,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// moveReducer already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
 				// OR in DirtyLayer.Drag directly to avoid clearing those squares.
 				invalidationState.layers |= DirtyLayer.Drag;
+				updateExtensions();
 				if (mounted) {
-					scheduler.schedule();
+					scheduleIfAnythingDirty();
 				}
 				return appliedMove;
 			}
@@ -478,11 +599,15 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				transientVisuals.dragPointer = null; // clear transient visuals
 				// Drag cleared: source piece returns to piecesRoot, dragRoot empties.
 				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
-				if (mounted) scheduler.schedule();
+				updateExtensions();
+				if (mounted) {
+					scheduleIfAnythingDirty();
+				}
 			} else {
 				// Release-targeting mode: clear all interaction.
 				// The selection is gone; the user must re-select to try again.
 				clearInteractionReducer(interactionState);
+				updateExtensions();
 			}
 			return null;
 		},
@@ -500,7 +625,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			// changes do not affect drag rendering.
 			if (wasDragging && mounted) {
 				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
-				scheduler.schedule();
+				updateExtensions();
+				scheduleIfAnythingDirty();
 			}
 			return a || b;
 		},
@@ -510,17 +636,19 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			if (interactionState.dragSession === null) return;
 			transientVisuals.dragPointer = point;
 			markDirtyLayer(invalidationState, DirtyLayer.Drag);
+			updateExtensions();
 			if (mounted) {
-				scheduler.schedule();
+				scheduleIfAnythingDirty();
 			}
 		},
 
 		setMovability(m: Movability): boolean {
 			const changed = setMovabilityReducer(viewState, m);
 			if (changed) {
-				// TODO: run extension hooks here, cause we don't update anything visual directly from this reducer
-				// View state changed, but core renderer has no direct visual work for movability.
-				// Future extension update hooks should run from here.
+				updateExtensions();
+				if (mounted) {
+					scheduleIfAnythingDirty();
+				}
 			}
 			return changed;
 		},
@@ -558,6 +686,19 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 
 			animator?.stop();
 			animator = null;
+
+			// Unmount extensions
+			for (const [extId, mounted] of mountedExtensions) {
+				mounted.unmount();
+				renderer.removeExtensionSlots(extId);
+			}
+			mountedExtensions.clear();
+			extensionWriters.clear();
+
+			// Clean up extension invalidation buckets
+			for (const ext of extensions) {
+				delete invalidationState.extensions[ext.id];
+			}
 
 			destroyed = true;
 			mounted = false;

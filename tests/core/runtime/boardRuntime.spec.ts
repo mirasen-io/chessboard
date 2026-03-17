@@ -538,13 +538,14 @@ describe('core/runtime/boardRuntime', () => {
 		runtime.mount(container);
 
 		await waitForRender();
-		renderBoardSpy.mockClear();
+		const initialCallCount = renderBoardSpy.mock.calls.length;
 
 		runtime.setTurn('black');
 
 		await waitForRender();
 
-		expect(renderBoardSpy).not.toHaveBeenCalled();
+		// setTurn must not trigger additional renders
+		expect(renderBoardSpy.mock.calls.length).toBe(initialCallCount);
 	});
 
 	it('move schedules render when mounted', async () => {
@@ -608,8 +609,8 @@ describe('core/runtime/boardRuntime', () => {
 		expect(renderBoardSpy).not.toHaveBeenCalled();
 	});
 
-	it('select does not schedule render', async () => {
-		// select has no InvalidationWriter → runtime does not schedule
+	it('select does not schedule render when no extensions are registered', async () => {
+		// select without extensions: updates interaction state but no invalidation → no render scheduled
 		const renderer = createTestRenderer();
 		const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 		const container = createMockContainer(400, 400);
@@ -627,8 +628,8 @@ describe('core/runtime/boardRuntime', () => {
 		expect(renderBoardSpy).not.toHaveBeenCalled();
 	});
 
-	it('setMovability does not schedule render', async () => {
-		// setMovability has no InvalidationWriter → runtime does not schedule
+	it('setMovability does not schedule render when no extensions are registered', async () => {
+		// setMovability without extensions: updates view state but no invalidation → no render scheduled
 		const renderer = createTestRenderer();
 		const renderBoardSpy = vi.spyOn(renderer, 'renderBoard');
 		const container = createMockContainer(400, 400);

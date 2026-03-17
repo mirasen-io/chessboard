@@ -5,7 +5,8 @@
  */
 
 import type { AnimationSession } from '../animation/types';
-import type { InvalidationStateSnapshot } from '../scheduler/types';
+import { ExtensionSlotName } from '../extensions/types';
+import type { InvalidationStateRenderSnapshot } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import type { InteractionStateSnapshot } from '../state/interactionTypes';
 
@@ -75,7 +76,7 @@ export interface RenderGeometry {
 export interface BoardRenderContext {
 	board: BoardStateSnapshot;
 	geometry: RenderGeometry;
-	invalidation: InvalidationStateSnapshot;
+	invalidation: InvalidationStateRenderSnapshot;
 	suppressedPieceIds: ReadonlySet<number>;
 }
 
@@ -101,10 +102,13 @@ export interface DragRenderContext {
 /**
  * Minimal renderer interface called by the runtime via the scheduler render callback.
  * Phase 3.10: Split into three explicit rendering passes.
+ * Phase 4.2a: Extension slot allocation methods.
  * - mount/unmount attach/detach DOM.
  * - renderBoard: baseline board presentation with suppression.
  * - renderAnimations: committed animation overlay (or cleanup if session is null).
  * - renderDrag: live interaction transient visuals.
+ * - allocateExtensionSlots: allocate slot roots for an extension (returns partial record matching requested slots).
+ * - removeExtensionSlots: clean up slot roots for an extension.
  */
 export interface Renderer {
 	mount(container: HTMLElement): void;
@@ -112,4 +116,9 @@ export interface Renderer {
 	renderBoard(ctx: BoardRenderContext): void;
 	renderAnimations(ctx: AnimationRenderContext): void;
 	renderDrag(ctx: DragRenderContext): void;
+	allocateExtensionSlots(
+		extensionId: string,
+		slotNames: readonly ExtensionSlotName[]
+	): Partial<Record<ExtensionSlotName, SVGGElement>>;
+	removeExtensionSlots(extensionId: string): void;
 }

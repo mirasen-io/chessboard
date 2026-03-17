@@ -228,7 +228,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// Establish baseline pieces with renderBoard
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set()
 		});
@@ -236,7 +236,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// Suppress the dragged piece (pawn at sq 12, id 1) and re-render board
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set([1]) // Suppress piece id 1 (the pawn)
 		});
@@ -327,7 +327,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// Establish baseline pieces
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set()
 		});
@@ -343,7 +343,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// End drag - restore piece with renderBoard
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set()
 		});
@@ -449,7 +449,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// Seed baseline with renderBoard
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.All },
+			invalidation: { layers: DirtyLayer.All, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set()
 		});
@@ -493,7 +493,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// Seed baseline with renderBoard
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.All },
+			invalidation: { layers: DirtyLayer.All, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set()
 		});
@@ -535,7 +535,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// Seed baseline with renderBoard
 		renderer.renderBoard({
 			board,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			geometry,
 			suppressedPieceIds: new Set()
 		});

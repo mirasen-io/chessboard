@@ -1,6 +1,5 @@
 import { PartialDeep } from 'type-fest';
 import { DirtyLayer } from '../..';
-import type { ExtensionSlotName } from '../extensions/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
@@ -397,9 +396,10 @@ export class SvgRenderer implements Renderer {
 	}
 
 	/**
-	 * Map ExtensionSlotName to the corresponding existing slot root.
+	 * Map slot name to the corresponding existing slot root.
+	 * Only recognizes known ExtensionSlotName values.
 	 */
-	private getSlotRoot(slot: ExtensionSlotName): SVGGElement {
+	private getSlotRoot(slot: string): SVGGElement {
 		switch (slot) {
 			case 'underPieces':
 				return this.extensionsUnderPiecesRoot;
@@ -417,9 +417,9 @@ export class SvgRenderer implements Renderer {
 	/**
 	 * Allocate per-extension child <g> elements inside requested slot roots.
 	 * Returns a map of slot name to the created child element handle.
-	 * Phase 4.1: Renderer-side allocation contract only, no runtime integration yet.
+	 * Phase 4.2a: Runtime integration with flexible slot allocation.
 	 */
-	allocateExtensionSlots<TSlots extends ExtensionSlotName>(
+	allocateExtensionSlots<TSlots extends string>(
 		extensionId: string,
 		slots: readonly TSlots[]
 	): Partial<Record<TSlots, SVGGElement>> {

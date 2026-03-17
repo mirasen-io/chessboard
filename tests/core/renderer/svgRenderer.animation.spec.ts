@@ -170,7 +170,7 @@ describe('SvgRenderer animation rendering (Phase 3.10)', () => {
 		renderer.renderBoard({
 			board,
 			geometry,
-			invalidation: { layers: DirtyLayer.Pieces },
+			invalidation: { layers: DirtyLayer.Pieces, squares: new Set() },
 			suppressedPieceIds: suppressedIds
 		});
 

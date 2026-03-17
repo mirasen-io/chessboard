@@ -88,7 +88,7 @@ describe('scheduler/invalidationState', () => {
 			expect(snap.squares).not.toBe(state.squares);
 		});
 
-		it('omits squares field when squares set is empty', () => {
+		it('returns empty Set for squares when squares set is empty', () => {
 			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
@@ -97,16 +97,18 @@ describe('scheduler/invalidationState', () => {
 			const snap = getInvalidationSnapshot(state);
 
 			expect(snap.layers & DirtyLayer.Board).not.toBe(0);
-			expect(snap.squares).toBeUndefined();
+			expect(snap.squares).toBeDefined();
+			expect(snap.squares.size).toBe(0);
 		});
 
-		it('returns layers=0 and no squares for fresh state', () => {
+		it('returns layers=0 and empty squares Set for fresh state', () => {
 			const state = createInvalidationState();
 
 			const snap = getInvalidationSnapshot(state);
 
 			expect(snap.layers).toBe(0);
-			expect(snap.squares).toBeUndefined();
+			expect(snap.squares).toBeDefined();
+			expect(snap.squares.size).toBe(0);
 		});
 	});
 });
