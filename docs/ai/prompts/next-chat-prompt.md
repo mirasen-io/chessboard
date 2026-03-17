@@ -14,106 +14,81 @@ Use as project-specific references:
 
 - Project: `mirasen-io/chessboard` / `@mirasen/chessboard`, branch `feat/v1`.
 - Phase 3.10 is complete and can be treated as done.
-- Implemented architecture:
-  - committed animation planning moved to runtime/core
-  - `Animator` owns RAF/timing/session lifecycle
-  - `SvgRenderer` owns scene graph only
-  - renderer split into:
-    - `renderBoard(...)`
-    - `renderAnimations(...)`
-    - `renderDrag(...)`
-- Standard animation drawing is delegated to `SvgAnimationFrameRenderer`, which renders one frame into its own reserved subgroup inside a provided session `<g>`.
-- Ordinary committed move and castling now go through one shared committed-animation pipeline.
-- Castling animates king and rook simultaneously and now behaves like modern board UIs.
-- A suppression cleanup bug was fixed by making `renderBoard(...)` refresh the pieces pass when `suppressedPieceIds` changes, even without normal pieces invalidation.
-- Tests are green:
-  - 24 test files passed
-  - 325 tests passed
-  - coverage:
-    - statements 92.83%
-    - branches 83.94%
-    - functions 97.98%
-    - lines 95.49%
-- Manual verification passed:
-  - drag works
-  - click-move animation works and restores final static piece correctly
-  - castling manual route works for white and black
-- Current non-blocking test gaps:
-  - no focused `animator.spec.ts`
-  - no automated runtime-level castling animation integration test
-- These gaps are not blockers for entering Phase 4.
-- Phase 4 plan does not need a full rewrite before starting 4.1.
-- Next step: start Phase 4.1 and define the concrete extension slot model and first implementation boundaries.
+- Committed animation planning lives in runtime/core, `Animator` owns RAF/session lifecycle, and `SvgRenderer` owns scene graph rendering only.
+- Committed move and castling use one shared committed-animation pipeline; castling animates king and rook together.
+- The suppressed-piece cleanup bug was fixed.
+- Phase 4.1 is complete for the intentionally narrowed scope.
+- Completed in 4.1:
+  - added internal extension contract in `src/core/extensions/types.ts`
+  - confirmed existing core-owned SVG extension slot roots in `SvgRenderer` as the source of truth
+  - added renderer-side slot allocation/removal for per-extension child `<g>` roots inside those existing slot roots
+  - added focused renderer tests for allocation, coexistence, cleanup, and duplicate-slot rejection
+- Confirmed constraints:
+  - core owns top-level SVG roots and slot roots
+  - extensions must only own their assigned child subtrees
+  - runtime extension registry/lifecycle plumbing was deliberately deferred
+  - no extension invalidation system yet
+  - no extension animation API yet
+- Relevant files:
+  - `src/core/extensions/types.ts`
+  - `src/core/renderer/SvgRenderer.ts`
+  - `tests/core/renderer/svgRenderer.structure.spec.ts`
+  - `tests/core/renderer/svgRenderer.slots.spec.ts`
+  - `chessboard-current-plan.md`
+  - `chessboard-AGENTS.md`
 
 ## Task for this chat
 
-Focus only on: **Phase 4.1 — extension slot model / DOM ownership contract**
+Focus on **Phase 4.2a: first lifecycle-validation extension — `Selected Square (with figure)`**.
 
-### Task frame
+Before proposing a plan:
 
-What:
+1. Read the current relevant runtime / renderer / interaction / extension files first.
+2. Read the current Phase 4.2a section in `chessboard-current-plan.md`.
+3. List which files you actually inspected.
+4. Only then propose the plan.
 
-- Define the smallest clean extension slot model for Phase 4.1.
-- Define DOM/SVG ownership boundaries between core and extensions.
-- Prepare a narrow implementation plan for this step only.
+Main goal:
 
-Not:
+Implement the smallest first-party extension that highlights the currently selected square **only when that square currently contains a piece**.
 
-- Do not implement `lastMove` yet, unless the plan requires a tiny supporting shape.
-- Do not redesign unrelated renderer/runtime pieces.
-- Do not build extension animation API now.
-- Do not solve all future extension problems in 4.1.
+Requirements:
 
-Constraints:
+- work architecture-first
+- keep the step narrow
+- use the existing 4.1 extension slot contract as the source of truth
+- do not broaden into general interaction overlay work yet
+- do not implement `lastMove`
+- do not add extension invalidation/render split yet unless strictly required
+- do not redesign unrelated runtime/renderer pieces
 
-- Work architecture-first.
-- Keep the step narrow.
-- Use current 3.10 renderer boundaries as the source of truth.
-- Core must own top-level SVG roots / slot roots.
-- Extensions must not own arbitrary top-level DOM.
-- The contract should be reusable for later first-party and third-party extensions.
-- Read current relevant runtime/renderer/extension-facing files first.
-- Read the current Phase 4 section in `chessboard-current-plan.md` before proposing a plan.
-- List which files you actually inspected before proposing the plan.
+Need the plan to answer clearly:
 
-Done when:
+1. What is the minimal runtime integration path needed to mount/update/unmount one first-party extension?
+2. What slot should `Selected Square (with figure)` render into, and why?
+3. What existing interaction/board/view state should drive the extension?
+4. How should the extension decide whether to show or clear the highlight?
+5. What should remain deferred until after 4.2a?
 
-- there is a concise implementation-oriented plan for 4.1
-- the slot model and ownership contract are explicit
-- deferred items are clearly separated from the minimal scope for this step
+Output expectations:
 
-### Questions the plan must answer
-
-1. What slots exist initially, and why?
-2. What exactly does core own?
-3. What exactly does an extension own?
-4. What extension root/subtree handle is given to an extension?
-5. How are slot roots created, named, and cleaned up?
-6. How does an extension render/update without taking ownership of arbitrary top-level DOM?
-7. What is the smallest extension lifecycle/update contract needed now?
-8. What should remain deferred until after 4.1?
-
-### Output expectations
-
-Provide:
-
-1. brief analysis
-2. concrete recommendation
-3. precise implementation prompt for agent
-4. focused test updates
-5. later patch review
-
-In the plan itself:
-
-- keep it concise and implementation-oriented
-- do not include full code blocks
+- concise, implementation-oriented plan
+- no full code blocks in PLAN
 - reference files/functions/types only
 - explicitly separate:
   1. architecture decision
-  2. minimal refactor steps
+  2. minimal runtime integration steps
   3. file-level changes
   4. focused test updates
   5. non-goals / deferred items
+
+Important context already decided:
+
+- 4.1 is done and should not be reopened
+- existing extension slot roots in `SvgRenderer` are the source of truth
+- runtime integration was intentionally deferred in 4.1 and should now be added only as much as 4.2a needs
+- `Selected Square (with figure)` is the first end-to-end lifecycle-validation extension
+- broader interaction overlay work remains later
 
 ## Working mode
 
@@ -146,8 +121,7 @@ Primary repository / branch:
 
 Optional attached materials:
 
-- current `src` zip
-- current `tests` zip
+- current `src` + `tests` zip
 - other task-specific files if needed
 
 If repository access may be stale, incomplete, or cached, prefer attached source artifacts for file-level review.
