@@ -309,6 +309,8 @@
 
 ### 4.2b First move-derived extension: `lastMove`
 
+**Status: COMPLETE**
+
 - Implement `lastMove` after the first extension lifecycle path is validated by `Selected Square`
 - Keep `lastMove` state inside the extension
 - Feed the extension with the required board transition/update context

@@ -202,6 +202,13 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		dragPointer: null
 	};
 
+	// Runtime-owned move-derived context
+	let lastMove: Move | null = null;
+
+	// Runtime-owned layout version tracking
+	let layoutVersion = 0;
+	let lastUpdatedLayoutVersion = 0;
+
 	// Validate and store extension definitions
 	const extensions = opts.extensions ?? [];
 	const seenIds = new Set<string>();
@@ -316,6 +323,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	});
 
 	function scheduleIfAnythingDirty() {
+		// Guard: only schedule if mounted and not destroyed
+		if (!mounted || destroyed) return;
 		if (invalidationState.layers !== 0) {
 			scheduler.schedule();
 			return;
@@ -342,7 +351,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 
 		boardSize = newSize;
 		geometry = makeRenderGeometry(boardSize, viewState.orientation);
+		layoutVersion++;
 		markDirtyLayer(invalidationState, DirtyLayer.Board | DirtyLayer.Pieces);
+		updateExtensions();
 		scheduleIfAnythingDirty();
 	}
 
@@ -353,6 +364,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	 */
 	function updateExtensions(): void {
 		if (mountedExtensions.size === 0) return;
+
+		const layoutChanged = layoutVersion !== lastUpdatedLayoutVersion;
+
 		for (const [extId, mounted] of mountedExtensions) {
 			const writer = extensionWriters.get(extId);
 			if (!writer) continue;
@@ -368,10 +382,41 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 					dragSession: interactionState.dragSession,
 					currentTarget: interactionState.currentTarget
 				},
+				lastMove,
+				layoutVersion,
+				layoutChanged,
 				writer
 			};
 			mounted.update(updateCtx);
 		}
+
+		lastUpdatedLayoutVersion = layoutVersion;
+	}
+
+	/**
+	 * Shared internal helper: commit a move and handle post-commit animation.
+	 * Applies the move, updates lastMove, and starts animation if applicable.
+	 * Does NOT call updateExtensions() or scheduleIfAnythingDirty() - callers must do this.
+	 */
+	function commitMove(move: MoveInput, opts?: MoveOptions, skipAnimation?: boolean): Move {
+		// Capture prevIds before commit
+		const prevIds = boardState.ids.slice() as Int16Array;
+
+		// Commit the move
+		const appliedMove = moveReducer(boardState, invalidationWriter, move, opts);
+
+		// Update lastMove
+		lastMove = appliedMove;
+
+		// Compute animation plan and start animator (unless skipAnimation is true)
+		if (!skipAnimation) {
+			const plan = computeAnimationPlan(prevIds, boardState.ids);
+			if (plan.tracks.length > 0 && animator) {
+				animator.start(plan);
+			}
+		}
+
+		return appliedMove;
 	}
 
 	const runtime: BoardRuntime = {
@@ -437,10 +482,9 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				clearInteractionReducer(interactionState); // clear all interaction state on new position
 				transientVisuals.dragPointer = null; // clear transient visuals
 				animator?.stop(); // stop any active animation
+				lastMove = null; // reset lastMove on new position
 				updateExtensions();
-				if (mounted) {
-					scheduleIfAnythingDirty();
-				}
+				scheduleIfAnythingDirty();
 			}
 			return changed;
 		},
@@ -452,28 +496,16 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		},
 
 		move(move: MoveInput, opts?: MoveOptions): Move {
-			// Capture prevIds before commit
-			const prevIds = boardState.ids.slice() as Int16Array;
-
-			// Commit the move
-			const appliedMove = moveReducer(boardState, invalidationWriter, move, opts);
-
-			// Compute animation plan and start animator
-			const plan = computeAnimationPlan(prevIds, boardState.ids);
-			if (plan.tracks.length > 0 && animator) {
-				animator.start(plan);
-			}
-
+			const appliedMove = commitMove(move, opts);
 			updateExtensions();
-			if (mounted) {
-				scheduleIfAnythingDirty();
-			}
+			scheduleIfAnythingDirty();
 			return appliedMove;
 		},
 
 		setOrientation(input: ColorInput): boolean {
 			const changed = setOrientationReducer(viewState, invalidationWriter, input);
 			if (changed) {
+				layoutVersion++;
 				updateExtensions();
 				if (mounted) {
 					// Recreate immutable geometry with new orientation
@@ -511,9 +543,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 
 			// Update extensions after synchronized interaction state change
 			updateExtensions();
-			if (mounted) {
-				scheduleIfAnythingDirty();
-			}
+			scheduleIfAnythingDirty();
 
 			// Return true if selectedSquare changed (consistent with prior contract)
 			return prevSq !== newSq;
@@ -538,9 +568,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			// Drag started: source piece moves from piecesRoot to dragRoot.
 			markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
 			updateExtensions();
-			if (mounted) {
-				scheduleIfAnythingDirty();
-			}
+			scheduleIfAnythingDirty();
 			return true;
 		},
 
@@ -560,32 +588,21 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// Capture whether this was a drag-drop completion before clearing state
 				const wasDragCompletion = interactionState.dragSession !== null;
 
-				// Capture prevIds before commit
-				const prevIds = boardState.ids.slice() as Int16Array;
+				// Legal completion: apply move via shared helper
+				const appliedMove = commitMove({ from: source, to }, undefined, wasDragCompletion);
 
-				// Legal completion: apply move, clear all interaction.
-				const appliedMove = moveReducer(boardState, invalidationWriter, { from: source, to });
+				// Clear all interaction state after move commit
 				clearInteractionReducer(interactionState);
-				transientVisuals.dragPointer = null; // clear transient visuals
+				transientVisuals.dragPointer = null;
 
-				// Decide animation: skip for drag-drop, animate for non-drag
-				if (wasDragCompletion) {
-					// Skip animation for drag-drop completion
-				} else {
-					// Compute animation plan and start animator for non-drag completion
-					const plan = computeAnimationPlan(prevIds, boardState.ids);
-					if (plan.tracks.length > 0 && animator) {
-						animator.start(plan);
-					}
-				}
-
-				// moveReducer already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
+				// moveReducer (called by commitMove) already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
 				// OR in DirtyLayer.Drag directly to avoid clearing those squares.
 				invalidationState.layers |= DirtyLayer.Drag;
+
+				// Update extensions and schedule render after all state mutations complete
 				updateExtensions();
-				if (mounted) {
-					scheduleIfAnythingDirty();
-				}
+				scheduleIfAnythingDirty();
+
 				return appliedMove;
 			}
 
@@ -600,9 +617,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// Drag cleared: source piece returns to piecesRoot, dragRoot empties.
 				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
 				updateExtensions();
-				if (mounted) {
-					scheduleIfAnythingDirty();
-				}
+				scheduleIfAnythingDirty();
 			} else {
 				// Release-targeting mode: clear all interaction.
 				// The selection is gone; the user must re-select to try again.
@@ -637,18 +652,14 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			transientVisuals.dragPointer = point;
 			markDirtyLayer(invalidationState, DirtyLayer.Drag);
 			updateExtensions();
-			if (mounted) {
-				scheduleIfAnythingDirty();
-			}
+			scheduleIfAnythingDirty();
 		},
 
 		setMovability(m: Movability): boolean {
 			const changed = setMovabilityReducer(viewState, m);
 			if (changed) {
 				updateExtensions();
-				if (mounted) {
-					scheduleIfAnythingDirty();
-				}
+				scheduleIfAnythingDirty();
 			}
 			return changed;
 		},

@@ -1,6 +1,6 @@
 import { RenderGeometry } from '../renderer/types';
 import { InvalidationStateExtensionSnapshot, InvalidationWriter } from '../scheduler/types';
-import { BoardStateSnapshot } from '../state/boardTypes';
+import { BoardStateSnapshot, Move } from '../state/boardTypes';
 import { InteractionStateSnapshot } from '../state/interactionTypes';
 import { ViewStateSnapshot } from '../state/viewTypes';
 
@@ -19,6 +19,9 @@ export interface BoardExtensionUpdateContext {
 	board: BoardStateSnapshot;
 	view: ViewStateSnapshot;
 	interaction: InteractionStateSnapshot;
+	lastMove: Move | null;
+	layoutVersion: number;
+	layoutChanged: boolean;
 	writer: InvalidationWriter;
 }
 

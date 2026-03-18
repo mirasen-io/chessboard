@@ -61,8 +61,8 @@ export function createSelectedSquareExtension(): SelectedSquareExtensionDefiniti
 					const selectedSquareChanged = currentSelectedSquare !== prevSelectedSquare;
 					const hasPieceChanged = currentHasPiece !== prevHasPiece;
 
-					if (selectedSquareChanged || hasPieceChanged) {
-						// Mark invalidation via writer
+					// Mark invalidation if state changed or layout changed
+					if (selectedSquareChanged || hasPieceChanged || ctx.layoutChanged) {
 						ctx.writer.markLayer(SelectedSquareLayer.Highlight);
 					}
 

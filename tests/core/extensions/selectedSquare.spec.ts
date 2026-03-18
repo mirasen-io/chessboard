@@ -78,6 +78,9 @@ describe('selectedSquare extension', () => {
 			board: createMockBoardState(pieces),
 			view: createMockViewState(),
 			interaction: createMockInteractionState(selectedSquare),
+			lastMove: null,
+			layoutVersion: 0,
+			layoutChanged: false,
 			writer: mockWriter
 		};
 	}
