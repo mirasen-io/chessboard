@@ -13,82 +13,83 @@ Use as project-specific references:
 ## Handoff summary
 
 - Project: `mirasen-io/chessboard` / `@mirasen/chessboard`, branch `feat/v1`.
-- Phase 3.10 is complete and can be treated as done.
-- Committed animation planning lives in runtime/core, `Animator` owns RAF/session lifecycle, and `SvgRenderer` owns scene graph rendering only.
-- Committed move and castling use one shared committed-animation pipeline; castling animates king and rook together.
-- The suppressed-piece cleanup bug was fixed.
-- Phase 4.1 is complete for the intentionally narrowed scope.
-- Completed in 4.1:
-  - added internal extension contract in `src/core/extensions/types.ts`
-  - confirmed existing core-owned SVG extension slot roots in `SvgRenderer` as the source of truth
-  - added renderer-side slot allocation/removal for per-extension child `<g>` roots inside those existing slot roots
-  - added focused renderer tests for allocation, coexistence, cleanup, and duplicate-slot rejection
-- Confirmed constraints:
-  - core owns top-level SVG roots and slot roots
-  - extensions must only own their assigned child subtrees
-  - runtime extension registry/lifecycle plumbing was deliberately deferred
-  - no extension invalidation system yet
-  - no extension animation API yet
+- Phase 3.10 is complete.
+- Phase 4.1 is complete.
+- Phase 4.2a is complete and can be treated as done.
+- Completed in 4.2a:
+  - runtime extension lifecycle is wired end-to-end: init -> mount -> update -> renderBoard -> unmount
+  - extension invalidation is separate from core invalidation and is cleared through scheduler pass cleanup
+  - runtime no longer hardcodes `selectedSquare`; extensions come from `BoardRuntimeInitOptions.extensions`
+  - extension order is array order from `BoardRuntimeInitOptions.extensions`
+  - duplicate extension ids throw during runtime initialization
+  - no runtime default extensions are injected inside `boardRuntime`
+  - `selectedSquare` was converted from exported singleton definition to factory form:
+    - `createSelectedSquareExtension(): SelectedSquareExtensionDefinition`
+  - tests were updated so extension-aware behavior is covered only in extension-aware runtime tests
+- Confirmed constraints/invariants:
+  - core owns top-level SVG roots and extension slot roots
+  - renderer owns slot allocation/removal for extension child roots
+  - extensions own only their assigned child subtrees
+  - runtime drives extension lifecycle; defaults belong in higher-level wrapper/public layer, not runtime
+  - `BoardRuntimeInitOptions.extensions` already exists and should remain the runtime entry point
+  - extension order is array order; no separate runtime `order` field
+  - locked invalidation snapshot types should remain unchanged unless strictly required:
+    - `InvalidationStateRenderSnapshot`
+    - `InvalidationStateSnapshot`
+    - `InvalidationStateExtensionSnapshot`
 - Relevant files:
+  - `src/core/runtime/boardRuntime.ts`
   - `src/core/extensions/types.ts`
+  - `src/core/extensions/selectedSquare.ts`
   - `src/core/renderer/SvgRenderer.ts`
-  - `tests/core/renderer/svgRenderer.structure.spec.ts`
-  - `tests/core/renderer/svgRenderer.slots.spec.ts`
+  - `tests/core/runtime/boardRuntime.extensions.spec.ts`
+  - `tests/core/runtime/boardRuntime.spec.ts`
+  - `tests/core/input/inputAdapter.spec.ts`
   - `chessboard-current-plan.md`
-  - `chessboard-AGENTS.md`
 
 ## Task for this chat
 
-Focus on **Phase 4.2a: first lifecycle-validation extension — `Selected Square (with figure)`**.
+Focus only on: **Phase 4.2b planning — first move-derived extension `lastMove`**
 
-Before proposing a plan:
+### Task frame
 
-1. Read the current relevant runtime / renderer / interaction / extension files first.
-2. Read the current Phase 4.2a section in `chessboard-current-plan.md`.
-3. List which files you actually inspected.
-4. Only then propose the plan.
+What:
 
-Main goal:
+- plan the narrow next step for a first-party `lastMove` extension using the now-complete 4.2a runtime extension path
 
-Implement the smallest first-party extension that highlights the currently selected square **only when that square currently contains a piece**.
+Not:
 
-Requirements:
+- no runtime extension framework redesign
+- no wrapper/default-extension API work
+- no extension customization/theme system work yet
 
-- work architecture-first
-- keep the step narrow
-- use the existing 4.1 extension slot contract as the source of truth
-- do not broaden into general interaction overlay work yet
-- do not implement `lastMove`
-- do not add extension invalidation/render split yet unless strictly required
-- do not redesign unrelated runtime/renderer pieces
+Constraints:
 
-Need the plan to answer clearly:
+- use the existing runtime extension path from 4.2a as the source of truth
+- keep runtime generic: no hardcoded `lastMove` inside `boardRuntime`
+- preserve locked invalidation snapshot types unless a strict need is proven
+- treat extension order as array order from `BoardRuntimeInitOptions.extensions`
+- keep the task architecture-first and narrow
 
-1. What is the minimal runtime integration path needed to mount/update/unmount one first-party extension?
-2. What slot should `Selected Square (with figure)` render into, and why?
-3. What existing interaction/board/view state should drive the extension?
-4. How should the extension decide whether to show or clear the highlight?
-5. What should remain deferred until after 4.2a?
+Done when:
 
-Output expectations:
+- there is a concise implementation-oriented plan for 4.2b
+- the plan clearly states what extra update/render context `lastMove` needs beyond `selectedSquare`
+- the plan identifies touched files and focused test updates without broadening scope
 
-- concise, implementation-oriented plan
-- no full code blocks in PLAN
-- reference files/functions/types only
-- explicitly separate:
-  1. architecture decision
-  2. minimal runtime integration steps
-  3. file-level changes
-  4. focused test updates
-  5. non-goals / deferred items
+### Questions to answer
 
-Important context already decided:
+- What is the minimal move-derived context that `lastMove` needs from runtime?
+- Should `lastMove` derive its own state only from update context, or does runtime need to pass explicit previous/current move-transition data?
+- What slot should `lastMove` render into, and why?
+- What should remain deferred until after 4.2b?
 
-- 4.1 is done and should not be reopened
-- existing extension slot roots in `SvgRenderer` are the source of truth
-- runtime integration was intentionally deferred in 4.1 and should now be added only as much as 4.2a needs
-- `Selected Square (with figure)` is the first end-to-end lifecycle-validation extension
-- broader interaction overlay work remains later
+### Output expectations
+
+- files inspected first
+- concise architecture decision
+- minimal runtime/file/test plan for 4.2b
+- explicit non-goals/deferred items
 
 ## Working mode
 
