@@ -27,7 +27,7 @@ enum SelectedSquareLayer {
 export type SelectedSquareExtensionDefinition = BoardExtensionDefinition<void, 'underPieces'>;
 
 /**
- * crate selectedSquare extension definition.
+ * create selectedSquare extension definition.
  * - id: 'selectedSquare'
  * - slots: ['underPieces']
  * - TPublic: void (no public API)
