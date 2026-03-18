@@ -442,6 +442,8 @@
   - interaction model
   - extension ownership model
 - Write usage examples for basic board, destinations, and optional extensions
+- CONTRIBUTING/CONTRIBUTION.md
+- EVOLUTION.md
 
 ### 6.4 Packaging / release readiness
 
