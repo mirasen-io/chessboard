@@ -76,6 +76,7 @@ class FakeRenderer implements Renderer {
 		return slots;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	removeExtensionSlots(_extensionId: string): void {}
 
 	// Compatibility helpers for tests that check interaction/transientVisuals
