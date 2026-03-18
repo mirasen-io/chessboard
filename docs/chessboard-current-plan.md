@@ -319,25 +319,25 @@
 
 ### 4.3 Interaction overlay extension
 
-- Add first-party interaction visual extension after drag/runtime stabilize
-- Read finalized core interaction state
-- Render:
-  - selected/source square highlight
-  - destination dots
-  - current target highlight
-  - optional press / interaction halo feedback
+- Add a first-party interaction overlay extension after the initial runtime and extension path are validated
 - Keep interaction facts in core and interaction visuals in the extension layer
+- Read finalized core interaction state as the source of truth
+- Use this phase to validate transient interaction-driven visuals during active drag/touch workflows, not just static selection state
+- Treat this as the interaction-visual counterpart to the already-validated `selectedSquare` and move-derived `lastMove` steps
 
-### 4.3a Selected-square highlight as first diagnostic interaction visual
+### 4.3a First active interaction visual: target square + halo
 
-- Start the interaction overlay work with the smallest useful visual:
-  - currently selected square highlight
-- Treat this first step primarily as observability / manual-debug aid, not final UX polish
+- Start the interaction overlay work with the first meaningful transient interaction visual:
+  - current target-square highlight during active drag/touch interaction
+  - halo / ring feedback for the active interaction target
+- Use this step to validate an extension that reacts to live interaction targeting changes during pointer/touch movement
 - Keep the initial version deliberately narrow:
-  - selected square highlight only
-  - no animation required
-  - no broader annotation system yet
-- Use this to make selection persistence / clearing behavior visible during manual interaction testing
+  - current target-square feedback only during active interaction
+  - halo / ring included as part of the same extension
+  - no destination dots yet
+  - no broader move-hint system yet
+  - no animation required unless implementation proves it is already naturally supported
+- Use this as the first real validation of transient interaction overlay behavior beyond static selected-square state
 
 ### 4.3b UX alignment pass for repeated same-piece drag after drop-to-source
 
