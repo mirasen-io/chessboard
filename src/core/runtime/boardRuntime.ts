@@ -138,17 +138,18 @@ export interface BoardRuntime {
 	// Does NOT check occupancy, color, or legality — "select a square", not "select a piece".
 	select(sq: SquareInput | null): boolean;
 	// Interaction lifecycle — internal runtime methods (not exported from public API)
-	// beginSourceInteraction: strict lifecycle step — requires selectedSquare === from, throws otherwise.
-	// Controller is responsible for calling select(from) before beginSourceInteraction(from).
+	// beginSourceInteraction: atomic source-entry transition.
+	// Synchronizes selectedSquare + destinations + drag entry in one call.
+	// Does not require prior select(from).
+	// May start drag or remain in selection-only mode depending on canStartMoveFrom result.
 	// Accepts initial pointer position to initialize drag visual immediately.
 	beginSourceInteraction(from: Square, point: BoardPoint): boolean;
 	/**
-	 * Start release-targeting mode from the given source square.
-	 * Strict lifecycle step: requires selectedSquare === from, throws otherwise.
-	 * Sets releaseTargetingActive = true, clears dragSession, sets currentTarget = from.
-	 * Controller is responsible for ensuring from matches the currently selected square.
+	 * Start release-targeting mode on the pressed square.
+	 * Sets releaseTargetingActive = true, clears dragSession, sets currentTarget = pressed square.
+	 * The selectedSquare remains the source fact.
 	 */
-	startReleaseTargeting(from: Square, point: BoardPoint | null): boolean;
+	startReleaseTargeting(target: Square, point: BoardPoint | null): boolean;
 	/**
 	 * Attempt semantic interaction completion toward the given target square.
 	 *
@@ -166,7 +167,9 @@ export interface BoardRuntime {
 	 *       The selection is gone; the user must re-select to try again.
 	 */
 	commitTo(to: Square | null): Move | null;
-	// cancelInteraction: clear transient drag state, keep selection.
+	// cancelInteraction: clear active interaction mode and currentTarget, preserve selection context.
+	// Clears dragSession, currentTarget, and releaseTargetingActive.
+	// Keeps selectedSquare + destinations.
 	cancelInteraction(): boolean;
 	/**
 	 * Notify runtime of drag pointer movement for visual updates.

@@ -86,8 +86,7 @@
 			},
 			view: {
 				movability: {
-					mode: 'free',
-					color: 'both'
+					mode: 'free'
 				}
 			},
 			extensions: [

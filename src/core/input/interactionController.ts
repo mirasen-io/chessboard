@@ -19,7 +19,7 @@
  *     - decides whether to enter lifted-piece mode or non-lifted targeting path
  *     - reads interaction state via getInteractionSnapshot() — no ad-hoc parameters
  *     - gates lifted-piece entry via canStartMoveFrom() — selection remains broad
- *     - tracks one internal boolean: `targeting` (pointer is currently down)
+ *     - active targeting derived from runtime facts: dragSession !== null OR releaseTargetingActive === true
  *
  *   Runtime (below this layer):
  *     - owns all semantic interaction state transitions
@@ -29,43 +29,45 @@
  * ── Two interaction modes ─────────────────────────────────────────────────────
  *
  *   Lifted-piece mode (dragSession !== null):
- *     Entered by pointer-down when no interaction is active.
+ *     Entered by pointer-down when no interaction is active and pressed square is drag-capable.
  *     The piece is visually "in hand" (Phase 3.3 rendering concern).
  *     Illegal completion: no move, snap back, selection stays active.
  *
  *   Release-targeting mode (selectedSquare !== null, dragSession === null):
- *     Active after an illegal lifted-piece drop (selection kept, drag cleared).
+ *     Entered when pressing an empty square, or a legal opposite-color target, or after
+ *     an illegal lifted-piece drop (selection kept, drag cleared).
  *     The user chooses a destination by releasing on it.
- *     Illegal completion: no move, selection is cleared.
+ *     Illegal completion outcome is runtime-owned and mode-specific.
  *
  * ── Pointer-down paths ────────────────────────────────────────────────────────
  *
  *   Path A — No active interaction (selectedSquare === null):
- *     select(sq) always.
- *     dragStart(sq) only if canStartMoveFrom(sq) → enter lifted-piece mode.
- *     Otherwise: selection only, no lifted piece (non-lifted path).
+ *     beginSourceInteraction(sq) → atomic source-entry transition.
+ *     May enter lifted-piece mode if canStartMoveFrom(sq), otherwise selection only.
  *
- *   Path B — Release-targeting mode (selectedSquare !== null, dragSession === null):
- *     setCurrentTarget(sq) → begin destination targeting.
- *     No new select, no dragStart.
- *     Deselect is deferred to pointer-up (release-based, not eager).
+ *   Path B — Existing selection, no active mode:
+ *     Same square: beginSourceInteraction(sq) → continue from selected source.
+ *     Empty square: startReleaseTargeting(sq) → begin release-targeting on pressed square.
+ *     Same-color piece: beginSourceInteraction(sq) → reselect that square.
+ *     Opposite-color legal target: startReleaseTargeting(sq) → begin release-targeting.
+ *     Opposite-color illegal target: beginSourceInteraction(sq) → reselect that square.
  *
- *   Path C — Lifted-piece mode active (dragSession !== null) [defensive]:
- *     cancelInteraction() + select(sq) → always.
- *     dragStart(sq) only if canStartMoveFrom(sq) → re-lift from new square.
- *     This path should not occur in normal flow; handled defensively.
+ *   Path C — Active mode already in progress [defensive guard]:
+ *     Pointer-down is rejected while dragSession !== null OR releaseTargetingActive === true.
+ *     This prevents double-entry; normal flow uses pointer-up to complete before new pointer-down.
  *
- * ── Deselect rule ─────────────────────────────────────────────────────────────
+ * ── Invalid completion outcomes ───────────────────────────────────────────────
  *
- *   Deselect happens on pointer-UP (release), not pointer-down.
- *   This is an explicit Phase 3.2 rule, aligned with the safer release-based model.
- *   In release-targeting mode, if pointer-up lands on the selected square → select(null).
+ *   Runtime owns mode-specific illegal-completion behavior:
+ *     - Drag invalid → preserve selection
+ *     - Release-targeting invalid + target equals selected source → preserve selection
+ *     - Release-targeting invalid + other invalid target → clear selection
  *
  * ── onPointerMove narrowness ──────────────────────────────────────────────────
  *
- *   onPointerMove updates currentTarget ONLY while `targeting === true`
- *   (i.e., the pointer is currently down and an interaction is in progress).
- *   Plain pointer movement after a selection, without a pointer-down, does NOT
+ *   onPointerMove updates currentTarget ONLY while an active targeting mode exists
+ *   (dragSession !== null OR releaseTargetingActive === true).
+ *   Plain pointer movement after a selection, without an active mode, does NOT
  *   update currentTarget. This prevents generic global hover tracking.
  */
 
@@ -128,9 +130,9 @@ export interface InteractionController {
 	/**
 	 * Called when the pointer moves to a new square (or off-board).
 	 *
-	 * Updates currentTarget ONLY while targeting is active (pointer is down).
+	 * Updates currentTarget ONLY while an active targeting mode exists.
 	 * If a drag session is active, also updates drag visual position.
-	 * No-op if pointer is not currently down.
+	 * No-op if no active mode.
 	 *
 	 * @param target - The semantic target square (null if off-board or outside grid)
 	 * @param point - Board-local pointer coordinates (null only if geometry unavailable)
