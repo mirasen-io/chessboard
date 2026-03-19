@@ -771,34 +771,22 @@ describe('core/runtime/boardRuntime', () => {
 		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
 	});
 
-	it('free movability allows start from allowed color piece', () => {
+	it('free movability allows start from any occupied square', () => {
 		const renderer = createTestRenderer();
 		const container = createMockContainer(400, 400);
 
 		const runtime = createBoardRuntime({
 			renderer,
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(container);
 
+		// Free mode: any occupied square can start a move (no color check)
 		expect(runtime.canStartMoveFrom(12)).toBe(true); // white pawn e2
 		expect(runtime.canStartMoveFrom(1)).toBe(true); // white knight b1
-	});
-
-	it('free movability rejects start from disallowed color piece', () => {
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
-		});
-		runtime.mount(container);
-
-		expect(runtime.canStartMoveFrom(52)).toBe(false); // black pawn e7
-		expect(runtime.canStartMoveFrom(57)).toBe(false); // black knight b8
+		expect(runtime.canStartMoveFrom(52)).toBe(true); // black pawn e7
+		expect(runtime.canStartMoveFrom(57)).toBe(true); // black knight b8
 	});
 
 	it('strict movability allows start only when source has destinations', () => {
@@ -857,31 +845,15 @@ describe('core/runtime/boardRuntime', () => {
 
 		expect(runtime.canStartMoveFrom(12)).toBe(false);
 
-		runtime.setMovability({ mode: 'free', color: 'white' });
+		// Free mode: any occupied square allowed
+		runtime.setMovability({ mode: 'free' });
 		expect(runtime.canStartMoveFrom(12)).toBe(true);
-
-		runtime.setMovability({ mode: 'free', color: 'black' });
-		expect(runtime.canStartMoveFrom(12)).toBe(false);
 		expect(runtime.canStartMoveFrom(52)).toBe(true);
-	});
 
-	it('turn does not affect movability eligibility', () => {
-		const renderer = createTestRenderer();
-		const container = createMockContainer(400, 400);
-
-		const runtime = createBoardRuntime({
-			renderer,
-			board: { position: 'start' }, // turn is white
-			view: { movability: { mode: 'free', color: 'black' } }
-		});
-		runtime.mount(container);
-
-		// Even though turn is white, black pieces are movable (movability says black)
-		expect(runtime.canStartMoveFrom(52)).toBe(true); // black pawn e7
-		expect(runtime.isMoveAttemptAllowed(52, 36)).toBe(true); // e7->e5
-
-		// White pieces are NOT movable
-		expect(runtime.canStartMoveFrom(12)).toBe(false); // white pawn e2
+		// Strict mode: only squares with destinations allowed
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		expect(runtime.canStartMoveFrom(12)).toBe(true); // has destinations
+		expect(runtime.canStartMoveFrom(52)).toBe(false); // no destinations
 	});
 
 	// ── Core rendering path: geometry/orientation flow ─────────────────────────
@@ -975,9 +947,9 @@ describe('core/runtime/boardRuntime', () => {
 		expect(runtime.select(12)).toBe(true);
 	});
 
-	// ── Phase 3.5 runtime interaction/drag behavior ───────────────────────────
+	// ── Interaction lifecycle ──────────────────────────────────────────────────
 
-	describe('Phase 3.5 runtime interaction/drag behavior', () => {
+	describe('Interaction lifecycle', () => {
 		it('select() under strict movability derives active destinations', async () => {
 			const renderer = createTestRenderer();
 			const container = createMockContainer(400, 400);
@@ -1026,7 +998,7 @@ describe('core/runtime/boardRuntime', () => {
 			expect(snap.interaction.currentTarget).toBeNull();
 		});
 
-		it('dragStart(from) after select(from) creates dragSession and keeps selectedSquare/destinations and schedules render with drag source', async () => {
+		it('beginSourceInteraction() creates dragSession and keeps selectedSquare/destinations', async () => {
 			const renderer = createTestRenderer();
 			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const container = createMockContainer(400, 400);
@@ -1041,19 +1013,14 @@ describe('core/runtime/boardRuntime', () => {
 			await waitForRender();
 			renderDragSpy.mockClear();
 
-			runtime.select(12);
-			const before = runtime.getInteractionSnapshot();
-			expect(before.interaction.selectedSquare).toBe(12);
-			expect(before.interaction.destinations).toEqual([28, 20]);
-			expect(before.interaction.dragSession).toBeNull();
-
-			const result = runtime.dragStart(12, { x: 450, y: 650 });
+			const result = runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 			expect(result).toBe(true);
 
-			const after = runtime.getInteractionSnapshot();
-			expect(after.interaction.selectedSquare).toBe(12);
-			expect(after.interaction.destinations).toEqual([28, 20]);
-			expect(after.interaction.dragSession).not.toBeNull();
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBe(12);
+			expect(snap.interaction.destinations).toEqual([28, 20]);
+			expect(snap.interaction.dragSession).not.toBeNull();
+			expect(snap.interaction.dragSession!.fromSquare).toBe(12);
 
 			await waitForRender();
 
@@ -1063,7 +1030,7 @@ describe('core/runtime/boardRuntime', () => {
 			expect(ctx.interaction.dragSession!.fromSquare).toBe(12);
 		});
 
-		it('setCurrentTarget() updates currentTarget to a square and back to null', () => {
+		it('notifyDragMove() updates currentTarget during drag', () => {
 			const renderer = createTestRenderer();
 			const container = createMockContainer(400, 400);
 
@@ -1074,22 +1041,21 @@ describe('core/runtime/boardRuntime', () => {
 			});
 			runtime.mount(container);
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
 			let snap = runtime.getInteractionSnapshot();
-			expect(snap.interaction.currentTarget).toBeNull();
+			expect(snap.interaction.currentTarget).toBe(12);
 
-			runtime.setCurrentTarget(28);
+			runtime.notifyDragMove(28, null);
 			snap = runtime.getInteractionSnapshot();
 			expect(snap.interaction.currentTarget).toBe(28);
 
-			runtime.setCurrentTarget(null);
+			runtime.notifyDragMove(null, null);
 			snap = runtime.getInteractionSnapshot();
 			expect(snap.interaction.currentTarget).toBeNull();
 		});
 
-		it('cancelInteraction() clears only dragSession + currentTarget, keeps selectedSquare + destinations', () => {
+		it('cancelInteraction() clears dragSession + currentTarget, keeps selectedSquare + destinations', () => {
 			const renderer = createTestRenderer();
 			const container = createMockContainer(400, 400);
 
@@ -1100,9 +1066,8 @@ describe('core/runtime/boardRuntime', () => {
 			});
 			runtime.mount(container);
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
 
 			const changed = runtime.cancelInteraction();
 			expect(changed).toBe(true);
@@ -1114,7 +1079,7 @@ describe('core/runtime/boardRuntime', () => {
 			expect(snap.interaction.destinations).toEqual([28, 20]);
 		});
 
-		it('legal dropTo(to) from active drag clears all interaction and applies the move; render ctx after completion has drag === null', async () => {
+		it('commitTo() from lifted drag: legal drop clears all interaction and applies move', async () => {
 			const renderer = createTestRenderer();
 			const renderDragSpy = vi.spyOn(renderer, 'renderDrag');
 			const container = createMockContainer(400, 400);
@@ -1129,12 +1094,13 @@ describe('core/runtime/boardRuntime', () => {
 			await waitForRender();
 			renderDragSpy.mockClear();
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
 			renderDragSpy.mockClear();
-			const move = runtime.dropTo(28);
+			const move = runtime.commitTo(28);
 			expect(move).toBeTruthy();
+			expect(move!.from).toBe(12);
+			expect(move!.to).toBe(28);
 
 			const snap = runtime.getInteractionSnapshot();
 			expect(snap.interaction.selectedSquare).toBeNull();
@@ -1149,7 +1115,7 @@ describe('core/runtime/boardRuntime', () => {
 			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
-		it('illegal dropTo(to) in lifted-piece mode clears dragSession + currentTarget and keeps selectedSquare + destinations', () => {
+		it('commitTo() from lifted drag: illegal drop keeps selection', () => {
 			const renderer = createTestRenderer();
 			const container = createMockContainer(400, 400);
 
@@ -1160,10 +1126,9 @@ describe('core/runtime/boardRuntime', () => {
 			});
 			runtime.mount(container);
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
-			const res = runtime.dropTo(36); // unlisted target
+			const res = runtime.commitTo(36); // unlisted target
 			expect(res).toBeNull();
 
 			const snap = runtime.getInteractionSnapshot();
@@ -1173,7 +1138,28 @@ describe('core/runtime/boardRuntime', () => {
 			expect(snap.interaction.destinations).toEqual([28, 20]);
 		});
 
-		it('illegal dropTo(to) with selected non-drag clears all interaction fields', () => {
+		it('commitTo() from tap-to-move: legal completion applies move', () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: { e2: { color: 'w', role: 'p' } } },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			runtime.select(12); // tap-to-move: select without drag
+			const move = runtime.commitTo(28);
+			expect(move).not.toBeNull();
+			expect(move!.from).toBe(12);
+			expect(move!.to).toBe(28);
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBeNull();
+		});
+
+		it('commitTo() from release-targeting: illegal drop on different square clears selection', () => {
 			const renderer = createTestRenderer();
 			const container = createMockContainer(400, 400);
 
@@ -1184,8 +1170,9 @@ describe('core/runtime/boardRuntime', () => {
 			});
 			runtime.mount(container);
 
-			runtime.select(12); // selected, no drag (release-targeting mode)
-			const res = runtime.dropTo(36); // unlisted target
+			runtime.select(12);
+			runtime.startReleaseTargeting(36, null);
+			const res = runtime.commitTo(36); // illegal, different square
 			expect(res).toBeNull();
 
 			const snap = runtime.getInteractionSnapshot();
@@ -1195,11 +1182,33 @@ describe('core/runtime/boardRuntime', () => {
 			expect(snap.interaction.currentTarget).toBeNull();
 		});
 
-		it('renderer-visible ownership: source leaves piecesRoot during drag; dragRoot has one image; after illegal drop returns', async () => {
+		it('commitTo() from release-targeting: illegal drop on source square preserves selection', () => {
 			const renderer = createTestRenderer();
 			const container = createMockContainer(400, 400);
 
-			// Single movable piece on e2 ensures piecesRoot empties during drag
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			runtime.select(12);
+			runtime.startReleaseTargeting(12, null);
+			const res = runtime.commitTo(12); // illegal same-square
+			expect(res).toBeNull();
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBe(12);
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.releaseTargetingActive).toBe(false);
+			expect(snap.interaction.currentTarget).toBeNull();
+		});
+
+		it('renderer ownership: piece moves between piecesRoot and dragRoot during drag lifecycle', async () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -1209,10 +1218,8 @@ describe('core/runtime/boardRuntime', () => {
 
 			await waitForRender();
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			// Simulate drag pointer movement to trigger drag visual rendering
-			runtime.notifyDragMove({ x: 200, y: 300 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, { x: 200, y: 300 });
 
 			await waitForRender();
 
@@ -1221,12 +1228,10 @@ describe('core/runtime/boardRuntime', () => {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const dragRoot = (renderer as any).dragRoot as SVGGElement;
 
-			// During drag: source piece leaves piecesRoot, exactly one image in dragRoot
 			expect(piecesRoot.children.length).toBe(0);
 			expect(dragRoot.children.length).toBe(1);
 
-			// Illegal lifted-piece drop: piece returns, dragRoot empties
-			runtime.dropTo(36);
+			runtime.commitTo(36); // illegal drop
 
 			await waitForRender();
 
