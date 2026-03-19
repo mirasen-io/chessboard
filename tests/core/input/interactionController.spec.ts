@@ -30,7 +30,10 @@ function sq(n: number): Square {
 	return n as Square;
 }
 
-function makePiece(color: 'white' | 'black', role: string = 'pawn'): Piece {
+function makePiece(
+	color: 'white' | 'black',
+	role: 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king' = 'pawn'
+): Piece {
 	return { color, role };
 }
 
@@ -55,7 +58,8 @@ function makeBoardSnapshot(pieces: Partial<Record<Square, Piece>> = {}): BoardSt
 	return {
 		pieces: encoded,
 		ids,
-		turn: 'white'
+		turn: 'white',
+		positionEpoch: 0
 	};
 }
 

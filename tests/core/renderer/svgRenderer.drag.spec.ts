@@ -56,7 +56,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: null,
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 
 		renderer.renderDrag({
@@ -90,7 +91,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -120,7 +122,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -153,7 +156,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 
 		renderer.renderDrag({
@@ -183,7 +187,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -221,7 +226,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -270,13 +276,15 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const interactionEnded: InteractionStateSnapshot = {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -314,13 +322,15 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const interactionEnded: InteractionStateSnapshot = {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -378,19 +388,22 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: null,
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 		const interactionActive: InteractionStateSnapshot = {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const interactionEnded: InteractionStateSnapshot = {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
@@ -443,7 +456,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: null,
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 
 		// Seed baseline with renderBoard
@@ -487,7 +501,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: null,
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 
 		// Seed baseline with renderBoard
@@ -529,7 +544,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: null,
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 
 		// Seed baseline with renderBoard
@@ -569,7 +585,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 		const dragPointer: BoardPoint = { x: 250, y: 350 };
 
@@ -608,7 +625,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: null,
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 
 		// First render at position 1
@@ -660,7 +678,8 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 			selectedSquare: sq(12),
 			destinations: null,
 			currentTarget: sq(12), // same square
-			dragSession: { fromSquare: sq(12) }
+			dragSession: { fromSquare: sq(12) },
+			releaseTargetingActive: false
 		};
 
 		// First render at position 1 (within square 12)

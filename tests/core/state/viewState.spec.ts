@@ -39,8 +39,8 @@ describe('state/viewState', () => {
 		});
 
 		it('respects movability override', () => {
-			const state = createViewState({ movability: { mode: 'free', color: 'white' } });
-			expect(state.movability).toEqual({ mode: 'free', color: 'white' });
+			const state = createViewState({ movability: { mode: 'free' } });
+			expect(state.movability).toEqual({ mode: 'free' });
 		});
 	});
 
@@ -68,12 +68,12 @@ describe('state/viewState', () => {
 		it('snapshot reflects current state values', () => {
 			const state = createViewState({
 				orientation: 'black',
-				movability: { mode: 'free', color: 'both' }
+				movability: { mode: 'free' }
 			});
 			const snap = getViewStateSnapshot(state);
 
 			expect(snap.orientation).toBe('black');
-			expect(snap.movability).toEqual({ mode: 'free', color: 'both' });
+			expect(snap.movability).toEqual({ mode: 'free' });
 		});
 
 		it('snapshot orientation matches internal state orientation', () => {

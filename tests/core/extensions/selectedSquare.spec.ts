@@ -55,14 +55,15 @@ describe('selectedSquare extension', () => {
 			selectedSquare,
 			destinations: null,
 			currentTarget: null,
-			dragSession: null
+			dragSession: null,
+			releaseTargetingActive: false
 		};
 	}
 
 	function createMockViewState(): ViewStateSnapshot {
 		return {
 			orientation: 'white',
-			movability: { mode: 'free', color: 'both' }
+			movability: { mode: 'free' }
 		};
 	}
 

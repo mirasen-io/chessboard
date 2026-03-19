@@ -62,7 +62,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] } // e2 → e4, e3
 					}
 				}
@@ -80,7 +80,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -276,7 +276,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -335,7 +335,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -357,7 +357,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -380,7 +380,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -405,7 +405,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -435,7 +435,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -659,7 +659,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}
@@ -717,7 +717,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 				view: {
 					movability: {
 						mode: 'strict',
-						color: 'white',
+
 						destinations: { 12: [28, 20] }
 					}
 				}

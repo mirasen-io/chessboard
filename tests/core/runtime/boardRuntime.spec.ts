@@ -640,7 +640,7 @@ describe('core/runtime/boardRuntime', () => {
 		await waitForRender();
 		renderBoardSpy.mockClear();
 
-		runtime.setMovability({ mode: 'free', color: 'white' });
+		runtime.setMovability({ mode: 'free' });
 
 		await waitForRender();
 
@@ -654,14 +654,14 @@ describe('core/runtime/boardRuntime', () => {
 
 		const runtime = createBoardRuntime({
 			renderer,
-			view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 		});
 		runtime.mount(container);
 
 		await waitForRender();
 		const initialCallCount = renderBoardSpy.mock.calls.length;
 
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
 
 		await waitForRender();
 
@@ -799,7 +799,6 @@ describe('core/runtime/boardRuntime', () => {
 			view: {
 				movability: {
 					mode: 'strict',
-					color: 'white',
 					destinations: { 12: [28, 20] }
 				}
 			}
@@ -820,7 +819,6 @@ describe('core/runtime/boardRuntime', () => {
 			view: {
 				movability: {
 					mode: 'strict',
-					color: 'white',
 					destinations: { 12: [28, 20] }
 				}
 			}
@@ -851,7 +849,7 @@ describe('core/runtime/boardRuntime', () => {
 		expect(runtime.canStartMoveFrom(52)).toBe(true);
 
 		// Strict mode: only squares with destinations allowed
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
 		expect(runtime.canStartMoveFrom(12)).toBe(true); // has destinations
 		expect(runtime.canStartMoveFrom(52)).toBe(false); // no destinations
 	});
@@ -957,7 +955,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -980,7 +978,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1006,7 +1004,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1037,7 +1035,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1062,7 +1060,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1087,7 +1085,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1122,7 +1120,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1145,7 +1143,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1166,7 +1164,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1189,7 +1187,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: 'start' },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 
@@ -1212,7 +1210,7 @@ describe('core/runtime/boardRuntime', () => {
 			const runtime = createBoardRuntime({
 				renderer,
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+				view: { movability: { mode: 'strict', destinations: { 12: [28, 20] } } }
 			});
 			runtime.mount(container);
 

@@ -52,10 +52,10 @@ describe('state/viewReducers', () => {
 		it('changes movability and returns true', () => {
 			const view = createViewState();
 
-			const changed = setMovability(view, { mode: 'free', color: 'white' });
+			const changed = setMovability(view, { mode: 'free' });
 
 			expect(changed).toBe(true);
-			expect(view.movability).toEqual({ mode: 'free', color: 'white' });
+			expect(view.movability).toEqual({ mode: 'free' });
 		});
 
 		it('is a no-op for structurally equal disabled movability', () => {
@@ -67,21 +67,20 @@ describe('state/viewReducers', () => {
 		});
 
 		it('is a no-op for structurally equal free movability', () => {
-			const view = createViewState({ movability: { mode: 'free', color: 'white' } });
+			const view = createViewState({ movability: { mode: 'free' } });
 
-			const changed = setMovability(view, { mode: 'free', color: 'white' });
+			const changed = setMovability(view, { mode: 'free' });
 
 			expect(changed).toBe(false);
 		});
 
 		it('is a no-op for structurally equal strict movability', () => {
 			const view = createViewState({
-				movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } }
+				movability: { mode: 'strict', destinations: { 12: [28, 20] } }
 			});
 
 			const changed = setMovability(view, {
 				mode: 'strict',
-				color: 'white',
 				destinations: { 12: [28, 20] }
 			});
 
@@ -91,7 +90,7 @@ describe('state/viewReducers', () => {
 		it('does not take an InvalidationWriter (no dirty side-effects)', () => {
 			// setMovability signature: (state, m) — no writer parameter
 			const view = createViewState();
-			expect(() => setMovability(view, { mode: 'free', color: 'both' })).not.toThrow();
+			expect(() => setMovability(view, { mode: 'free' })).not.toThrow();
 		});
 	});
 });

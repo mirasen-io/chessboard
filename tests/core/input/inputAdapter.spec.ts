@@ -200,7 +200,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -224,7 +224,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -246,7 +246,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -270,7 +270,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -302,7 +302,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer,
 			board: { position: { e2: { color: 'w', role: 'p' } } },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -338,7 +338,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer,
 			board: { position: { e2: { color: 'w', role: 'p' } } },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -373,7 +373,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -405,7 +405,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -429,7 +429,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -455,7 +455,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -485,7 +485,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer: new FakeRenderer(),
 			board: { position: 'start' },
-			view: { orientation: 'white', movability: { mode: 'free', color: 'white' } }
+			view: { orientation: 'white', movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
@@ -525,7 +525,7 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		const runtime = createBoardRuntime({
 			renderer,
 			board: { position: { e2: { color: 'w', role: 'p' } } },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(host);
 
