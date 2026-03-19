@@ -97,7 +97,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -123,7 +123,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -144,7 +144,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -158,7 +158,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -174,7 +174,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -187,7 +187,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -200,7 +200,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -214,7 +214,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -230,7 +230,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -245,7 +245,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -260,7 +260,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -279,7 +279,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -320,7 +320,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -339,7 +339,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -453,7 +453,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -468,7 +468,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -501,7 +501,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -520,7 +520,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -536,7 +536,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -549,7 +549,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -564,7 +564,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -611,7 +611,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -626,7 +626,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -678,7 +678,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 
@@ -697,7 +697,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
-				view: { movability: { mode: 'free', color: 'white' } }
+				view: { movability: { mode: 'free' } }
 			});
 			runtime.mount(createMockContainer());
 

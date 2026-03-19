@@ -2,18 +2,13 @@ import { Color, Square } from './boardTypes';
 
 export type Orientation = Color; // For clarity in context where it applies
 
-// Movability types for externally-provided interaction policy
-export type MovableColor = 'white' | 'black' | 'both';
-
 export type StrictMovability = {
 	mode: 'strict';
-	color: MovableColor;
 	destinations: Partial<Record<Square, readonly Square[]>>;
 };
 
 export type FreeMovability = {
 	mode: 'free';
-	color: MovableColor;
 };
 
 // Disables move interaction only, not all board interaction

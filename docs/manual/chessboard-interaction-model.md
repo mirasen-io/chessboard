@@ -247,12 +247,12 @@ Use this section as the primary interpretation guide for `pointerdown`.
 - If yes:
   - continue
 
-### Step 2 — Is there already an active `dragSession` (defensive)?
+### Step 2 — Is there already an active `dragSession` or `releaseTargetingActive` (defensive)?
 
 - If yes:
-  - this is already an active lifted-drag interaction
+  - an active interaction mode is already in progress
   - do not start a new board interaction from this `pointerdown`
-  - keep the existing drag interaction active
+  - keep the existing interaction mode active
   - interpret this branch as no-op unless a specific platform/input edge case requires otherwise
 
 - If no:
@@ -288,9 +288,10 @@ Use this section as the primary interpretation guide for `pointerdown`.
   - select that square
 - state changes:
   - `selectedSquare` becomes the pressed square
-  - `currentTarget` becomes `selectedSquare`
+  - `currentTarget` remains `null` unless drag starts
 - mode changes:
-  - drag starts from the newly selected square
+  - drag starts from the newly selected square if source interaction can enter lifted drag
+  - otherwise no active targeting mode starts
   - `releaseTargetingActive` may later start from the newly selected square, if required conditions are met
 - notes:
   - this is the normal source-selection entry path
@@ -306,9 +307,10 @@ Use this section as the primary interpretation guide for `pointerdown`.
   - continue interaction from the already selected source
 - state changes:
   - `selectedSquare` stays unchanged
-  - `currentTarget` becomes `selectedSquare`
+  - `currentTarget` remains `null` unless drag starts
 - mode changes:
-  - drag starts from the already selected square
+  - drag starts from the already selected square if source interaction can enter lifted drag
+  - otherwise no active targeting mode starts
   - `releaseTargetingActive` may later start from the selected square, if required conditions are met
 - notes:
   - this is not deselection on `pointerdown`
@@ -317,12 +319,12 @@ Use this section as the primary interpretation guide for `pointerdown`.
 #### Case B2 — Pressed square is empty
 
 - interpretation:
-  - start release targeting from the currently selected source
+  - start release targeting on the pressed square
 - state changes:
   - `selectedSquare` stays unchanged
   - `currentTarget` becomes the pressed square
 - mode changes:
-  - `releaseTargetingActive` starts from the `selectedSquare`
+  - `releaseTargetingActive` starts on the pressed square
   - drag does not start
 - notes:
   - this is non-lifted target continuation, not source reselection
@@ -335,9 +337,10 @@ Use this section as the primary interpretation guide for `pointerdown`.
   - reselect that square
 - state changes:
   - `selectedSquare` becomes the pressed square
-  - `currentTarget` becomes `selectedSquare`
+  - `currentTarget` remains `null` unless drag starts
 - mode changes:
-  - drag starts from the newly selected square
+  - drag starts from the newly selected square if source interaction can enter lifted drag
+  - otherwise no active targeting mode starts
   - `releaseTargetingActive` may later start from the newly selected square, if required conditions are met
 - notes:
   - this is a reselection outcome, not target continuation from the previous selection
@@ -348,12 +351,12 @@ Use this section as the primary interpretation guide for `pointerdown`.
 ##### Case B4.1 — The pressed square is a legal target for the selected source
 
 - interpretation:
-  - start release targeting from the currently selected source
+  - start release targeting on the pressed square
 - state changes:
   - `selectedSquare` stays unchanged
   - `currentTarget` becomes the pressed square
 - mode changes:
-  - `releaseTargetingActive` starts from the `selectedSquare`
+  - `releaseTargetingActive` starts on the pressed square
   - drag does not start
 - notes:
   - this is target continuation, not reselection
@@ -365,9 +368,10 @@ Use this section as the primary interpretation guide for `pointerdown`.
   - reselect that square
 - state changes:
   - `selectedSquare` becomes the pressed square
-  - `currentTarget` becomes `selectedSquare`
+  - `currentTarget` remains `null` unless drag starts
 - mode changes:
-  - drag starts from the newly selected square
+  - drag starts from the newly selected square if source interaction can enter lifted drag
+  - otherwise no active targeting mode starts
   - `releaseTargetingActive` may later start from the newly selected square, if required conditions are met
 - notes:
   - this is a reselection outcome, not target continuation from the previous selection
@@ -379,15 +383,15 @@ Use this section as the primary interpretation guide for `pointerdown`.
 
 Use this as a compact scan-friendly lookup table after the decision model.
 
-| Existing selection | Pressed square kind  | Legality context         | Interpretation            | State changes                                                      | Mode changes                                                                                                 | Notes                                                     |
-| ------------------ | -------------------- | ------------------------ | ------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| none               | empty                | n/a                      | no-op                     | no state changes                                                   | do not start drag; do not start release targeting                                                            | empty square cannot become `selectedSquare`               |
-| none               | contains a piece     | n/a                      | select source             | `selectedSquare = pressedSquare`; `currentTarget = selectedSquare` | drag starts from the newly selected square; `releaseTargetingActive` may later start from `selectedSquare`   | normal source-entry path                                  |
-| present            | same selected square | n/a                      | continue from same source | `selectedSquare` unchanged; `currentTarget = selectedSquare`       | drag starts from the already selected square; `releaseTargetingActive` may later start from `selectedSquare` | not deselection on `pointerdown`                          |
-| present            | empty                | legality evaluated later | start release targeting   | `selectedSquare` unchanged; `currentTarget = pressedSquare`        | `releaseTargetingActive` starts from `selectedSquare`; drag does not start                                   | legality matters later during `pointerup` move completion |
-| present            | same-color piece     | n/a                      | reselect source           | `selectedSquare = pressedSquare`; `currentTarget = selectedSquare` | drag starts from the newly selected square; `releaseTargetingActive` may later start from `selectedSquare`   | reselection, not target continuation                      |
-| present            | opposite-color piece | legal target             | start release targeting   | `selectedSquare` unchanged; `currentTarget = pressedSquare`        | `releaseTargetingActive` starts from `selectedSquare`; drag does not start                                   | target continuation, not reselection                      |
-| present            | opposite-color piece | not a legal target       | reselect source           | `selectedSquare = pressedSquare`; `currentTarget = selectedSquare` | drag starts from the newly selected square; `releaseTargetingActive` may later start from `selectedSquare`   | reselection, not target continuation                      |
+| Existing selection | Pressed square kind  | Legality context         | Interpretation            | State changes                                                                       | Mode changes                                                                                                                        | Notes                                                     |
+| ------------------ | -------------------- | ------------------------ | ------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| none               | empty                | n/a                      | no-op                     | no state changes                                                                    | do not start drag; do not start release targeting                                                                                   | empty square cannot become `selectedSquare`               |
+| none               | contains a piece     | n/a                      | select source             | `selectedSquare = pressedSquare`; `currentTarget` remains `null` unless drag starts | drag starts from the newly selected square if source interaction can enter lifted drag; otherwise no active targeting mode starts   | normal source-entry path                                  |
+| present            | same selected square | n/a                      | continue from same source | `selectedSquare` unchanged; `currentTarget` remains `null` unless drag starts       | drag starts from the already selected square if source interaction can enter lifted drag; otherwise no active targeting mode starts | not deselection on `pointerdown`                          |
+| present            | empty                | legality evaluated later | start release targeting   | `selectedSquare` unchanged; `currentTarget = pressedSquare`                         | `releaseTargetingActive` starts on the pressed square; drag does not start                                                          | legality matters later during `pointerup` move completion |
+| present            | same-color piece     | n/a                      | reselect source           | `selectedSquare = pressedSquare`; `currentTarget` remains `null` unless drag starts | drag starts from the newly selected square if source interaction can enter lifted drag; otherwise no active targeting mode starts   | reselection, not target continuation                      |
+| present            | opposite-color piece | legal target             | start release targeting   | `selectedSquare` unchanged; `currentTarget = pressedSquare`                         | `releaseTargetingActive` starts on the pressed square; drag does not start                                                          | target continuation, not reselection                      |
+| present            | opposite-color piece | not a legal target       | reselect source           | `selectedSquare = pressedSquare`; `currentTarget` remains `null` unless drag starts | drag starts from the newly selected square if source interaction can enter lifted drag; otherwise no active targeting mode starts   | reselection, not target continuation                      |
 
 ---
 
@@ -544,15 +548,15 @@ Then `pointerup` must:
 
 ### Pointerup lookup table
 
-| Active mode            | `currentTarget` state              | Outcome       | Cleanup                                                                      | Notes                                                      |
-| ---------------------- | ---------------------------------- | ------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| dragSession            | legal target from `selectedSquare` | complete move | end drag; clear `dragSession`; clear `currentTarget`                         | lifted drag resolves only on `pointerup`                   |
-| dragSession            | equals `selectedSquare`            | no move       | end drag; clear `dragSession`; clear `currentTarget`                         | preserve selection on `selectedSquare`                     |
-| dragSession            | other invalid target               | no move       | end drag; clear `dragSession`; clear `currentTarget`                         | piece returns to `selectedSquare`; selection remains there |
-| releaseTargetingActive | legal target from `selectedSquare` | complete move | end release targeting; clear `releaseTargetingActive`; clear `currentTarget` | non-lifted targeting resolves only on `pointerup`          |
-| releaseTargetingActive | equals `selectedSquare`            | no move       | end release targeting; clear `releaseTargetingActive`; clear `currentTarget` | preserve selection on `selectedSquare`                     |
-| releaseTargetingActive | other invalid target               | no move       | end release targeting; clear `releaseTargetingActive`; clear `currentTarget` | clear selection                                            |
-| none                   | any                                | no-op         | no completion cleanup required                                               | no active completion mode exists                           |
+| Active mode            | `currentTarget` state              | Outcome       | Cleanup                                                                                           | Notes                                                      |
+| ---------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| dragSession            | legal target from `selectedSquare` | complete move | end drag; clear `dragSession`; clear `currentTarget`; clear `releaseTargetingActive`              | lifted drag resolves only on `pointerup`                   |
+| dragSession            | equals `selectedSquare`            | no move       | end drag; clear `dragSession`; clear `currentTarget`; clear `releaseTargetingActive`              | preserve selection on `selectedSquare`                     |
+| dragSession            | other invalid target               | no move       | end drag; clear `dragSession`; clear `currentTarget`; clear `releaseTargetingActive`              | piece returns to `selectedSquare`; selection remains there |
+| releaseTargetingActive | legal target from `selectedSquare` | complete move | end release targeting; clear `releaseTargetingActive`; clear `currentTarget`; clear `dragSession` | non-lifted targeting resolves only on `pointerup`          |
+| releaseTargetingActive | equals `selectedSquare`            | no move       | end release targeting; clear `releaseTargetingActive`; clear `currentTarget`; clear `dragSession` | preserve selection on `selectedSquare`                     |
+| releaseTargetingActive | other invalid target               | no move       | end release targeting; clear `releaseTargetingActive`; clear `currentTarget`; clear `dragSession` | clear selection                                            |
+| none                   | any                                | no-op         | no completion cleanup required                                                                    | no active completion mode exists                           |
 
 ---
 
@@ -565,6 +569,7 @@ When interaction cancellation occurs:
 - no move is completed
 - `dragSession` is cleared
 - `currentTarget` is cleared
+- `releaseTargetingActive` is cleared
 - `selectedSquare` remains unchanged
 
 Notes:

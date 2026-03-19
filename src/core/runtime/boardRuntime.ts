@@ -13,6 +13,7 @@
  * - Observes host resize and refreshes geometry accordingly
  */
 
+import assert from '@ktarmyshov/assert';
 import type { Animator } from '../animation/animator';
 import { createAnimator } from '../animation/animator';
 import type { AnimationPlan } from '../animation/types';
@@ -22,6 +23,7 @@ import type {
 	BoardExtensionRenderContext,
 	BoardExtensionUpdateContext
 } from '../extensions/types';
+import { isInteractionTargetingActive } from '../helpers/interaction';
 import type { InputAdapter } from '../input/inputAdapter';
 import { createInputAdapter } from '../input/inputAdapter';
 import type { InteractionController } from '../input/interactionController';
@@ -52,6 +54,7 @@ import {
 } from '../state/boardState';
 import type {
 	BoardStateInternal,
+	BoardStateSnapshot,
 	ColorInput,
 	Move,
 	MoveInput,
@@ -61,10 +64,12 @@ import type {
 } from '../state/boardTypes';
 import { toValidSquare } from '../state/coords';
 import {
+	clearActiveInteraction,
 	clearInteraction as clearInteractionReducer,
 	setCurrentTarget as setCurrentTargetReducer,
 	setDestinations as setDestinationsReducer,
 	setDragSession as setDragSessionReducer,
+	setReleaseTargetingActive as setReleaseTargetingActiveReducer,
 	setSelectedSquare as setSelectedSquareReducer
 } from '../state/interactionReducers';
 import { createInteractionState } from '../state/interactionState';
@@ -99,6 +104,7 @@ export interface InteractionSnapshot {
 		readonly destinations: readonly Square[] | null;
 		readonly currentTarget: Square | null;
 		readonly dragSession: { readonly fromSquare: Square } | null;
+		readonly releaseTargetingActive: boolean;
 	};
 }
 
@@ -132,12 +138,17 @@ export interface BoardRuntime {
 	// Does NOT check occupancy, color, or legality — "select a square", not "select a piece".
 	select(sq: SquareInput | null): boolean;
 	// Interaction lifecycle — internal runtime methods (not exported from public API)
-	// dragStart: strict lifecycle step — requires selectedSquare === from, throws otherwise.
-	// Controller is responsible for calling select(from) before dragStart(from).
+	// beginSourceInteraction: strict lifecycle step — requires selectedSquare === from, throws otherwise.
+	// Controller is responsible for calling select(from) before beginSourceInteraction(from).
 	// Accepts initial pointer position to initialize drag visual immediately.
-	dragStart(from: Square, point: BoardPoint): boolean;
-	// setCurrentTarget: update the current target square during drag or hover.
-	setCurrentTarget(target: Square | null): boolean;
+	beginSourceInteraction(from: Square, point: BoardPoint): boolean;
+	/**
+	 * Start release-targeting mode from the given source square.
+	 * Strict lifecycle step: requires selectedSquare === from, throws otherwise.
+	 * Sets releaseTargetingActive = true, clears dragSession, sets currentTarget = from.
+	 * Controller is responsible for ensuring from matches the currently selected square.
+	 */
+	startReleaseTargeting(from: Square, point: BoardPoint | null): boolean;
 	/**
 	 * Attempt semantic interaction completion toward the given target square.
 	 *
@@ -154,16 +165,23 @@ export interface BoardRuntime {
 	 *       clear all interaction.
 	 *       The selection is gone; the user must re-select to try again.
 	 */
-	dropTo(to: Square | null): Move | null;
+	commitTo(to: Square | null): Move | null;
 	// cancelInteraction: clear transient drag state, keep selection.
 	cancelInteraction(): boolean;
 	/**
 	 * Notify runtime of drag pointer movement for visual updates.
-	 * Updates transient visual state and triggers drag-layer invalidation when drag is active.
+	 * Updates drag-related transient state and triggers any required invalidation while piece drag is active.
 	 */
-	notifyDragMove(point: BoardPoint | null): void;
+	notifyDragMove(target: Square | null, point: BoardPoint | null): void;
+	/**
+	 * Notify runtime of release-targeting pointer movement for visual updates.
+	 * Updates release-targeting transient state and triggers any required invalidation while release targeting is active.
+	 * Note: point parameter reserved for future use; currently unused.
+	 */
+	notifyReleaseTargetingMove(target: Square | null, point: BoardPoint | null): void;
 	// Controller-facing snapshot accessor — curated, read-only, grouped by origin.
 	getInteractionSnapshot(): InteractionSnapshot;
+	getBoardSnapshot(): BoardStateSnapshot;
 	// Helpers
 	canStartMoveFrom(from: Square): boolean;
 	isMoveAttemptAllowed(from: Square, to: Square): boolean;
@@ -281,7 +299,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 						selectedSquare: interactionState.selectedSquare,
 						destinations: interactionState.destinations,
 						currentTarget: interactionState.currentTarget,
-						dragSession: interactionState.dragSession
+						dragSession: interactionState.dragSession,
+						releaseTargetingActive: interactionState.releaseTargetingActive
 					},
 					transientVisuals,
 					board: boardSnapshot,
@@ -307,7 +326,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 								selectedSquare: interactionState.selectedSquare,
 								destinations: interactionState.destinations,
 								dragSession: interactionState.dragSession,
-								currentTarget: interactionState.currentTarget
+								currentTarget: interactionState.currentTarget,
+								releaseTargetingActive: interactionState.releaseTargetingActive
 							},
 							geometry,
 							invalidation: extInvalidation
@@ -380,7 +400,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 					selectedSquare: interactionState.selectedSquare,
 					destinations: interactionState.destinations,
 					dragSession: interactionState.dragSession,
-					currentTarget: interactionState.currentTarget
+					currentTarget: interactionState.currentTarget,
+					releaseTargetingActive: interactionState.releaseTargetingActive
 				},
 				lastMove,
 				layoutVersion,
@@ -540,6 +561,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			setDragSessionReducer(interactionState, null);
 			// currentTarget
 			setCurrentTargetReducer(interactionState, null);
+			// releaseTargetingActive
+			setReleaseTargetingActiveReducer(interactionState, false);
 
 			// Update extensions after synchronized interaction state change
 			updateExtensions();
@@ -549,34 +572,55 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			return prevSq !== newSq;
 		},
 
-		dragStart(from: Square, point: BoardPoint): boolean {
-			// Strict lifecycle contract:
-			// 1. No drag must already be active.
-			// 2. selectedSquare must already equal from — controller calls select(from) first.
-			if (interactionState.dragSession !== null) {
-				throw new Error('BoardRuntime.dragStart: drag already active.');
-			}
-			if (interactionState.selectedSquare !== from) {
+		beginSourceInteraction(from: Square, point: BoardPoint): boolean {
+			if (isInteractionTargetingActive(interactionState)) {
 				throw new Error(
-					`BoardRuntime.dragStart: selectedSquare (${interactionState.selectedSquare}) !== from (${from}). Call select(from) before dragStart(from).`
+					'BoardRuntime.beginSourceInteraction: interaction targeting already active.'
 				);
 			}
-			const session: DragSession = { fromSquare: from };
-			setDragSessionReducer(interactionState, session);
-			setCurrentTargetReducer(interactionState, null);
-			transientVisuals.dragPointer = point; // initialize drag visual immediately
-			// Drag started: source piece moves from piecesRoot to dragRoot.
+
+			const changes = [
+				setSelectedSquareReducer(interactionState, from),
+				setDestinationsReducer(interactionState, getActiveDestinationsHelper(viewState, from)),
+				setReleaseTargetingActiveReducer(interactionState, false)
+			];
+
+			const canStart = canStartMoveFromHelper(boardState, viewState, from);
+
+			if (canStart) {
+				changes.push(setCurrentTargetReducer(interactionState, from));
+				const session: DragSession = { fromSquare: from };
+				changes.push(setDragSessionReducer(interactionState, session));
+				transientVisuals.dragPointer = point;
+			} else {
+				changes.push(setDragSessionReducer(interactionState, null));
+				changes.push(setCurrentTargetReducer(interactionState, null));
+				transientVisuals.dragPointer = null;
+			}
+
 			markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
+			updateExtensions();
+			scheduleIfAnythingDirty();
+			return changes.some((changed) => changed);
+		},
+
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		startReleaseTargeting(target: Square, point: BoardPoint | null): boolean {
+			assert(
+				interactionState.selectedSquare !== null,
+				'startReleaseTargeting: cannot start release targeting without a selected square'
+			);
+
+			setReleaseTargetingActiveReducer(interactionState, true);
+			setDragSessionReducer(interactionState, null);
+			setCurrentTargetReducer(interactionState, target);
+
 			updateExtensions();
 			scheduleIfAnythingDirty();
 			return true;
 		},
 
-		setCurrentTarget(target: Square | null): boolean {
-			return setCurrentTargetReducer(interactionState, target);
-		},
-
-		dropTo(to: Square | null): Move | null {
+		commitTo(to: Square | null): Move | null {
 			// Determine the active source: prefer dragSession.fromSquare, fall back to selectedSquare.
 			const source = interactionState.dragSession?.fromSquare ?? interactionState.selectedSquare;
 			if (source === null) {
@@ -613,48 +657,68 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// The user can retry by releasing on a different target.
 				setDragSessionReducer(interactionState, null);
 				setCurrentTargetReducer(interactionState, null);
+				setReleaseTargetingActiveReducer(interactionState, false);
 				transientVisuals.dragPointer = null; // clear transient visuals
 				// Drag cleared: source piece returns to piecesRoot, dragRoot empties.
 				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
-				updateExtensions();
-				scheduleIfAnythingDirty();
 			} else {
-				// Release-targeting mode: clear all interaction.
-				// The selection is gone; the user must re-select to try again.
-				clearInteractionReducer(interactionState);
-				updateExtensions();
+				// Release-targeting mode
+				if (interactionState.currentTarget === interactionState.selectedSquare) {
+					// Keep the selection
+					setDragSessionReducer(interactionState, null);
+					setCurrentTargetReducer(interactionState, null);
+					setReleaseTargetingActiveReducer(interactionState, false);
+				} else {
+					clearInteractionReducer(interactionState);
+				}
 			}
+			updateExtensions();
+			scheduleIfAnythingDirty();
 			return null;
 		},
 
 		cancelInteraction(): boolean {
 			// Cancel rule:
-			// Clear dragSession + currentTarget only. Keep selectedSquare + destinations.
+			// Clear dragSession + currentTarget + releaseTargetingActive.
+			// Keep selectedSquare + destinations.
 			// This returns to "piece selected" state, not "no interaction" state.
 			// Use select(null) to fully deselect.
 			const wasDragging = interactionState.dragSession !== null;
-			const a = setDragSessionReducer(interactionState, null);
-			const b = setCurrentTargetReducer(interactionState, null);
+			const changed = clearActiveInteraction(interactionState);
 			transientVisuals.dragPointer = null; // clear transient visuals
-			// Only mark drag dirty if a drag was actually active — currentTarget-only
-			// changes do not affect drag rendering.
+
+			if (!changed) {
+				return false;
+			}
+
 			if (wasDragging && mounted) {
 				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
-				updateExtensions();
-				scheduleIfAnythingDirty();
 			}
-			return a || b;
+
+			updateExtensions();
+			scheduleIfAnythingDirty();
+			return true;
 		},
 
-		notifyDragMove(point: BoardPoint | null): void {
+		notifyDragMove(target: Square | null, point: BoardPoint | null): void {
 			// Only update transient visuals and schedule render if a drag is active
 			if (interactionState.dragSession === null) return;
+			setCurrentTargetReducer(interactionState, target);
 			transientVisuals.dragPointer = point;
 			markDirtyLayer(invalidationState, DirtyLayer.Drag);
 			updateExtensions();
 			scheduleIfAnythingDirty();
 		},
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		notifyReleaseTargetingMove(target: Square | null, point: BoardPoint | null): void {
+			// Note: point parameter currently unused, reserved for future use.
+			// No separate transient target visual is tracked here; extensions derive from interaction state.
+			if (!interactionState.releaseTargetingActive) return;
+			setCurrentTargetReducer(interactionState, target);
+			updateExtensions();
+			scheduleIfAnythingDirty();
+		},
 		setMovability(m: Movability): boolean {
 			const changed = setMovabilityReducer(viewState, m);
 			if (changed) {
@@ -675,9 +739,14 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 					dragSession:
 						interactionState.dragSession !== null
 							? { fromSquare: interactionState.dragSession.fromSquare }
-							: null
+							: null,
+					releaseTargetingActive: interactionState.releaseTargetingActive
 				}
 			};
+		},
+
+		getBoardSnapshot(): BoardStateSnapshot {
+			return getBoardStateSnapshot(boardState);
 		},
 
 		canStartMoveFrom(from: Square): boolean {

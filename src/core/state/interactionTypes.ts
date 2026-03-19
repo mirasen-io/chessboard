@@ -32,6 +32,7 @@ export interface InteractionStateInternal {
 	destinations: readonly Square[] | null;
 	dragSession: DragSession | null;
 	currentTarget: Square | null;
+	releaseTargetingActive: boolean;
 }
 
 /**
@@ -42,4 +43,5 @@ export interface InteractionStateSnapshot {
 	readonly destinations: readonly Square[] | null;
 	readonly dragSession: DragSession | null;
 	readonly currentTarget: Square | null;
+	readonly releaseTargetingActive: boolean;
 }

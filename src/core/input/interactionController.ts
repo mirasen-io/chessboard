@@ -69,15 +69,19 @@
  *   update currentTarget. This prevents generic global hover tracking.
  */
 
+import assert from '@ktarmyshov/assert';
+import { getPieceAt, isOccupied } from '../helpers/board';
+import { isInteractionTargetingActive } from '../helpers/interaction';
 import type { BoardPoint } from '../renderer/types';
 import type { InteractionSnapshot } from '../runtime/boardRuntime';
-import type { Move, Square } from '../state/boardTypes';
+import type { BoardStateSnapshot, Move, Square } from '../state/boardTypes';
 
 /**
  * Minimal runtime surface the controller needs.
  * Subset of BoardRuntime — allows easy testing with partial mocks.
  */
 export interface InteractionRuntimeSurface {
+	getBoardSnapshot(): BoardStateSnapshot;
 	getInteractionSnapshot(): InteractionSnapshot;
 	/**
 	 * Returns true if the given square is a valid drag-capable source under the
@@ -86,14 +90,23 @@ export interface InteractionRuntimeSurface {
 	 */
 	canStartMoveFrom(from: Square): boolean;
 	/**
+	 * Returns true if the given move attempt is allowed under the current movability policy.
+	 */
+	isMoveAttemptAllowed(from: Square, to: Square): boolean;
+	/**
 	 * Notify runtime of drag pointer movement for visual updates.
 	 * Called by controller when a drag session is active.
 	 */
-	notifyDragMove(point: BoardPoint | null): void;
+	notifyDragMove(target: Square | null, point: BoardPoint | null): void;
+	/**
+	 * Notify runtime of release-targeting pointer movement for visual updates.
+	 * Called by controller when release-targeting mode is active.
+	 */
+	notifyReleaseTargetingMove(target: Square | null, point: BoardPoint | null): void;
 	select(sq: Square | null): boolean;
-	dragStart(from: Square, point: BoardPoint): boolean;
-	setCurrentTarget(target: Square | null): boolean;
-	dropTo(to: Square | null): Move | null;
+	beginSourceInteraction(from: Square, point: BoardPoint): boolean;
+	startReleaseTargeting(target: Square, point: BoardPoint | null): boolean;
+	commitTo(to: Square | null): Move | null;
 	cancelInteraction(): boolean;
 }
 
@@ -107,13 +120,10 @@ export interface InteractionController {
 	/**
 	 * Called when the pointer goes down on a square (or off-board).
 	 *
-	 * sq === null: off-board pointer-down → no-op.
+	 * target === null: off-board pointer-down → no-op.
 	 *
-	 * Path A (no active interaction): select(sq) + dragStart(sq, point) → lifted-piece mode.
-	 * Path B (release-targeting mode): setCurrentTarget(sq) → begin destination targeting.
-	 * Path C (lifted-piece mode, defensive): cancelInteraction() + select(sq) + dragStart(sq, point).
 	 */
-	onPointerDown(sq: Square | null, point: BoardPoint): void;
+	onPointerDown(target: Square | null, point: BoardPoint): void;
 
 	/**
 	 * Called when the pointer moves to a new square (or off-board).
@@ -130,13 +140,11 @@ export interface InteractionController {
 	/**
 	 * Called when the pointer is released.
 	 *
-	 * Lifted-piece mode: calls runtime.dropTo(sq). Returns Move | null.
-	 * Release-targeting mode:
-	 *   - sq === selectedSquare → select(null) (deselect), returns null.
-	 *   - otherwise → calls runtime.dropTo(sq). Returns Move | null.
+	 * Lifted-piece mode: calls runtime.commitTo(sq). Returns Move | null.
+	 * Release-targeting mode: calls runtime.commitTo(sq). Returns Move | null.
 	 * No active interaction: returns null.
 	 */
-	onPointerUp(sq: Square | null): Move | null;
+	onPointerUp(target: Square | null): Move | null;
 
 	/**
 	 * Called when the pointer interaction is aborted (pointer cancel, escape key, etc.).
@@ -154,88 +162,95 @@ export interface InteractionController {
 export function createInteractionController(
 	runtime: InteractionRuntimeSurface
 ): InteractionController {
-	// Internal flag: true while the pointer is currently down and an interaction is in progress.
-	// Used to narrow onPointerMove so it does not become a global hover tracker.
-	let targeting = false;
-
 	return {
-		onPointerDown(sq: Square | null, point: BoardPoint): void {
-			if (sq === null) return; // off-board pointer-down: no-op
+		onPointerDown(target: Square | null, point: BoardPoint): void {
+			if (target === null) return; // off-board pointer-down: no-op
 
 			const snap = runtime.getInteractionSnapshot();
+			const boardSnapshot = runtime.getBoardSnapshot();
 
-			if (snap.interaction.dragSession !== null) {
-				// Path C (defensive): pointer-down while already in lifted-piece mode.
-				// Cancel the current drag, re-select, and re-lift only if drag-capable.
-				runtime.cancelInteraction();
-				runtime.select(sq);
-				if (runtime.canStartMoveFrom(sq)) {
-					runtime.dragStart(sq, point);
+			// Defensive guard: ignore pointer-down while an active interaction mode is already in progress.
+			if (snap.interaction.dragSession !== null || snap.interaction.releaseTargetingActive) {
+				return;
+			}
+
+			// Branch A — No existing selection
+			const selectedSq = snap.interaction.selectedSquare;
+			if (selectedSq === null) {
+				// Case A1 — Pressed square is empty
+				if (!isOccupied(boardSnapshot, target)) {
+					// A1: empty - no-op
+					return;
 				}
-				targeting = true;
+
+				// Case A2 — Pressed square contains a piece
+				runtime.beginSourceInteraction(target, point);
 				return;
 			}
 
-			if (snap.interaction.selectedSquare !== null) {
-				// Path B: release-targeting mode — a square is already selected, no drag active.
-				// Begin destination targeting. Deselect is deferred to pointer-up.
-				runtime.setCurrentTarget(sq);
-				targeting = true;
+			// Branch B — Existing selection present
+
+			// Case B1 — Pressed square is the same as `selectedSquare`: continue interaction from the already selected source
+			if (target === selectedSq) {
+				runtime.beginSourceInteraction(target, point);
 				return;
 			}
 
-			// Path A: no active interaction.
-			// Selection is always broad (any square).
-			// Lifted-piece entry is gated: only if the square is drag-capable.
-			runtime.select(sq);
-			if (runtime.canStartMoveFrom(sq)) {
-				runtime.dragStart(sq, point); // enter lifted-piece mode with initial pointer position
+			// Case B2 — Pressed square is empty: start release targeting on the pressed square
+			if (!isOccupied(boardSnapshot, target)) {
+				runtime.startReleaseTargeting(target, point);
+				return;
 			}
-			// else: selection only — non-lifted path (no dragSession)
-			targeting = true;
+
+			// Case B3 — Pressed square contains a piece of the same color as `selectedSquare`: reselect that square
+			const pressedPiece = getPieceAt(boardSnapshot, target);
+			assert(pressedPiece !== null, 'Expected occupied square to contain a piece');
+
+			const selectedPiece = getPieceAt(boardSnapshot, selectedSq);
+			assert(selectedPiece !== null, 'Expected selected square to contain a piece');
+
+			if (pressedPiece.color === selectedPiece.color) {
+				runtime.beginSourceInteraction(target, point);
+				return;
+			}
+
+			// Case B4 — Pressed square contains an opposite-color piece
+
+			// Case B4.1 — The pressed square is a legal target for the selected source: start release targeting on the pressed square
+			if (runtime.isMoveAttemptAllowed(selectedSq, target)) {
+				runtime.startReleaseTargeting(target, point);
+				return;
+			}
+
+			// Case B4.2 — The pressed square is an illegal target for the selected source: reselect that square
+			runtime.beginSourceInteraction(target, point);
 		},
 
 		onPointerMove(target: Square | null, point: BoardPoint | null): void {
-			// Only update currentTarget while the pointer is down and an interaction is active.
-			if (!targeting) return;
-			runtime.setCurrentTarget(target);
-			// If a drag session is active, also update drag visual position.
 			const snap = runtime.getInteractionSnapshot();
+			const targeting = isInteractionTargetingActive(snap.interaction);
+
+			if (!targeting) return;
+
 			if (snap.interaction.dragSession !== null) {
-				runtime.notifyDragMove(point);
+				runtime.notifyDragMove(target, point);
+			} else if (snap.interaction.releaseTargetingActive) {
+				runtime.notifyReleaseTargetingMove(target, point);
 			}
 		},
 
-		onPointerUp(sq: Square | null): Move | null {
-			targeting = false;
-
+		onPointerUp(target: Square | null): Move | null {
 			const snap = runtime.getInteractionSnapshot();
 
-			if (snap.interaction.dragSession !== null) {
-				// Lifted-piece mode: attempt completion via dropTo.
-				// Runtime handles legal/illegal outcomes (illegal: keeps selection).
-				return runtime.dropTo(sq);
+			if (isInteractionTargetingActive(snap.interaction)) {
+				return runtime.commitTo(target);
 			}
 
-			if (snap.interaction.selectedSquare !== null) {
-				// Release-targeting mode.
-				if (sq === snap.interaction.selectedSquare) {
-					// Pointer-up on the selected square → deselect.
-					// Explicit Phase 3.2 rule: deselect on release, not on pointer-down.
-					runtime.select(null);
-					return null;
-				}
-				// Pointer-up on a different square → attempt completion via dropTo.
-				// Runtime handles legal/illegal outcomes (illegal: clears all interaction).
-				return runtime.dropTo(sq);
-			}
-
-			// No active interaction.
+			// No active mode: no-op
 			return null;
 		},
 
 		onPointerCancel(): void {
-			targeting = false;
 			runtime.cancelInteraction();
 		}
 	};

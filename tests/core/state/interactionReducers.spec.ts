@@ -5,6 +5,7 @@ import {
 	setCurrentTarget,
 	setDestinations,
 	setDragSession,
+	setReleaseTargetingActive,
 	setSelectedSquare
 } from '../../../src/core/state/interactionReducers';
 import { createInteractionState } from '../../../src/core/state/interactionState';
@@ -202,6 +203,45 @@ describe('state/interactionReducers', () => {
 		});
 	});
 
+	describe('setReleaseTargetingActive', () => {
+		it('sets releaseTargetingActive to true and returns true when changed', () => {
+			const state = createInteractionState();
+
+			const changed = setReleaseTargetingActive(state, true);
+
+			expect(changed).toBe(true);
+			expect(state.releaseTargetingActive).toBe(true);
+		});
+
+		it('clears releaseTargetingActive to false and returns true when changed', () => {
+			const state = createInteractionState();
+			state.releaseTargetingActive = true;
+
+			const changed = setReleaseTargetingActive(state, false);
+
+			expect(changed).toBe(true);
+			expect(state.releaseTargetingActive).toBe(false);
+		});
+
+		it('is a no-op and returns false when value is unchanged', () => {
+			const state = createInteractionState();
+			state.releaseTargetingActive = true;
+
+			const changed = setReleaseTargetingActive(state, true);
+
+			expect(changed).toBe(false);
+			expect(state.releaseTargetingActive).toBe(true);
+		});
+
+		it('is a no-op when setting false when already false', () => {
+			const state = createInteractionState(); // releaseTargetingActive = false
+
+			const changed = setReleaseTargetingActive(state, false);
+
+			expect(changed).toBe(false);
+		});
+	});
+
 	describe('clearInteraction', () => {
 		it('clears all fields and returns true when any field was set', () => {
 			const state = createInteractionState();
@@ -209,6 +249,7 @@ describe('state/interactionReducers', () => {
 			state.destinations = [20, 28] as Square[];
 			state.dragSession = { fromSquare: 12 as Square };
 			state.currentTarget = 28 as Square;
+			state.releaseTargetingActive = true;
 
 			const changed = clearInteraction(state);
 
@@ -217,6 +258,7 @@ describe('state/interactionReducers', () => {
 			expect(state.destinations).toBeNull();
 			expect(state.dragSession).toBeNull();
 			expect(state.currentTarget).toBeNull();
+			expect(state.releaseTargetingActive).toBe(false);
 		});
 
 		it('returns true when only one field was set', () => {
@@ -248,6 +290,7 @@ describe('state/interactionReducers', () => {
 			expect(state.destinations).toBeNull();
 			expect(state.dragSession).toBeNull();
 			expect(state.currentTarget).toBeNull();
+			expect(state.releaseTargetingActive).toBe(false);
 		});
 	});
 });

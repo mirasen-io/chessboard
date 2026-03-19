@@ -62,8 +62,22 @@ export function setCurrentTarget(state: InteractionStateInternal, sq: SquareInpu
 }
 
 /**
+ * Set or clear the release targeting active flag.
+ * Returns true if the value changed, false if no-op.
+ * Does not take an InvalidationWriter — no direct invalidation side-effects.
+ */
+export function setReleaseTargetingActive(
+	state: InteractionStateInternal,
+	active: boolean
+): boolean {
+	if (state.releaseTargetingActive === active) return false;
+	state.releaseTargetingActive = active;
+	return true;
+}
+
+/**
  * Clear all interaction state fields.
- * Returns true if any field changed, false if all were already null (no-op).
+ * Returns true if any field changed, false if all were already null/false (no-op).
  * Use this when the board position changes or interaction is fully cancelled.
  */
 export function clearInteraction(state: InteractionStateInternal): boolean {
@@ -71,13 +85,30 @@ export function clearInteraction(state: InteractionStateInternal): boolean {
 		state.selectedSquare !== null ||
 		state.destinations !== null ||
 		state.dragSession !== null ||
-		state.currentTarget !== null;
+		state.currentTarget !== null ||
+		state.releaseTargetingActive !== false;
 
 	if (!anySet) return false;
 
 	state.selectedSquare = null;
 	state.destinations = null;
 	state.dragSession = null;
+	state.currentTarget = null;
+	state.releaseTargetingActive = false;
+	return true;
+}
+
+export function clearActiveInteraction(state: InteractionStateInternal): boolean {
+	const anyActive = [
+		state.dragSession !== null,
+		state.releaseTargetingActive,
+		state.currentTarget !== null
+	].some((active) => active);
+
+	if (!anyActive) return false;
+
+	state.dragSession = null;
+	state.releaseTargetingActive = false;
 	state.currentTarget = null;
 	return true;
 }

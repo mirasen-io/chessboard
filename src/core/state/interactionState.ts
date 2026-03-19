@@ -1,14 +1,15 @@
 import type { InteractionStateInternal, InteractionStateSnapshot } from './interactionTypes';
 
 /**
- * Create a fresh interaction state with all fields set to null.
+ * Create a fresh interaction state with all fields set to null or false.
  */
 export function createInteractionState(): InteractionStateInternal {
 	return {
 		selectedSquare: null,
 		destinations: null,
 		dragSession: null,
-		currentTarget: null
+		currentTarget: null,
+		releaseTargetingActive: false
 	};
 }
 
@@ -22,6 +23,7 @@ export function getInteractionStateSnapshot(
 		selectedSquare: state.selectedSquare,
 		destinations: state.destinations,
 		dragSession: state.dragSession,
-		currentTarget: state.currentTarget
+		currentTarget: state.currentTarget,
+		releaseTargetingActive: state.releaseTargetingActive
 	};
 }

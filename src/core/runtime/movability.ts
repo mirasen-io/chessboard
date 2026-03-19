@@ -4,38 +4,27 @@
  *
  * Key principles:
  * - Consult state.movability only, NOT state.turn
- * - Return false if movability is null or disabled
- * - Check piece color against movability color policy
+ * - Return false if movability is disabled
+ * - Check occupancy only (no color gating)
  * - For strict mode, consult destinations map
  */
 
 import type { BoardStateInternal, Square } from '../state/boardTypes';
-import { isBlackCode, isEmpty, isWhiteCode } from '../state/encode';
-import type { MovableColor, ViewStateInternal } from '../state/viewTypes';
-
-/**
- * Check if a piece color matches the movability color policy.
- */
-function isPieceColorAllowed(pieceCode: number, movabilityColor: MovableColor): boolean {
-	if (movabilityColor === 'both') return true;
-	if (movabilityColor === 'white') return isWhiteCode(pieceCode);
-	if (movabilityColor === 'black') return isBlackCode(pieceCode);
-	return false;
-}
+import { isEmpty } from '../state/encode';
+import type { ViewStateInternal } from '../state/viewTypes';
 
 /**
  * Determine if a move can be started from the given square.
  * This answers: "Can I pick up this piece?"
  *
  * Returns true only when:
- * - movability is not null
  * - movability mode is not 'disabled'
  * - source square contains a piece
- * - piece color matches movability color policy
  * - for strict mode: destinations[from] exists and has length > 0
- * - for free mode: color match is sufficient
+ * - for free mode: occupancy check is sufficient
  *
  * Does NOT consult state.turn.
+ * Does NOT check piece color.
  * Does NOT require a target square.
  */
 export function canStartMoveFrom(
@@ -46,7 +35,7 @@ export function canStartMoveFrom(
 	const movability = view.movability;
 	const pieces = board.pieces;
 
-	// No movability policy or disabled
+	// Disabled mode
 	if (movability.mode === 'disabled') {
 		return false;
 	}
@@ -57,18 +46,13 @@ export function canStartMoveFrom(
 		return false;
 	}
 
-	// Piece color must match movability color policy
-	if (!isPieceColorAllowed(pieceCode, movability.color)) {
-		return false;
-	}
-
 	// For strict mode, check if destinations exist and have length > 0
 	if (movability.mode === 'strict') {
 		const dests = movability.destinations[from];
 		return dests !== undefined && dests.length > 0;
 	}
 
-	// For free mode, color match is sufficient
+	// For free mode, occupancy check is sufficient
 	return true;
 }
 
@@ -98,14 +82,13 @@ export function getActiveDestinations(
  * This answers: "Can I move from here to there?"
  *
  * Returns true only when:
- * - movability is not null
  * - movability mode is not 'disabled'
  * - source square contains a piece
- * - piece color matches movability color policy
  * - for strict mode: destinations[from] includes to
- * - for free mode: color match is sufficient (any destination)
+ * - for free mode: target is not same as source
  *
  * Does NOT consult state.turn.
+ * Does NOT check piece color.
  * Requires both source and target squares.
  */
 export function isMoveAttemptAllowed(
@@ -117,7 +100,7 @@ export function isMoveAttemptAllowed(
 	const movability = view.movability;
 	const pieces = board.pieces;
 
-	// No movability policy or disabled
+	// Disabled mode
 	if (movability.mode === 'disabled') {
 		return false;
 	}
@@ -125,11 +108,6 @@ export function isMoveAttemptAllowed(
 	// Source square must contain a piece
 	const pieceCode = pieces[from];
 	if (isEmpty(pieceCode)) {
-		return false;
-	}
-
-	// Piece color must match movability color policy
-	if (!isPieceColorAllowed(pieceCode, movability.color)) {
 		return false;
 	}
 
@@ -144,6 +122,6 @@ export function isMoveAttemptAllowed(
 		return false;
 	}
 
-	// For free mode, color match is sufficient (any destination allowed)
+	// For free mode, any destination allowed except same-square
 	return true;
 }

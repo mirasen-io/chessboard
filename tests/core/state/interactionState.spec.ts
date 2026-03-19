@@ -14,15 +14,17 @@ describe('state/interactionState', () => {
 			expect(state.destinations).toBeNull();
 			expect(state.dragSession).toBeNull();
 			expect(state.currentTarget).toBeNull();
+			expect(state.releaseTargetingActive).toBe(false);
 		});
 
-		it('contains exactly the four interaction-owned fields', () => {
+		it('contains exactly the five interaction-owned fields', () => {
 			const state = createInteractionState();
 
 			expect('selectedSquare' in state).toBe(true);
 			expect('destinations' in state).toBe(true);
 			expect('dragSession' in state).toBe(true);
 			expect('currentTarget' in state).toBe(true);
+			expect('releaseTargetingActive' in state).toBe(true);
 
 			// Does NOT contain board-owned fields
 			expect('pieces' in state).toBe(false);
@@ -43,6 +45,7 @@ describe('state/interactionState', () => {
 			expect(snap.destinations).toBeNull();
 			expect(snap.dragSession).toBeNull();
 			expect(snap.currentTarget).toBeNull();
+			expect(snap.releaseTargetingActive).toBe(false);
 		});
 
 		it('snapshot reflects current field values', () => {
@@ -57,6 +60,7 @@ describe('state/interactionState', () => {
 			expect(snap.destinations).toEqual([20, 28]);
 			expect(snap.currentTarget).toBe(28);
 			expect(snap.dragSession).toBeNull();
+			expect(snap.releaseTargetingActive).toBe(false);
 		});
 
 		it('snapshot reflects drag session', () => {

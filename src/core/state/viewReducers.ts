@@ -40,15 +40,10 @@ function movabilityEquals(a: Movability, b: Movability): boolean {
 
 	if (a.mode === 'disabled' && b.mode === 'disabled') return true; // both disabled
 
-	// Both have color (free or strict)
-	if (a.mode === 'free' && b.mode === 'free') {
-		return a.color === b.color;
-	}
+	if (a.mode === 'free' && b.mode === 'free') return true; // both free
 
-	// Both strict - compare color and destinations
+	// Both strict - compare destinations
 	if (a.mode === 'strict' && b.mode === 'strict') {
-		if (a.color !== b.color) return false;
-
 		const aDests = a.destinations;
 		const bDests = b.destinations;
 		const aKeys = Object.keys(aDests).map(Number) as Square[];

@@ -4,6 +4,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { createActiveTargetExtension } from '../../../src/core/extensions/activeTarget';
 import { createLastMoveExtension } from '../../../src/core/extensions/lastMove';
 import { createSelectedSquareExtension } from '../../../src/core/extensions/selectedSquare';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
@@ -490,5 +491,259 @@ describe('boardRuntime lastMove extension integration', () => {
 		// Highlights should still exist for same logical squares
 		expect(fromRect).not.toBeNull();
 		expect(toRect).not.toBeNull();
+	});
+});
+
+describe('boardRuntime activeTarget extension integration', () => {
+	function waitForRender(): Promise<void> {
+		return new Promise<void>((resolve) => {
+			requestAnimationFrame(() => resolve());
+		});
+	}
+
+	beforeAll(() => {
+		globalThis.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
+	});
+
+	afterAll(() => {
+		globalThis.ResizeObserver = originalResizeObserver;
+	});
+
+	let container: HTMLElement;
+	let runtime: BoardRuntime;
+
+	beforeEach(() => {
+		container = document.createElement('div');
+		Object.defineProperty(container, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(container, 'clientHeight', { value: 800, configurable: true });
+		document.body.appendChild(container);
+
+		const renderer = new SvgRenderer();
+		runtime = createBoardRuntime({
+			renderer,
+			extensions: [createActiveTargetExtension()]
+		});
+		runtime.mount(container);
+	});
+
+	afterEach(() => {
+		runtime.destroy();
+		document.body.removeChild(container);
+	});
+
+	function getUnderPiecesSlotRoot(): SVGGElement | null {
+		const svg = container.querySelector('svg');
+		if (!svg) return null;
+		const children = Array.from(svg.children);
+		return children[3] as SVGGElement;
+	}
+
+	function getOverPiecesSlotRoot(): SVGGElement | null {
+		const svg = container.querySelector('svg');
+		if (!svg) return null;
+		const children = Array.from(svg.children);
+		return children[5] as SVGGElement;
+	}
+
+	function getActiveTargetUnderPiecesGroup(): SVGGElement | null {
+		const slotRoot = getUnderPiecesSlotRoot();
+		if (!slotRoot) return null;
+		const children = Array.from(slotRoot.children);
+		return children.find(
+			(el) => el.getAttribute('data-extension-id') === 'activeTarget'
+		) as SVGGElement | null;
+	}
+
+	function getActiveTargetOverPiecesGroup(): SVGGElement | null {
+		const slotRoot = getOverPiecesSlotRoot();
+		if (!slotRoot) return null;
+		const children = Array.from(slotRoot.children);
+		return children.find(
+			(el) => el.getAttribute('data-extension-id') === 'activeTarget'
+		) as SVGGElement | null;
+	}
+
+	function getSquareHighlight(): SVGRectElement | null {
+		const group = getActiveTargetUnderPiecesGroup();
+		if (!group || group.children.length === 0) return null;
+		return group.children[0] as SVGRectElement;
+	}
+
+	function getHaloCircle(): SVGCircleElement | null {
+		const group = getActiveTargetOverPiecesGroup();
+		if (!group || group.children.length === 0) return null;
+		return group.children[0] as SVGCircleElement;
+	}
+
+	it('mounts activeTarget extension correctly', () => {
+		const underGroup = getActiveTargetUnderPiecesGroup();
+		const overGroup = getActiveTargetOverPiecesGroup();
+
+		expect(underGroup).not.toBeNull();
+		expect(overGroup).not.toBeNull();
+	});
+
+	it('allocates both underPieces and overPieces slots', () => {
+		const underSlot = getUnderPiecesSlotRoot();
+		const overSlot = getOverPiecesSlotRoot();
+
+		expect(underSlot).not.toBeNull();
+		expect(overSlot).not.toBeNull();
+
+		// Verify extension groups exist in both slots
+		const underGroup = getActiveTargetUnderPiecesGroup();
+		const overGroup = getActiveTargetOverPiecesGroup();
+
+		expect(underGroup).not.toBeNull();
+		expect(overGroup).not.toBeNull();
+	});
+
+	it('does not render visuals initially (no drag)', async () => {
+		runtime.setBoardPosition('start');
+		await waitForRender();
+
+		const square = getSquareHighlight();
+		const halo = getHaloCircle();
+
+		expect(square).toBeNull();
+		expect(halo).toBeNull();
+	});
+
+	it('does not render during selection without drag', async () => {
+		runtime.setBoardPosition('start');
+		runtime.select(12 as Square); // select e2
+		await waitForRender();
+
+		const square = getSquareHighlight();
+		const halo = getHaloCircle();
+
+		expect(square).toBeNull();
+		expect(halo).toBeNull();
+	});
+
+	it('renders both visuals during active drag with target', async () => {
+		runtime.setBoardPosition('start');
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.select(12 as Square); // select e2
+		runtime.dragStart(12 as Square, { x: 400, y: 700 });
+		runtime.setCurrentTarget(28 as Square); // target e4
+
+		await waitForRender();
+
+		const square = getSquareHighlight();
+		const halo = getHaloCircle();
+
+		expect(square).not.toBeNull();
+		expect(halo).not.toBeNull();
+	});
+
+	it('clears visuals when drag ends', async () => {
+		runtime.setBoardPosition('start');
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.select(12 as Square);
+		runtime.dragStart(12 as Square, { x: 400, y: 700 });
+		runtime.setCurrentTarget(28 as Square);
+
+		await waitForRender();
+
+		let square = getSquareHighlight();
+		let halo = getHaloCircle();
+		expect(square).not.toBeNull();
+		expect(halo).not.toBeNull();
+
+		runtime.cancelInteraction();
+		await waitForRender();
+
+		square = getSquareHighlight();
+		halo = getHaloCircle();
+		expect(square).toBeNull();
+		expect(halo).toBeNull();
+	});
+
+	it('updates target visuals when target changes during drag', async () => {
+		runtime.setBoardPosition('start');
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.select(12 as Square);
+		runtime.dragStart(12 as Square, { x: 400, y: 700 });
+		runtime.setCurrentTarget(28 as Square);
+
+		await waitForRender();
+
+		let square = getSquareHighlight();
+		const firstX = square?.getAttribute('x');
+
+		runtime.setCurrentTarget(20 as Square); // change target to c3
+		await waitForRender();
+
+		square = getSquareHighlight();
+		const secondX = square?.getAttribute('x');
+
+		expect(firstX).not.toBe(secondX);
+		expect(square).not.toBeNull();
+	});
+
+	it('activeTarget coexists with other extensions without interference', async () => {
+		runtime.destroy();
+		document.body.removeChild(container);
+
+		container = document.createElement('div');
+		Object.defineProperty(container, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(container, 'clientHeight', { value: 800, configurable: true });
+		document.body.appendChild(container);
+
+		const renderer = new SvgRenderer();
+		runtime = createBoardRuntime({
+			renderer,
+			extensions: [
+				createSelectedSquareExtension(),
+				createLastMoveExtension(),
+				createActiveTargetExtension()
+			]
+		});
+		runtime.mount(container);
+
+		runtime.setBoardPosition('start');
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+
+		// Select should show selectedSquare highlight
+		runtime.select(12 as Square);
+		await waitForRender();
+
+		const underSlot = getUnderPiecesSlotRoot();
+		const selectedGroup = Array.from(underSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'selectedSquare'
+		) as SVGGElement | null;
+		expect(selectedGroup).not.toBeNull();
+		expect(selectedGroup?.children.length).toBe(1);
+
+		// activeTarget should not render yet
+		let square = getSquareHighlight();
+		expect(square).toBeNull();
+
+		// Start drag with target
+		runtime.dragStart(12 as Square, { x: 400, y: 700 });
+		runtime.setCurrentTarget(28 as Square);
+		await waitForRender();
+
+		// activeTarget should now render
+		square = getSquareHighlight();
+		const halo = getHaloCircle();
+		expect(square).not.toBeNull();
+		expect(halo).not.toBeNull();
+
+		// Complete move
+		runtime.dropTo(28 as Square);
+		await waitForRender();
+
+		// activeTarget should clear
+		square = getSquareHighlight();
+		expect(square).toBeNull();
+
+		// lastMove should render
+		const lastMoveGroup = Array.from(underSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'lastMove'
+		) as SVGGElement | null;
+		expect(lastMoveGroup).not.toBeNull();
+		expect(lastMoveGroup?.children.length).toBe(2); // from and to rects
 	});
 });
