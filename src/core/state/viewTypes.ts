@@ -2,9 +2,15 @@ import { Color, Square } from './boardTypes';
 
 export type Orientation = Color; // For clarity in context where it applies
 
+// Maps source square to array of destination squares
+export type MovabilityDestinationsRecord = Partial<Record<Square, readonly Square[]>>;
+// Returns undefined if source is not movable, otherwise array of destinations
+export type MovabilityResolver = (source: Square) => readonly Square[] | undefined;
+export type MovabilityDestinations = MovabilityDestinationsRecord | MovabilityResolver;
+
 export type StrictMovability = {
 	mode: 'strict';
-	destinations: Partial<Record<Square, readonly Square[]>>;
+	destinations: MovabilityDestinations;
 };
 
 export type FreeMovability = {

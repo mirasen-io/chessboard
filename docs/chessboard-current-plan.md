@@ -329,6 +329,8 @@
 
 ### 4.3a First active interaction visual: `activeTarget`
 
+**Status: COMPLETE**
+
 - Start the interaction overlay work with the first meaningful transient interaction visual:
   - implement the `activeTarget` extension
   - active target-square highlight during active interaction
@@ -362,6 +364,8 @@
 
 ### 4.3b UX alignment pass for repeated same-piece drag after drop-to-source
 
+**Status: COMPLETE**
+
 - After selected-square highlighting is visible, manually verify the repeated same-piece interaction flow:
   - pointerdown on piece → selection + drag start
   - drop back to source → drag stop with selection persistence
@@ -372,7 +376,72 @@
 - Keep this pass narrowly focused on this specific UX flow
 - Do not broaden it into general interaction redesign
 
+### 4.3c Legal moves extension + flexible strict movability destination source
+
+Status: planned
+
+Goal:
+
+- add a first-party `legalMoves` extension
+- extend strict movability so legal destinations can be provided either as a precomputed record or as a resolver function
+
+Why:
+
+- `legalMoves` is a natural next built-in extension after `selectedSquare`, `lastMove`, and `activeTarget`
+- precomputed destination records remain convenient for tests and simple integrations
+- resolver-based strict movability supports more dynamic integrations without requiring callers to materialize the full destination map up front
+- the extension should support a simple chess.com-like default legal-destination hint
+
+Movability contract extension:
+
+- keep record-based strict movability support
+- add resolver-based strict movability support
+
+Current target shape:
+
+- `MovabilityDestinationsRecord = Partial<Record<Square, readonly Square[]>>`
+- `MovabilityResolver = (source: Square) => readonly Square[] | undefined`
+- `MovabilityDestinations = MovabilityDestinationsRecord | MovabilityResolver`
+- `StrictMovability.destinations: MovabilityDestinations`
+
+Scope:
+
+- update the movability types to support both destination-source forms
+- add one normalization/helper path so runtime logic does not duplicate record-vs-resolver branching
+- preserve current strict-movability behavior for existing record-based callers
+- implement a first-party `legalMoves` extension on top of the normalized destination source
+
+Extension behavior:
+
+- `legalMoves` reads current board/interaction facts but does not decide legality itself
+- the extension renders legal destinations for the current selected/source square using the existing movability source of truth
+- legal destinations render as a centered filled dot
+- default dot size: `12.5%` of square size
+- default dot fill: `rgb(0, 0, 0)`
+- default dot fill opacity: `0.35`
+- default dot stroke: `rgb(255, 255, 255)`
+- default dot stroke opacity: `0.18`
+- overlap/coexistence with existing extensions must remain clean and predictable
+
+Constraints:
+
+- do not break existing record-based strict movability usage
+- keep the API explicit; do not hide destination resolution behind misleading types
+- keep runtime ownership of move-policy questions
+- keep extension logic presentation-only; legality stays outside the extension
+- keep the first implementation narrow and avoid overdesigning advanced marker styles or extra visual variants
+
+Done when:
+
+- strict movability accepts both record and resolver destination sources
+- current runtime behavior remains correct for existing record-based strict movability
+- `legalMoves` extension is implemented and wired through the existing extension system
+- tests cover both record and resolver strict-movability paths
+- tests cover basic `legalMoves` rendering behavior and extension coexistence
+
 ### 4.4 Extension lifecycle / invalidation contract
+
+**Status: COMPLETE**
 
 - Define minimal extension lifecycle:
   - mount
@@ -384,6 +453,8 @@
 - Avoid overdesigning a universal plugin system too early
 
 ### 4.5 Extension tests
+
+**Status: COMPLETE**
 
 - Add focused tests for mount/unmount/update flow
 - Add tests for extension subtree ownership and cleanup
