@@ -30,11 +30,11 @@ export interface ActiveTargetExtensionOptions {
 	haloRadiusRatio?: number;
 }
 
-const DEFAULT_SQUARE_COLOR = 'rgba(255, 255, 0, 0.4)';
+const DEFAULT_SQUARE_COLOR = 'rgba(255, 255, 0, 1)';
 const DEFAULT_SQUARE_OPACITY = 0.4;
 const DEFAULT_HALO_COLOR = 'rgba(0, 0, 0, 1)';
 const DEFAULT_HALO_OPACITY = 0.2;
-const DEFAULT_HALO_RADIUS_RATIO = 1.25;
+const DEFAULT_HALO_RADIUS_RATIO = 1.2;
 
 export type ActiveTargetExtensionDefinition = BoardExtensionDefinition<
 	void,
@@ -141,10 +141,8 @@ export function createActiveTargetExtension(
 
 						if (!haloCircle) {
 							haloCircle = document.createElementNS(SVG_NS, 'circle');
-							haloCircle.setAttribute('fill', 'none');
-							haloCircle.setAttribute('stroke', haloColor);
-							haloCircle.setAttribute('stroke-width', '2');
-							haloCircle.setAttribute('stroke-opacity', haloOpacity.toString());
+							haloCircle.setAttribute('fill', haloColor);
+							haloCircle.setAttribute('fill-opacity', haloOpacity.toString());
 							overPiecesRoot.appendChild(haloCircle);
 						}
 
