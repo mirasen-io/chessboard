@@ -362,11 +362,10 @@ describe('boardRuntime lastMove extension integration', () => {
 
 	it('renders lastMove highlights after legal dropTo() call', async () => {
 		runtime.setBoardPosition('start');
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
 
-		runtime.select(12 as Square); // select e2
-		runtime.dragStart(12 as Square, { x: 400, y: 700 });
-		runtime.dropTo(28 as Square); // legal drop to e4
+		runtime.beginSourceInteraction(12 as Square, { x: 400, y: 700 });
+		runtime.commitTo(28 as Square); // legal commit to e4
 
 		await waitForRender();
 
@@ -623,10 +622,9 @@ describe('boardRuntime activeTarget extension integration', () => {
 
 	it('renders both visuals during active drag with target', async () => {
 		runtime.setBoardPosition('start');
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
-		runtime.select(12 as Square); // select e2
-		runtime.dragStart(12 as Square, { x: 400, y: 700 });
-		runtime.setCurrentTarget(28 as Square); // target e4
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
+		runtime.beginSourceInteraction(12 as Square, { x: 400, y: 700 });
+		runtime.notifyDragMove(28 as Square, { x: 400, y: 300 }); // target e4
 
 		await waitForRender();
 
@@ -639,10 +637,9 @@ describe('boardRuntime activeTarget extension integration', () => {
 
 	it('clears visuals when drag ends', async () => {
 		runtime.setBoardPosition('start');
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
-		runtime.select(12 as Square);
-		runtime.dragStart(12 as Square, { x: 400, y: 700 });
-		runtime.setCurrentTarget(28 as Square);
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
+		runtime.beginSourceInteraction(12 as Square, { x: 400, y: 700 });
+		runtime.notifyDragMove(28 as Square, { x: 400, y: 300 });
 
 		await waitForRender();
 
@@ -662,17 +659,16 @@ describe('boardRuntime activeTarget extension integration', () => {
 
 	it('updates target visuals when target changes during drag', async () => {
 		runtime.setBoardPosition('start');
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
-		runtime.select(12 as Square);
-		runtime.dragStart(12 as Square, { x: 400, y: 700 });
-		runtime.setCurrentTarget(28 as Square);
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 18] } });
+		runtime.beginSourceInteraction(12 as Square, { x: 400, y: 700 });
+		runtime.notifyDragMove(28 as Square, { x: 400, y: 300 });
 
 		await waitForRender();
 
 		let square = getSquareHighlight();
 		const firstX = square?.getAttribute('x');
 
-		runtime.setCurrentTarget(20 as Square); // change target to c3
+		runtime.notifyDragMove(18 as Square, { x: 200, y: 500 }); // change target to c3
 		await waitForRender();
 
 		square = getSquareHighlight();
@@ -703,7 +699,7 @@ describe('boardRuntime activeTarget extension integration', () => {
 		runtime.mount(container);
 
 		runtime.setBoardPosition('start');
-		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
 
 		// Select should show selectedSquare highlight
 		runtime.select(12 as Square);
@@ -721,8 +717,8 @@ describe('boardRuntime activeTarget extension integration', () => {
 		expect(square).toBeNull();
 
 		// Start drag with target
-		runtime.dragStart(12 as Square, { x: 400, y: 700 });
-		runtime.setCurrentTarget(28 as Square);
+		runtime.beginSourceInteraction(12 as Square, { x: 400, y: 700 });
+		runtime.notifyDragMove(28 as Square, { x: 400, y: 300 });
 		await waitForRender();
 
 		// activeTarget should now render
@@ -732,7 +728,7 @@ describe('boardRuntime activeTarget extension integration', () => {
 		expect(halo).not.toBeNull();
 
 		// Complete move
-		runtime.dropTo(28 as Square);
+		runtime.commitTo(28 as Square);
 		await waitForRender();
 
 		// activeTarget should clear
