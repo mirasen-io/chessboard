@@ -24,9 +24,7 @@ export interface BoardRuntimePipelineContext {
 	currentState: BoardRuntimePipelineCtxCurrent;
 }
 
-export type BoardRuntimeStateChangePipeline = Pipeline<BoardRuntimePipelineCtxCurrent>;
-
-export function createBoardRuntimePipeline(): BoardRuntimeStateChangePipeline {
+export function createBoardRuntimePipeline(): Pipeline<BoardRuntimePipelineCtxCurrent> {
 	let previousSnapshot: BoardRuntimePipelineCtxPrev | null = null;
 	const basicPipeline = createPipeline<BoardRuntimePipelineContext>([
 		// TODO: Add pipes here as needed, e.g.:
