@@ -1,5 +1,7 @@
 import { PartialDeep } from 'type-fest';
-import { DirtyLayer } from '../..';
+import { createSvgGroup, SVG_NS } from '../helpers/svg';
+import { setsEqual } from '../helpers/util';
+import { DirtyLayer } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
@@ -15,8 +17,6 @@ import type {
 	RenderGeometry
 } from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
 
 type SvgRendererOptions = {
 	/** Optional renderer visual configuration. */
@@ -97,20 +97,35 @@ export class SvgRenderer implements Renderer {
 		// Containers and roots/slots
 		const defsStatic = document.createElementNS(SVG_NS, 'defs');
 
-		const boardRoot = document.createElementNS(SVG_NS, 'g');
-		const coordsRoot = document.createElementNS(SVG_NS, 'g');
+		// Root layers
+		const boardRoot = createSvgGroup(document, { 'data-layer-id': 'board' });
 
-		const extensionsUnderPiecesRoot = document.createElementNS(SVG_NS, 'g');
-		const piecesRoot = document.createElementNS(SVG_NS, 'g');
-		const extensionsOverPiecesRoot = document.createElementNS(SVG_NS, 'g');
+		const coordsRoot = createSvgGroup(document, { 'data-layer-id': 'coords' });
 
-		const animationRoot = document.createElementNS(SVG_NS, 'g');
+		const piecesRoot = createSvgGroup(document, { 'data-layer-id': 'pieces' });
 
-		const extensionsDragUnderRoot = document.createElementNS(SVG_NS, 'g');
-		const dragRoot = document.createElementNS(SVG_NS, 'g');
-		const extensionsDragOverRoot = document.createElementNS(SVG_NS, 'g');
+		const animationRoot = createSvgGroup(document, { 'data-layer-id': 'animation' });
+
+		const dragRoot = createSvgGroup(document, { 'data-layer-id': 'drag' });
 
 		const defsDynamic = document.createElementNS(SVG_NS, 'defs');
+
+		// Extension slots will be allocated dynamically, but we create the root groups here
+		const extensionsUnderPiecesRoot = createSvgGroup(document, {
+			'data-layer-id': 'extensions-underPieces'
+		});
+
+		const extensionsOverPiecesRoot = createSvgGroup(document, {
+			'data-layer-id': 'extensions-overPieces'
+		});
+
+		const extensionsDragUnderRoot = createSvgGroup(document, {
+			'data-layer-id': 'extensions-dragUnder'
+		});
+
+		const extensionsDragOverRoot = createSvgGroup(document, {
+			'data-layer-id': 'extensions-dragOver'
+		});
 
 		// Append in the required order
 		svg.appendChild(defsStatic);
@@ -169,7 +184,7 @@ export class SvgRenderer implements Renderer {
 		this.svgRoot.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
 		// Detect if suppression changed since last render
-		const suppressionChanged = !this.setsEqual(suppressedPieceIds, this.lastSuppressedPieceIds);
+		const suppressionChanged = !setsEqual(suppressedPieceIds, this.lastSuppressedPieceIds);
 
 		// Decide what to update on layers bitmask
 		const layers = invalidation.layers;
@@ -385,14 +400,6 @@ export class SvgRenderer implements Renderer {
 				this.pieceNodes.delete(pid);
 			}
 		}
-	}
-
-	private setsEqual<T>(a: ReadonlySet<T>, b: ReadonlySet<T>): boolean {
-		if (a.size !== b.size) return false;
-		for (const item of a) {
-			if (!b.has(item)) return false;
-		}
-		return true;
 	}
 
 	/**

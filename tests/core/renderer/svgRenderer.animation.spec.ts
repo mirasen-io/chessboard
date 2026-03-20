@@ -141,7 +141,7 @@ describe('SvgRenderer animation rendering (Phase 3.10)', () => {
 		const sessionGroup = animationRoot.children[0] as SVGGElement;
 
 		// Frame renderer should create reserved group with two pieces
-		const frameGroup = sessionGroup.querySelector('g[data-animation-frame="true"]');
+		const frameGroup = sessionGroup.querySelector('g[data-layer-id="animation-frame"]');
 		expect(frameGroup).not.toBeNull();
 		expect(frameGroup!.children.length).toBe(2); // two animated pieces
 

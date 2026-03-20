@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { Square } from '../../../src';
 import {
 	createInvalidationState,
 	createInvalidationWriter
 } from '../../../src/core/scheduler/invalidationState';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
+import type { Square } from '../../../src/core/state/boardTypes';
 import { setMovability, setOrientation } from '../../../src/core/state/viewReducers';
 import { createViewState } from '../../../src/core/state/viewState';
 

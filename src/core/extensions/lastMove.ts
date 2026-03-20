@@ -4,6 +4,7 @@
  * Phase 4.2b: First move-derived extension.
  */
 
+import { SVG_NS } from '../helpers/svg';
 import type { Square } from '../state/boardTypes';
 import type {
 	BoardExtensionDefinition,
@@ -12,8 +13,6 @@ import type {
 	BoardExtensionRenderContext,
 	BoardExtensionUpdateContext
 } from './types';
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
  * Extension-local invalidation layer flags.

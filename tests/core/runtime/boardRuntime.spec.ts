@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Square } from '../../../src';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import type { Renderer } from '../../../src/core/renderer/types';
 import { createBoardRuntime } from '../../../src/core/runtime/boardRuntime';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
+import type { Square } from '../../../src/core/state/boardTypes';
 
 // Local manual ResizeObserver mock for this spec only
 class MockResizeObserver {

@@ -4,12 +4,11 @@
  */
 
 import type { AnimationSession } from '../animation/types';
+import { createSvgGroup, SVG_NS } from '../helpers/svg';
 import type { BoardStateSnapshot } from '../state/boardTypes';
 import { decodePiece } from '../state/encode';
 import { cburnettPieceUrl } from './assets';
 import type { RenderGeometry } from './types';
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
  * Render one animation frame into the provided session group.
@@ -38,10 +37,9 @@ export function renderAnimationFrame(
 	now: number
 ): void {
 	// Find or create reserved child group with stable marker
-	let reservedGroup = sessionGroup.querySelector<SVGGElement>('g[data-animation-frame="true"]');
+	let reservedGroup = sessionGroup.querySelector<SVGGElement>('g[data-layer-id="animation-frame"]');
 	if (!reservedGroup) {
-		reservedGroup = document.createElementNS(SVG_NS, 'g');
-		reservedGroup.setAttribute('data-animation-frame', 'true');
+		reservedGroup = createSvgGroup(document, { 'data-layer-id': 'animation-frame' });
 		sessionGroup.appendChild(reservedGroup);
 	}
 

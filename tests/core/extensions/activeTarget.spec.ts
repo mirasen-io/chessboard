@@ -9,6 +9,7 @@ import type {
 	BoardExtensionRenderContext,
 	BoardExtensionUpdateContext
 } from '../../../src/core/extensions/types';
+import { SVG_NS } from '../../../src/core/helpers/svg';
 import type { RenderGeometry } from '../../../src/core/renderer/types';
 import type {
 	InvalidationStateExtensionSnapshot,
@@ -17,8 +18,6 @@ import type {
 import type { BoardStateSnapshot, Square } from '../../../src/core/state/boardTypes';
 import type { InteractionStateSnapshot } from '../../../src/core/state/interactionTypes';
 import type { ViewStateSnapshot } from '../../../src/core/state/viewTypes';
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
 
 describe('activeTarget extension', () => {
 	let underPiecesRoot: SVGGElement;
