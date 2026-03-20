@@ -1,17 +1,23 @@
-import { PipelineSession } from './types';
+import type { PipelineSession } from './types';
 
-export function createPipelineSession(): PipelineSession {
-	let changes = false;
+export function createPipelineSession<Cause extends string>(): PipelineSession<Cause> {
+	const causes = new Set<Cause>();
 
 	return {
-		addMutation(mutation: boolean): void {
-			if (mutation) changes = true;
+		addMutation(cause: Cause, changed: boolean): boolean {
+			if (changed) {
+				causes.add(cause);
+			}
+			return changed;
 		},
 		hasChanges(): boolean {
-			return changes;
+			return causes.size > 0;
+		},
+		getCauses(): ReadonlySet<Cause> {
+			return causes;
 		},
 		clear(): void {
-			changes = false;
+			causes.clear();
 		}
 	};
 }

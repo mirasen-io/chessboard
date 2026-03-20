@@ -28,6 +28,10 @@ export interface TransientVisualState {
 	skipNextCommittedAnimation?: boolean;
 }
 
+export type TransientVisualsMutationCause =
+	| 'transientVisuals.setDragPointer'
+	| 'transientVisuals.setSkipNextCommittedAnimation';
+
 /**
  * Renderer-owned visual configuration.
  * Contains only base board rendering config actually owned by the core renderer.

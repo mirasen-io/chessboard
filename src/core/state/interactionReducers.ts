@@ -112,3 +112,12 @@ export function clearActiveInteraction(state: InteractionStateInternal): boolean
 	state.currentTarget = null;
 	return true;
 }
+
+export type InteractionMutationCause =
+	| 'interaction.reducer.setSelectedSquare'
+	| 'interaction.reducer.setDestinations'
+	| 'interaction.reducer.setDragSession'
+	| 'interaction.reducer.setCurrentTarget'
+	| 'interaction.reducer.setReleaseTargetingActive'
+	| 'interaction.reducer.clearInteraction'
+	| 'interaction.reducer.clearActiveInteraction';

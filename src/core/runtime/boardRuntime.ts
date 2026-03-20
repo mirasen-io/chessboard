@@ -17,6 +17,10 @@ import assert from '@ktarmyshov/assert';
 import type { Animator } from '../animation/animator';
 import { createAnimator } from '../animation/animator';
 import type { AnimationPlan } from '../animation/types';
+import {
+	type BoardRuntimeStateChangeContextCurrent,
+	createBoardRuntimeStateChangePipeline
+} from '../change/runtime';
 import type {
 	BoardExtensionDefinitionInternal,
 	BoardExtensionMounted,
@@ -443,6 +447,81 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		return appliedMove;
 	}
 
+	/**
+	 * Create change pipeline for board runtime.
+	 * First derived state: Board -> View -> Layout -> Interaction -> Transient Visuals -> ...TBD
+	 * Then extension updates,
+	 * Then rendering and animation scheduling.
+	 */
+	const stateChangePipeline = createBoardRuntimeStateChangePipeline([
+		/**
+		 * Derived: Board state mutations
+		 */
+		(ctx, causes, addMutation) => {
+			const call = [causes.has('board.reducer.setBoardPosition')].some(Boolean);
+			if (!call) return;
+			lastMove = null;
+			addMutation('boardRuntime.reducer.setLastMove', true);
+		},
+		/**
+		 * Derived: View state mutations
+		 */
+		/**
+		 * Derived: Layout state mutations
+		 */
+		/**
+		 * Derived: Interaction state mutations
+		 */
+		(ctx, causes, addMutation) => {
+			const call = [causes.has('board.reducer.setBoardPosition')].some(Boolean);
+			if (!call) return;
+			addMutation(
+				'interaction.reducer.clearInteraction',
+				clearInteractionReducer(interactionState)
+			);
+		},
+		/**
+		 * Derived: Interaction state mutations
+		 */
+		/**
+		 * Derived: Transient visuals state mutations
+		 */
+		(ctx, causes, addMutation) => {
+			const call = [causes.has('interaction.reducer.clearInteraction')].some(Boolean);
+			if (!call) return;
+			transientVisuals.dragPointer = null;
+			addMutation('transientVisuals.setDragPointer', true);
+		},
+		/**
+		 * Extension updates
+		 */
+		() => {
+			updateExtensions();
+		},
+		/**
+		 * Render and animation scheduling
+		 */
+		(ctx, causes) => {
+			const call = [causes.has('board.reducer.setBoardPosition')].some(Boolean);
+			if (!call) return;
+			animator?.stop();
+		},
+		() => {
+			scheduleIfAnythingDirty();
+		}
+	]);
+
+	function buildBoardRuntimeStateChangeContextCurrent(): BoardRuntimeStateChangeContextCurrent {
+		return {
+			board: boardState,
+			view: viewState,
+			interaction: interactionState,
+			lastMove,
+			layoutVersion,
+			writer: invalidationWriter
+		};
+	}
+
 	const runtime: BoardRuntime = {
 		mount(container: HTMLElement): void {
 			if (destroyed) throw new Error('BoardRuntime: cannot mount after destroy');
@@ -501,16 +580,11 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		},
 
 		setBoardPosition(input: PositionInput): boolean {
-			const changed = setBoardPositionReducer(boardState, invalidationWriter, input);
-			if (changed) {
-				clearInteractionReducer(interactionState); // clear all interaction state on new position
-				transientVisuals.dragPointer = null; // clear transient visuals
-				animator?.stop(); // stop any active animation
-				lastMove = null; // reset lastMove on new position
-				updateExtensions();
-				scheduleIfAnythingDirty();
-			}
-			return changed;
+			stateChangePipeline.addMutation(
+				'board.reducer.setBoardPosition',
+				setBoardPositionReducer(boardState, invalidationWriter, input)
+			);
+			return stateChangePipeline.run(buildBoardRuntimeStateChangeContextCurrent());
 		},
 
 		setTurn(c: ColorInput): boolean {

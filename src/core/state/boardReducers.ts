@@ -262,3 +262,8 @@ function buildPiecesFromPositionMap(map: PositionMap | PositionMapShort): Uint8A
 	}
 	return out;
 }
+
+export type BoardMutationCause =
+	| 'board.reducer.setBoardPosition'
+	| 'board.reducer.setTurn'
+	| 'board.reducer.move';
