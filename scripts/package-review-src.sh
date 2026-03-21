@@ -59,6 +59,8 @@ fi
 # Standard payload
 cp -R "$ROOT_DIR/src" "$STAGING_DIR/src"
 copy_if_exists "tests"
+copy_if_exists "src-old"
+copy_if_exists "tests-old"
 
 copy_if_exists "package.json"
 copy_if_exists "package-lock.json"
