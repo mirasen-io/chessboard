@@ -1,17 +1,18 @@
-export type MutationPipe<Context, Cause extends string> = (
-	ctx: Context,
-	mutationSession: MutationSession<Cause>
-) => void;
+import type { ReadonlyDeep } from 'type-fest';
+import type { Move } from '../board/types';
+import type { ChangeStateMutationSession } from './mutation';
 
-export interface MutationPipeline<Context, Cause extends string> {
-	getSession(): MutationSession<Cause>;
-	addMutation(cause: Cause, changed: boolean): boolean;
-	run(ctx: Context): boolean;
+export interface ChangeStateInternal {
+	lastMove: ReadonlyDeep<Move> | null;
 }
 
-export interface MutationSession<Cause extends string> {
-	addMutation(cause: Cause, changed: boolean): boolean;
-	hasChanges(): boolean;
-	getCauses(): ReadonlySet<Cause>;
-	clear(): void;
+export type ChangeStateSnapshot = ReadonlyDeep<ChangeStateInternal>;
+
+export interface ChangeState {
+	getLastMove(): ReadonlyDeep<Move> | null;
+	setLastMove(
+		move: ReadonlyDeep<Move> | null,
+		mutationSession: ChangeStateMutationSession
+	): boolean;
+	getSnapshot(): ChangeStateSnapshot;
 }

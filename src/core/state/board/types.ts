@@ -5,7 +5,8 @@
  * - Internals use numeric squares (0..63) and compact encodings; those details are hidden from consumers.
  */
 
-import { BoardRuntimeMutationSession } from '../../runtime/change/types';
+import type { ReadonlyDeep } from 'type-fest';
+import type { BoardMutationSession } from './mutation';
 
 export type Color = 'white' | 'black';
 export type ColorShort = 'w' | 'b';
@@ -131,6 +132,7 @@ export interface MoveBase {
 	to: Square;
 	moved: Piece;
 }
+export type MoveBaseSnapshot = ReadonlyDeep<MoveBase>;
 
 export interface Move extends MoveBase {
 	promotion?: RolePromotion;
@@ -138,6 +140,7 @@ export interface Move extends MoveBase {
 	capturedSquare?: Square; // Optional: where the captured piece was (for en passant)
 	secondary?: MoveBase; // Optional: for multi-part moves like castling (rook move)
 }
+export type MoveSnapshot = ReadonlyDeep<Move>;
 
 /**
  * Internal mutable board state used by reducers/runtime.
@@ -155,14 +158,7 @@ export interface BoardStateInternal {
 /**
  * State snapshot shape exposed to consumers. Contains only board-owned fields; view state is separate.
  */
-export interface BoardStateSnapshot {
-	// Encoded pieces on the board
-	readonly pieces: Readonly<Uint8Array>;
-	// current turn
-	readonly turn: Color;
-	// Incremented on position changes
-	readonly positionEpoch: number;
-}
+export type BoardStateSnapshot = ReadonlyDeep<BoardStateInternal>;
 
 // Position map acceptance forms (public inputs)
 // Long/canonical
@@ -178,9 +174,9 @@ export interface BoardStateInitOptions {
 }
 
 export interface BoardState {
-	setPosition(input: PositionInput, mutationSession: BoardRuntimeMutationSession): boolean;
-	setTurn(turn: ColorInput, mutationSession: BoardRuntimeMutationSession): void;
-	move(move: MoveInput, mutationSession: BoardRuntimeMutationSession): Move;
+	setPosition(input: PositionInput, mutationSession: BoardMutationSession): boolean;
+	setTurn(turn: ColorInput, mutationSession: BoardMutationSession): boolean;
+	move(move: MoveInput, mutationSession: BoardMutationSession): Move;
 	getPieceCodeAt(square: Square): number;
 	getSnapshot(): BoardStateSnapshot;
 }

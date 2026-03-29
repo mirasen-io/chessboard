@@ -1,7 +1,8 @@
+import { cloneDeep } from 'lodash-es';
 import { setsEqual } from '../../../helper/util';
 import { toValidSquare } from '../board/coords';
 import type { Square, SquareInput } from '../board/types';
-import type { DragSession, InteractionStateInternal } from './types';
+import type { DragSessionSnapshot, InteractionStateInternal } from './types';
 
 /**
  * Set or clear the selected square.
@@ -21,7 +22,7 @@ export function interactionSetSelectedSquare(
 
 /**
  * Set or clear the active destinations for the current selected/drag source square.
- * Null means no active destinations.
+ * [] means no active destinations. Null is accepted and normalized to [].
  * Returns true if the value changed, false if no-op (reference equality check).
  * Does not take an InvalidationWriter — no direct invalidation side-effects.
  */
@@ -30,7 +31,7 @@ export function interactionSetDestinations(
 	dests: readonly Square[] | null
 ): boolean {
 	if (setsEqual(new Set(state.destinations), new Set(dests))) return false;
-	state.destinations = dests ? [...dests] : null;
+	state.destinations = dests ? [...dests] : [];
 	return true;
 }
 
@@ -42,11 +43,11 @@ export function interactionSetDestinations(
  */
 export function interactionSetDragSession(
 	state: InteractionStateInternal,
-	session: DragSession | null
+	session: DragSessionSnapshot | null
 ): boolean {
 	if (!state.dragSession && !session) return false;
 	if (state.dragSession?.fromSquare === session?.fromSquare) return false;
-	state.dragSession = session ? { ...session } : null;
+	state.dragSession = session ? cloneDeep(session) : null;
 	return true;
 }
 
@@ -88,7 +89,7 @@ export function interactionSetReleaseTargetingActive(
 export function interactionClear(state: InteractionStateInternal): boolean {
 	const anySet =
 		state.selectedSquare !== null ||
-		state.destinations !== null ||
+		state.destinations.length > 0 ||
 		state.dragSession !== null ||
 		state.currentTarget !== null ||
 		state.releaseTargetingActive !== false;
@@ -96,7 +97,7 @@ export function interactionClear(state: InteractionStateInternal): boolean {
 	if (!anySet) return false;
 
 	state.selectedSquare = null;
-	state.destinations = null;
+	state.destinations = [];
 	state.dragSession = null;
 	state.currentTarget = null;
 	state.releaseTargetingActive = false;

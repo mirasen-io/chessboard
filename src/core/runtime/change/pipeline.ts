@@ -1,7 +1,7 @@
-import { createMutationPipeline } from '../../state/change/pipeline';
+import { createMutationPipeline } from '../../state/mutation/pipeline';
 import type { BoardRuntimeStateInternal } from '../types';
-import type { BoardRuntimeMutationCause } from './causes';
 import { clearIfPieceInInteractionChanged } from './interaction';
+import type { BoardRuntimeMutationCause } from './mutation';
 import type {
 	BoardRuntimeMuitationPipe,
 	BoardRuntimeMutationPipeline,

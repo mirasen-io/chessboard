@@ -1,10 +1,10 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { BoardStateSnapshot, Move } from '../../state/board/types';
-import type { MutationPipe, MutationPipeline, MutationSession } from '../../state/change/types';
 import type { InteractionStateSnapshot } from '../../state/interaction/types';
+import type { MutationPipe, MutationPipeline, MutationSession } from '../../state/mutation/types';
 import type { ViewStateSnapshot } from '../../state/view/types';
 import { BoardRuntimeStateInternal } from '../types';
-import type { BoardRuntimeMutationCause } from './causes';
+import type { BoardRuntimeMutationCause } from './mutation';
 
 export interface BoardRuntimeStateChangeContextPreviousStateChange {
 	readonly lastMove: ReadonlyDeep<Move> | null;

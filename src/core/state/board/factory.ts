@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash-es';
 import { fromAlgebraic } from './coords';
 import { encodePiece } from './encode';
 import { parseFenPlacement, parseFenTurn, START_FEN } from './fen';
@@ -7,7 +8,6 @@ import type {
 	BoardState,
 	BoardStateInitOptions,
 	BoardStateInternal,
-	BoardStateSnapshot,
 	Color,
 	Piece,
 	PositionMap,
@@ -64,21 +64,6 @@ function coercePieceInput(p: { color: string; role: string }): Piece {
 	return { color, role };
 }
 
-/**
- * Build a public read-only snapshot of the current state.
- * - Clones the pieces array to prevent external mutation.
- * - Other fields are primitives or treated as read-only by convention.
- */
-export function getBoardStateSnapshot(state: BoardStateInternal): BoardStateSnapshot {
-	const snap: BoardStateSnapshot = {
-		pieces: new Uint8Array(state.pieces),
-		turn: state.turn,
-		positionEpoch: state.positionEpoch
-	};
-	// Cast to the readonly deep snapshot type. Data is either cloned or immutable primitives.
-	return snap;
-}
-
 export function createBoardState(options?: BoardStateInitOptions): BoardState {
 	const internalState = createBoardStateInternal(options);
 
@@ -94,14 +79,14 @@ export function createBoardState(options?: BoardStateInitOptions): BoardState {
 		},
 		move(move, mutationSession) {
 			const result = boardMove(internalState, move);
-			mutationSession.addMutation('board.state.move', !!result);
+			mutationSession.addMutation('board.state.move', true, result);
 			return result;
 		},
 		getPieceCodeAt(square) {
 			return internalState.pieces[square];
 		},
 		getSnapshot() {
-			return getBoardStateSnapshot(internalState);
+			return cloneDeep(internalState);
 		}
 	};
 }

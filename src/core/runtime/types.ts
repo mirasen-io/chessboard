@@ -1,6 +1,4 @@
-import type { ReadonlyDeep } from 'type-fest';
 import {
-	BoardState,
 	BoardStateInitOptions,
 	ColorInput,
 	Move,
@@ -9,27 +7,15 @@ import {
 	Square,
 	SquareInput
 } from '../state/board/types';
-import { InteractionState } from '../state/interaction/types';
-import { Movability, ViewState, ViewStateInitOptions } from '../state/view/types';
-
-export interface BoardRuntimeStateInternalStateChange {
-	lastMove: ReadonlyDeep<Move> | null;
-}
-
-export interface BoardRuntimeStateInternalState {
-	// State snapshots
-	board: BoardState;
-	view: ViewState;
-	interaction: InteractionState;
-	change: BoardRuntimeStateInternalStateChange;
-}
+import { BoardRuntimeStateStateInternal } from '../state/types';
+import { Movability, ViewStateInitOptions } from '../state/view/types';
 
 export interface BoardRuntimeStateInternalMount {
 	container: HTMLElement;
 }
 
 export interface BoardRuntimeStateInternal {
-	state: BoardRuntimeStateInternalState;
+	state: BoardRuntimeStateStateInternal;
 }
 
 export interface BoardRuntimeInitOptions {

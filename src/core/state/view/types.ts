@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
-import { BoardRuntimeMutationSession } from '../../runtime/change/types';
 import type { Color, ColorInput, Square } from '../board/types';
+import { ViewMutationSession } from './mutation';
 
 export type Orientation = Color; // For clarity in context where it applies
 
@@ -25,6 +25,7 @@ export type DisabledMovability = {
 };
 
 export type Movability = StrictMovability | FreeMovability | DisabledMovability;
+export type MovabilitySnapshot = ReadonlyDeep<Movability>;
 
 /**
  * Internal mutable view/config state used by reducers/runtime.
@@ -40,10 +41,7 @@ export interface ViewStateInternal {
  * State snapshot shape exposed to consumers. Contains only view-owned fields; board state is separate.
  * Interaction state is separate.
  */
-export interface ViewStateSnapshot {
-	readonly orientation: Orientation;
-	readonly movability: ReadonlyDeep<Movability>;
-}
+export type ViewStateSnapshot = ReadonlyDeep<ViewStateInternal>;
 
 export interface ViewStateInitOptions {
 	orientation?: ColorInput; // 'white' | 'black' | 'w' | 'b'
@@ -52,8 +50,8 @@ export interface ViewStateInitOptions {
 
 export interface ViewState {
 	getOrientation(): Orientation;
-	setOrientation(orientation: ColorInput, mutationSession: BoardRuntimeMutationSession): boolean;
-	getMovability(): ReadonlyDeep<Movability>;
-	setMovability(movability: Movability, mutationSession: BoardRuntimeMutationSession): boolean;
+	setOrientation(orientation: ColorInput, mutationSession: ViewMutationSession): boolean;
+	getMovability(): MovabilitySnapshot;
+	setMovability(movability: MovabilitySnapshot, mutationSession: ViewMutationSession): boolean;
 	getSnapshot(): ViewStateSnapshot;
 }

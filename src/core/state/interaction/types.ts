@@ -1,5 +1,6 @@
-import type { BoardRuntimeMutationSession } from '../../runtime/change/types';
+import type { ReadonlyDeep } from 'type-fest';
 import type { Square } from '../board/types';
+import type { InteractionMutationSession } from './mutation';
 
 /**
  * Active drag session facts.
@@ -10,6 +11,7 @@ import type { Square } from '../board/types';
 export interface DragSession {
 	fromSquare: Square;
 }
+export type DragSessionSnapshot = ReadonlyDeep<DragSession>;
 
 /**
  * Internal mutable interaction state owned by the runtime.
@@ -18,7 +20,7 @@ export interface DragSession {
  * - selectedSquare: the currently selected square (null = nothing selected).
  *   Selected piece context is derived from boardState.pieces[selectedSquare].
  * - destinations: the active destination set for the current selected/drag source square only.
- *   Null means no active destinations. Stored here so consumers read one flat list
+ *   [] means no active destinations. Stored here so consumers read one flat list
  *   rather than joining the full strict movability map with the active source square.
  * - dragSession: active drag state (null = no drag in progress).
  * - currentTarget: the square currently being targeted during drag or selection (null = none).
@@ -30,7 +32,7 @@ export interface DragSession {
  */
 export interface InteractionStateInternal {
 	selectedSquare: Square | null;
-	destinations: readonly Square[] | null;
+	destinations: readonly Square[];
 	dragSession: DragSession | null;
 	currentTarget: Square | null;
 	releaseTargetingActive: boolean;
@@ -39,29 +41,26 @@ export interface InteractionStateInternal {
 /**
  * Read-only snapshot of interaction state for consumers and extensions.
  */
-export interface InteractionStateSnapshot {
-	readonly selectedSquare: Square | null;
-	readonly destinations: readonly Square[] | null;
-	readonly dragSession: DragSession | null;
-	readonly currentTarget: Square | null;
-	readonly releaseTargetingActive: boolean;
-}
+export type InteractionStateSnapshot = ReadonlyDeep<InteractionStateInternal>;
 
 export interface InteractionState {
 	getSelectedSquare(): Square | null;
-	setSelectedSquare(sq: Square | null, mutationSession: BoardRuntimeMutationSession): void;
-	getDestinations(): readonly Square[] | null;
+	setSelectedSquare(sq: Square | null, mutationSession: InteractionMutationSession): boolean;
+	getDestinations(): readonly Square[];
 	setDestinations(
 		dests: readonly Square[] | null,
-		mutationSession: BoardRuntimeMutationSession
-	): void;
-	getDragSession(): DragSession | null;
-	setDragSession(session: DragSession | null, mutationSession: BoardRuntimeMutationSession): void;
+		mutationSession: InteractionMutationSession
+	): boolean;
+	getDragSession(): DragSessionSnapshot | null;
+	setDragSession(
+		session: DragSessionSnapshot | null,
+		mutationSession: InteractionMutationSession
+	): boolean;
 	getCurrentTarget(): Square | null;
-	setCurrentTarget(sq: Square | null, mutationSession: BoardRuntimeMutationSession): void;
+	setCurrentTarget(sq: Square | null, mutationSession: InteractionMutationSession): boolean;
 	getReleaseTargetingActive(): boolean;
-	setReleaseTargetingActive(active: boolean, mutationSession: BoardRuntimeMutationSession): void;
-	clear(mutationSession: BoardRuntimeMutationSession): void;
-	clearActive(mutationSession: BoardRuntimeMutationSession): void;
+	setReleaseTargetingActive(active: boolean, mutationSession: InteractionMutationSession): boolean;
+	clear(mutationSession: InteractionMutationSession): boolean;
+	clearActive(mutationSession: InteractionMutationSession): boolean;
 	getSnapshot(): InteractionStateSnapshot;
 }

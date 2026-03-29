@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash-es/cloneDeep';
 import {
 	interactionClear,
 	interactionClearActive,
@@ -7,7 +8,7 @@ import {
 	interactionSetReleaseTargetingActive,
 	interactionSetSelectedSquare
 } from './reducers';
-import type { InteractionState, InteractionStateInternal, InteractionStateSnapshot } from './types';
+import type { InteractionState, InteractionStateInternal } from './types';
 
 /**
  * Create a fresh interaction state with all fields set to null or false.
@@ -15,25 +16,10 @@ import type { InteractionState, InteractionStateInternal, InteractionStateSnapsh
 function createInteractionStateInternal(): InteractionStateInternal {
 	return {
 		selectedSquare: null,
-		destinations: null,
+		destinations: [],
 		dragSession: null,
 		currentTarget: null,
 		releaseTargetingActive: false
-	};
-}
-
-/**
- * Build a read-only snapshot of the current interaction state.
- */
-export function getInteractionStateSnapshot(
-	state: InteractionStateInternal
-): InteractionStateSnapshot {
-	return {
-		selectedSquare: state.selectedSquare,
-		destinations: state.destinations ? [...state.destinations] : null,
-		dragSession: state.dragSession ? { ...state.dragSession } : null,
-		currentTarget: state.currentTarget,
-		releaseTargetingActive: state.releaseTargetingActive
 	};
 }
 
@@ -99,7 +85,7 @@ export function createInteractionState(): InteractionState {
 			);
 		},
 		getSnapshot() {
-			return getInteractionStateSnapshot(internalState);
+			return cloneDeep(internalState);
 		}
 	};
 }

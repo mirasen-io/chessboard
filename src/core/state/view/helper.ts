@@ -1,6 +1,6 @@
 import { setsEqual } from '../../../helper/util';
 import type { Square } from '../board/types';
-import type { Movability, MovabilityDestinationsRecord, StrictMovability } from './types';
+import type { MovabilityDestinationsRecord, MovabilitySnapshot, StrictMovability } from './types';
 
 function assertNever(x: never): never {
 	throw new Error(`Unhandled movability comparison case: ${String(x)}`);
@@ -8,7 +8,7 @@ function assertNever(x: never): never {
 /**
  * Local helper for structural movability equality.
  */
-export function movabilitiesEqual(a: Movability, b: Movability): boolean {
+export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot): boolean {
 	if (a === b) return true;
 	if (a.mode !== b.mode) return false;
 

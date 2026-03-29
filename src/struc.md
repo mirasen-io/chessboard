@@ -1,6 +1,6 @@
 BoardRuntime
 
-- core
+- state = DONE
   - board
     - boardState
     - board mutations / reducers
@@ -22,8 +22,10 @@ BoardRuntime
       - cancelInteraction
       - notifyDragMove
       - notifyReleaseTargetingMove
+  - change
+    - lastMove
 
-- layout
+- layout = IN PROGRESS
   - boardSize
   - geometry
   - layoutVersion
@@ -33,8 +35,8 @@ BoardRuntime
     - refreshGeometry
     - orientation-triggered geometry rebuild
 
-- move
-  - lastMove
+- move - пока еще в переработке
+  - lastMove -> this moved to state/change
   - move-derived operations
     - commitMove
     - computeAnimationPlan input preparation
