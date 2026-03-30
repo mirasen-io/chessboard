@@ -34,13 +34,6 @@ BoardRuntime
     - refreshGeometry
     - orientation-triggered geometry rebuild
 
-- move - пока еще в переработке
-  - lastMove -> this moved to state/change
-  - move-derived operations
-    - commitMove
-    - computeAnimationPlan input preparation
-    - lastMove reset/update rules
-
 - visuals
   - transientVisuals
     - dragPointer
@@ -76,6 +69,7 @@ BoardRuntime
 
 - animation
   - animator
+    - computeAnimationPlan
   - animation operations
     - animator.start(plan)
     - animator.stop()
@@ -123,3 +117,8 @@ BoardRuntime
       - extensions
       - render
       - animation
+
+- BoardRuntime operations
+  - move
+- BoardRuntime input controller surface
+  - commitTo
