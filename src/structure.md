@@ -35,9 +35,9 @@ BoardRuntime
     - orientation-triggered geometry rebuild
 
 - render = IN PROGRESS
-  - invalidation = IN PROGRESS
+  - invalidation = DONE
     - invalidationState
-    - invalidationWriter
+      - invalidatioStateExtension
   - renderer
   - scheduler
   - render operations

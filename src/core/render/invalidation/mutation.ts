@@ -7,7 +7,7 @@ export interface InvalidationMutationExtensionPayload {
 export type InvalidationMutationPayloadByCause = {
 	'invalidation.state.marked': undefined;
 	'invalidation.state.cleared': undefined;
-	'invalidation.extension.added': InvalidationMutationExtensionPayload;
+	'invalidation.state.createExtension': InvalidationMutationExtensionPayload;
 };
 
 export type InvalidationMutationCause = keyof InvalidationMutationPayloadByCause;

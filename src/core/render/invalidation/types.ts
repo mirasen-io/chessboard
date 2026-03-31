@@ -1,21 +1,26 @@
 import type { ReadonlyDeep } from 'type-fest';
+import { InvalidationMutationSession } from './mutation';
 
 /**
  * Base invalidation types
  */
+export type DirtyLayerMask = number;
+export enum DirtyLayer {
+	Board = 1, // 1 << 0,
+	Pieces = 2, // 1 << 1,
+	Drag = 4, // 1 << 2,
+	All = Board | Pieces | Drag
+}
+
 export interface InvalidationStateBaseInternal {
-	layers: number;
+	layers: DirtyLayerMask;
 }
 export type InvalidationStateBaseSnapshot = ReadonlyDeep<InvalidationStateBaseInternal>;
 
-export interface InvalidationWriter {
-	markLayer(layerMask: number): boolean;
-}
-
-export interface InvalidationStateBase extends InvalidationWriter {
-	getLayers(): number;
-	clear(): boolean;
-	getWriter(): InvalidationWriter;
+export interface InvalidationStateBase {
+	markLayer(layerMask: DirtyLayerMask, mutationSession: InvalidationMutationSession): boolean;
+	getLayers(): DirtyLayerMask;
+	clear(mutationSession: InvalidationMutationSession): boolean;
 	getSnapshot(): InvalidationStateBaseSnapshot;
 }
 
@@ -39,11 +44,12 @@ export type InvalidationStateSnapshot = ReadonlyDeep<
 	extensions: Record<string, InvalidationStateExtensionSnapshot>;
 };
 
-export type InvalidationStateBaseExtension = InvalidationStateBase;
-
 export interface InvalidationState extends InvalidationStateBase {
 	getExtensions(): Readonly<Record<string, InvalidationStateExtension>>;
 	getExtension(extensionId: string): InvalidationStateExtension | undefined;
-	createExtension(extensionId: string): InvalidationStateExtension;
+	createExtension(
+		extensionId: string,
+		mutationSession: InvalidationMutationSession
+	): InvalidationStateExtension;
 	getSnapshot(): InvalidationStateSnapshot;
 }

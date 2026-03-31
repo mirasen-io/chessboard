@@ -1,25 +1,13 @@
 import { cloneDeep } from 'lodash-es';
+import { invalidationClear, invalidationMarkLayer } from './reducers';
 import type {
 	InvalidationState,
 	InvalidationStateBase,
 	InvalidationStateBaseInternal,
 	InvalidationStateExtensionSnapshot,
 	InvalidationStateInternal,
-	InvalidationStateSnapshot,
-	InvalidationWriter
+	InvalidationStateSnapshot
 } from './types';
-
-function createInvalidationWriter(
-	internalState: InvalidationStateBaseInternal
-): InvalidationWriter {
-	return {
-		markLayer(layerMask: number): boolean {
-			const prevLayers = internalState.layers;
-			internalState.layers |= layerMask;
-			return internalState.layers !== prevLayers;
-		}
-	};
-}
 
 function createInvalidationStateBaseInternal(): InvalidationStateBaseInternal {
 	return {
@@ -31,7 +19,6 @@ function createInvalidationStateBase(
 	internalState?: InvalidationStateBaseInternal
 ): InvalidationStateBase {
 	internalState = internalState ?? createInvalidationStateBaseInternal();
-	const writer = createInvalidationWriter(internalState);
 	return {
 		getLayers() {
 			return internalState.layers;
@@ -39,16 +26,17 @@ function createInvalidationStateBase(
 		getSnapshot() {
 			return cloneDeep(internalState);
 		},
-		markLayer(layerMask: number): boolean {
-			return writer.markLayer(layerMask);
+		markLayer(layerMask, mutationSession) {
+			return mutationSession.addMutation(
+				'invalidation.state.marked',
+				invalidationMarkLayer(internalState, layerMask)
+			);
 		},
-		clear() {
-			const changed = internalState.layers !== 0;
-			internalState.layers = 0;
-			return changed;
-		},
-		getWriter() {
-			return writer;
+		clear(mutationSession) {
+			return mutationSession.addMutation(
+				'invalidation.state.cleared',
+				invalidationClear(internalState)
+			);
 		}
 	};
 }
@@ -71,15 +59,16 @@ export function createInvalidationState(): InvalidationState {
 		getExtensions() {
 			return { ...internalState.extensions };
 		},
-		getExtension(extensionId: string) {
+		getExtension(extensionId) {
 			return internalState.extensions[extensionId];
 		},
-		createExtension(extensionId: string): InvalidationStateBase {
+		createExtension(extensionId, mutationSession) {
 			if (internalState.extensions[extensionId]) {
 				throw new Error(`Extension with id "${extensionId}" already exists in invalidation state.`);
 			}
 			const extension = createInvalidationStateExtension();
 			internalState.extensions[extensionId] = extension;
+			mutationSession.addMutation('invalidation.state.createExtension', true, { extensionId });
 			return extension;
 		},
 		getSnapshot() {
