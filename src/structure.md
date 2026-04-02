@@ -24,6 +24,12 @@ BoardRuntime
       - notifyReleaseTargetingMove
   - change
     - lastMove
+  - visuals
+    - transientVisuals
+      - dragPointer
+    - visual transient operations
+      - drag pointer updates
+      - drag pointer clear on interaction reset / commit / cancel
 
 - layout = DONE
   - boardSize
@@ -49,13 +55,6 @@ BoardRuntime
     - clearDirty
     - getBoardSnapshot
     - getInvalidationSnapshot
-
-- visuals
-  - transientVisuals
-    - dragPointer
-  - visual transient operations
-    - drag pointer updates
-    - drag pointer clear on interaction reset / commit / cancel
 
 - mount
   - host

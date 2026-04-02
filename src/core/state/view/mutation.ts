@@ -1,4 +1,4 @@
-import { MutationSession } from '../mutation/types';
+import type { MutationSession } from '../../mutation/types';
 
 export type ViewStateMutationPayloadByCause = {
 	'view.state.setOrientation': undefined;

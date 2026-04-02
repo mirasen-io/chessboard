@@ -8,11 +8,7 @@ export function createMutationSession<
 	const payloads = new Map<MutationCause, MutationPayloads[] | undefined>();
 
 	return {
-		addMutation<Cause extends keyof PayloadByCause>(
-			cause: Cause,
-			changed: boolean,
-			...payload: PayloadByCause[Cause] extends undefined ? [] : [payload: PayloadByCause[Cause]]
-		): boolean {
+		addMutation(cause, changed, ...payload): boolean {
 			if (!changed) {
 				return false;
 			}
@@ -36,22 +32,28 @@ export function createMutationSession<
 			return true;
 		},
 
-		hasChanges(): boolean {
+		hasChanges() {
 			return payloads.size > 0;
 		},
 
-		hasMutation<Cause extends keyof PayloadByCause>(cause: Cause): boolean {
+		hasMutation(cause) {
 			return payloads.has(cause);
 		},
 
-		getPayloads<Cause extends keyof PayloadByCause>(
-			cause: Cause
-		): PayloadByCause[Cause][] | undefined {
-			return payloads.get(cause) as PayloadByCause[Cause][] | undefined;
+		getPayloads(cause) {
+			return payloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
 		},
 
-		clear(): void {
+		clear() {
 			payloads.clear();
+		},
+
+		getSnapshot() {
+			return {
+				hasChanges: this.hasChanges,
+				hasMutation: this.hasMutation,
+				getPayloads: this.getPayloads
+			};
 		}
 	};
 }

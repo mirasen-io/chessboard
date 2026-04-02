@@ -18,6 +18,8 @@ export interface MutationSession<
 	): boolean;
 
 	clear(): void;
+
+	getSnapshot(): ReadonlyMutationSession<PayloadByCause>;
 }
 
 export type MutationPipe<PayloadByCause extends Record<string, unknown>, Context> = (

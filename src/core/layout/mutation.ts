@@ -1,4 +1,4 @@
-import { MutationSession } from '../state/mutation/types';
+import type { MutationSession } from '../mutation/types';
 
 export type LayoutMutationPayloadByCause = {
 	'board.layout.refreshGeometry': undefined;

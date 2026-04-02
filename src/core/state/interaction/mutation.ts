@@ -1,4 +1,4 @@
-import type { MutationSession } from '../mutation/types';
+import type { MutationSession } from '../../mutation/types';
 
 export type InteractionStateMutationPayloadByCause = {
 	'interaction.state.setSelectedSquare': undefined;

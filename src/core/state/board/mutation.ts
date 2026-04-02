@@ -1,4 +1,4 @@
-import type { MutationSession } from '../mutation/types';
+import type { MutationSession } from '../../mutation/types';
 import type { MoveSnapshot } from './types';
 
 export type BoardStateMutationPayloadByCause = {
