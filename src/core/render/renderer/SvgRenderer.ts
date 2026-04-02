@@ -1,19 +1,20 @@
 import { PartialDeep } from 'type-fest';
-import { DirtyLayer } from '../scheduler/types';
-import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
-import { squareOf, toAlgebraic } from '../state/coords';
-import { decodePiece } from '../state/encode';
+import { setsEqual } from '../../../helpers/util';
+import { squareOf, toAlgebraic } from '../../state/board/coords';
+import { decodePiece } from '../../state/board/encode';
+import type { BoardStateSnapshot, Color, Square } from '../../state/board/types';
+import { DirtyLayer } from '../invalidation/types';
 import type {
 	AnimationRenderContext,
 	BoardRenderContext,
 	DragRenderContext,
 	RenderConfig,
-	Renderer,
-	RenderGeometry
+	Renderer
 } from '../types';
 import { DEFAULT_RENDER_CONFIG } from '../types';
 import { cburnettPieceUrl } from './assets';
 import { isLightSquare } from './geometry';
+import { SVG_NS } from './helpers';
 import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
 
 type SvgRendererOptions = {
