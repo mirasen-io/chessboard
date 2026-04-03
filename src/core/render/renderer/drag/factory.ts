@@ -4,12 +4,12 @@ import { SvgRendererDrag, SvgRendererDragInternals } from './types';
 
 function createSvgRendererDragInternals(doc: Document): SvgRendererDragInternals {
 	return {
-		root: createSvgGroup(doc, { id: 'renderer-drag-root' }),
-		defsRoot: createSvgGroup(doc, { id: 'renderer-drag-defs' })
+		root: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-drag-root' }),
+		defsRoot: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-drag-defs' })
 	};
 }
 
-export function createRendererDrag(doc: Document): SvgRendererDrag {
+export function createSvgRendererDrag(doc: Document): SvgRendererDrag {
 	const internalState = createSvgRendererDragInternals(doc);
 	return {
 		...internalState,

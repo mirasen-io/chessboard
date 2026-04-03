@@ -24,14 +24,14 @@ export function renderAnimations(
 	const needsNewGroup =
 		!state.activeSessionGroup ||
 		state.activeSessionGroup.parentNode !== layer ||
-		state.activeSessionGroup.getAttribute('id') !== `animation-session-${session.id}`;
+		state.activeSessionGroup.getAttribute('data-chessboard-id') !==
+			`animation-session-${session.id}`;
 
 	if (needsNewGroup) {
 		clearElementChildren(layer);
-		state.activeSessionGroup = createSvgGroup(layer.ownerDocument, {
-			id: `animation-session-${session.id}`
+		state.activeSessionGroup = createSvgGroup(layer, {
+			'data-chessboard-id': `animation-session-${session.id}`
 		});
-		layer.appendChild(state.activeSessionGroup);
 	}
 
 	// Delegate frame rendering to helper (activeSessionGroup is guaranteed non-null here)
@@ -46,12 +46,13 @@ export function renderAnimationFrame(
 	now: number
 ): void {
 	// Find or create reserved child group with stable marker
-	let reservedGroup = sessionGroup.querySelector<SVGGElement>('g[id="animation-frame"]');
+	let reservedGroup = sessionGroup.querySelector<SVGGElement>(
+		'g[data-chessboard-id="animation-frame"]'
+	);
 	if (!reservedGroup) {
-		reservedGroup = createSvgGroup(sessionGroup.ownerDocument, {
-			id: 'animation-frame'
+		reservedGroup = createSvgGroup(sessionGroup, {
+			'data-chessboard-id': 'animation-frame'
 		});
-		sessionGroup.appendChild(reservedGroup);
 	} else {
 		clearElementChildren(reservedGroup);
 	}
@@ -86,8 +87,8 @@ export function renderAnimationFrame(
 		const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
 
 		// Create transient image node
-		const img = createSvgImage(reservedGroup.ownerDocument, {
-			id: `animation-piece-${pieceCode}`,
+		createSvgImage(reservedGroup, {
+			'data-chessboard-id': `animation-piece-${pieceCode}`,
 			fromSq: track.fromSq.toString(),
 			toSq: track.toSq.toString(),
 			x: String(x),
@@ -96,6 +97,5 @@ export function renderAnimationFrame(
 			height: String(size),
 			href: pieceUrl
 		});
-		reservedGroup.appendChild(img);
 	}
 }

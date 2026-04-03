@@ -15,14 +15,14 @@ import {
 } from '../helpers';
 import { collectChangedPieceSquares } from './helpers';
 import {
-	BoardRenderContext,
+	_BoardRenderContext,
 	RendererBoardFrameSnapshot,
 	RendererConfigColorPair,
 	SvgRendererBoardInternals,
 	SvgRendererBoardPieceNode
 } from './types';
 
-export function renderBoard(state: SvgRendererBoardInternals, context: BoardRenderContext): void {
+export function renderBoard(state: SvgRendererBoardInternals, context: _BoardRenderContext): void {
 	const { previous, current, invalidation } = context;
 	const prevSuppressedSquares = previous?.suppressedSquares ?? new Set<Square>();
 	const currSuppressedSquares = current.suppressedSquares;
@@ -58,7 +58,7 @@ function drawBoard(
 	for (let sq = 0 as Square; sq < 64; sq++) {
 		const r = geometry.squareRect(sq);
 		const rect = createSvgRect(layer.ownerDocument, {
-			id: `square-${sq}`,
+			'data-chessboard-id': `square-${sq}`,
 			x: r.x.toString(),
 			y: r.y.toString(),
 			width: r.size.toString(),
@@ -97,7 +97,7 @@ function drawCoords(
 		const color = labelColorForSquare(colors, sq);
 
 		const text = createSvgText(layer.ownerDocument, label, {
-			id: `coord-rank-${logicalRank}`,
+			'data-chessboard-id': `coord-rank-${logicalRank}`,
 			x: (r.x + offset).toString(),
 			y: (r.y + offset).toString(),
 			'font-size': fontSize.toString(),
@@ -125,7 +125,7 @@ function drawCoords(
 		const color = labelColorForSquare(colors, sq);
 
 		const text = createSvgText(layer.ownerDocument, label, {
-			id: `coord-file-${logicalFile}`,
+			'data-chessboard-id': `coord-file-${logicalFile}`,
 			x: (r.x + r.size - offset).toString(),
 			y: (r.y + r.size - offset).toString(),
 			'font-size': fontSize.toString(),
@@ -182,7 +182,7 @@ function drawPieces(
 		if (node === undefined) {
 			// New piece appeared, create node
 			const img = createSvgImage(layer.ownerDocument, {
-				id: `renderer-board-piece-${sq}`,
+				'data-chessboard-id': `renderer-board-piece-${sq}`,
 				'data-square': toAlgebraic(sq)
 			});
 			node = { root: img };

@@ -2,16 +2,16 @@ import { createSvgGroup } from '../helpers';
 import { renderAnimations } from './render';
 import { SvgRendererAnimation, SvgRendererAnimationInternals } from './types';
 
-function createRendererAnimationInternals(doc: Document): SvgRendererAnimationInternals {
+function createSvgRendererAnimationInternals(doc: Document): SvgRendererAnimationInternals {
 	return {
-		root: createSvgGroup(doc, { id: 'renderer-animation-root' }),
-		defsRoot: createSvgGroup(doc, { id: 'renderer-animation-defs-root' }),
+		root: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-animation-root' }),
+		defsRoot: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-animation-defs-root' }),
 		activeSessionGroup: null
 	};
 }
 
-export function createRendererAnimation(doc: Document): SvgRendererAnimation {
-	const internalState = createRendererAnimationInternals(doc);
+export function createSvgRendererAnimation(doc: Document): SvgRendererAnimation {
+	const internalState = createSvgRendererAnimationInternals(doc);
 	return {
 		...internalState,
 		get activeSessionGroup() {

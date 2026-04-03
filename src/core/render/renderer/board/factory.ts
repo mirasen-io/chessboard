@@ -8,25 +8,25 @@ import {
 	SvgRendererBoardInternals
 } from './types';
 
-function createRendererBoardInternals(
+function createSvgRendererBoardInternals(
 	doc: Document,
 	options: SvgRendererBoardInitOptions = {}
 ): SvgRendererBoardInternals {
 	return {
 		config: merge({}, DEFAULT_RENDERER_BOARD_CONFIG, options),
-		root: createSvgGroup(doc, { id: 'renderer-board-root' }),
-		coords: createSvgGroup(doc, { id: 'renderer-board-coords' }),
-		pieces: createSvgGroup(doc, { id: 'renderer-board-pieces' }),
-		defsRoot: createSvgGroup(doc, { id: 'renderer-board-defs' }),
+		root: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-root' }),
+		coords: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-coords' }),
+		pieces: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-pieces' }),
+		defsRoot: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-defs' }),
 		pieceNodes: new Map()
 	};
 }
 
-export function createRendererBoard(
+export function createSvgRendererBoard(
 	doc: Document,
 	options: SvgRendererBoardInitOptions = {}
 ): SvgRendererBoard {
-	const internalState = createRendererBoardInternals(doc, options);
+	const internalState = createSvgRendererBoardInternals(doc, options);
 
 	return {
 		...internalState,

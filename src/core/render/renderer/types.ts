@@ -1,22 +1,33 @@
 import { PartialDeep } from 'type-fest';
-import { ExtensionSlotName } from '../../extensions/types';
+import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../../extensions/types';
+import { InvalidationStateSnapshot } from '../invalidation/types';
 import { AnimationRenderContext, SvgRendererAnimation } from './animation/types';
-import { BoardRenderContext, RendererBoardConfig, SvgRendererBoard } from './board/types';
+import { RendererBoardConfig, RendererBoardFrameSnapshot, SvgRendererBoard } from './board/types';
 import { DragRenderContext, SvgRendererDrag } from './drag/types';
 
 export interface SvgRendererOptions {
 	board?: PartialDeep<RendererBoardConfig>;
 }
 
-export type ExtensionSlots = Partial<Record<ExtensionSlotName, SVGGElement>>;
+export type ExtensionAllocatedSlots = Partial<Record<ExtensionSlotName, SVGGElement>>;
+
+export interface SvgRendererInternalsExtensions extends ExtensionSlotSvgRoots<ExtensionSlotName> {
+	readonly allocatedSlots: Map<string, Readonly<ExtensionAllocatedSlots>>;
+}
 
 export interface SvgRendererInternals {
 	container: HTMLElement | null;
-	svgRoot: SVGSVGElement;
+	readonly svgRoot: SVGSVGElement;
+	readonly defsRoot: SVGDefsElement;
 	readonly board: SvgRendererBoard;
 	readonly drag: SvgRendererDrag;
 	readonly animation: SvgRendererAnimation;
-	extensionSlots: Map<string, ExtensionSlots>;
+	readonly extensions: SvgRendererInternalsExtensions;
+	lastBoardFrame: RendererBoardFrameSnapshot | null;
+}
+
+export interface BoardRenderContext extends RendererBoardFrameSnapshot {
+	readonly invalidation: InvalidationStateSnapshot;
 }
 
 export interface SvgRenderer {
@@ -28,6 +39,6 @@ export interface SvgRenderer {
 	allocateExtensionSlots(
 		extensionId: string,
 		slotNames: readonly ExtensionSlotName[]
-	): ExtensionSlots;
+	): ExtensionAllocatedSlots;
 	removeExtensionSlots(extensionId: string): void;
 }

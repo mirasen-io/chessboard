@@ -20,49 +20,61 @@ export type SvgElementNames = keyof SVGElementTagNameMap;
 // Helper to create SVG elements with attributes.
 // We need to exclude 'id' from generic attributes to enforce its presence for uniqueness in the document.
 export type SvgElementAttributes = Record<string, string>;
-export type SvgElementOtherAttributes = SvgElementAttributes & { id?: never };
-export type SvgElementWithIdAttributes = SvgElementAttributes & { id: string };
+export type SvgElementOtherAttributes = SvgElementAttributes;
+export type SvgElementWithIdAttributes = SvgElementAttributes & { 'data-chessboard-id': string };
 
 export function createSvgElement<K extends SvgElementNames>(
-	doc: Document,
+	parentOrDoc: Element | Document,
 	name: K,
 	attrs: SvgElementWithIdAttributes
 ): SVGElementTagNameMap[K] {
-	// Check that element with the same ID does not already exist in the document to prevent duplicates.
-	if (doc.getElementById(attrs.id)) {
-		throw new Error(`Element with ID "${attrs.id}" already exists in the document.`);
-	}
+	const doc = parentOrDoc instanceof Document ? parentOrDoc : parentOrDoc.ownerDocument;
 	const el = doc.createElementNS(SVG_NS, name);
 	for (const [key, value] of Object.entries(attrs)) {
 		el.setAttribute(key, value);
 	}
+	if (parentOrDoc instanceof Element) {
+		parentOrDoc.appendChild(el);
+	}
 	return el;
 }
 
-export function createSvgGroup(doc: Document, attrs: SvgElementWithIdAttributes): SVGGElement {
-	return createSvgElement(doc, 'g', attrs);
+export function createSvgGroup(
+	parentOrDoc: Element | Document,
+	attrs: SvgElementWithIdAttributes
+): SVGGElement {
+	return createSvgElement(parentOrDoc, 'g', attrs);
 }
 
-export function createSvgDefs(doc: Document, attrs: SvgElementWithIdAttributes): SVGDefsElement {
-	return createSvgElement(doc, 'defs', attrs);
+export function createSvgDefs(
+	parentOrDoc: Element | Document,
+	attrs: SvgElementWithIdAttributes
+): SVGDefsElement {
+	return createSvgElement(parentOrDoc, 'defs', attrs);
 }
 
-export function createSvgRect(doc: Document, attrs: SvgElementWithIdAttributes): SVGRectElement {
-	return createSvgElement(doc, 'rect', attrs);
+export function createSvgRect(
+	parentOrDoc: Element | Document,
+	attrs: SvgElementWithIdAttributes
+): SVGRectElement {
+	return createSvgElement(parentOrDoc, 'rect', attrs);
 }
 
 export function createSvgText(
-	doc: Document,
+	parentOrDoc: Element | Document,
 	content: string,
 	attrs: SvgElementWithIdAttributes
 ): SVGTextElement {
-	const element = createSvgElement(doc, 'text', attrs);
+	const element = createSvgElement(parentOrDoc, 'text', attrs);
 	element.textContent = content;
 	return element;
 }
 
-export function createSvgImage(doc: Document, attrs: SvgElementWithIdAttributes): SVGImageElement {
-	return createSvgElement(doc, 'image', attrs);
+export function createSvgImage(
+	parentOrDoc: Element | Document,
+	attrs: SvgElementWithIdAttributes
+): SVGImageElement {
+	return createSvgElement(parentOrDoc, 'image', attrs);
 }
 
 export function updateElementAttributes(element: Element, attrs: SvgElementOtherAttributes): void {
