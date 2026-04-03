@@ -1,4 +1,13 @@
 import { merge } from 'lodash-es';
+import type {
+	AnimationRenderContext,
+	BoardRenderContext,
+	DragRenderContext,
+	RenderConfig,
+	Renderer,
+	SvgRendererOptions
+} from '..';
+import { DEFAULT_RENDER_CONFIG } from '..';
 import { setsEqual } from '../../../../helpers/util';
 import { RenderGeometry } from '../../../layout/geometry/types';
 import { squareOf, toAlgebraic } from '../../../state/board/coords';
@@ -7,15 +16,6 @@ import type { BoardStateSnapshot, Color, Square } from '../../../state/board/typ
 import { DirtyLayer } from '../../invalidation/types';
 import { cburnettPieceUrl } from '../assets';
 import { createSvgGroup, isLightSquare, SVG_NS } from '../helpers';
-import type {
-	AnimationRenderContext,
-	BoardRenderContext,
-	DragRenderContext,
-	RenderConfig,
-	Renderer,
-	SvgRendererOptions
-} from '../types';
-import { DEFAULT_RENDER_CONFIG } from '../types';
 import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
 
 type PieceNodeRecord = {

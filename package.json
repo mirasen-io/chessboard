@@ -44,7 +44,7 @@
 		"prepack": "publint",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"check": "tsc --skipLibCheck",
+		"check": "tsc --skipLibCheck --noEmit",
 		"check:test": "tsc --project tsconfig-test.json --skipLibCheck --noEmit",
 		"test": "npm run check:test && vitest run --run",
 		"coverage": "vitest run --coverage",
