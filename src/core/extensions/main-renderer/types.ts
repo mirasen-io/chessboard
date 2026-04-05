@@ -1,5 +1,5 @@
-import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../../extensions/types';
-import { InvalidationStateSnapshot } from '../invalidation/types';
+import { InvalidationStateSnapshot } from '../../render/invalidation/types';
+import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../types';
 import { AnimationRenderContext, SvgRendererAnimation } from './animation/types';
 import {
 	RendererBoardFrameSnapshot,
@@ -11,8 +11,6 @@ import { DragRenderContext, SvgRendererDrag } from './drag/types';
 export interface SvgRendererInitOptions {
 	board?: SvgRendererBoardInitOptions;
 }
-
-export type ExtensionAllocatedSlots = Partial<Record<ExtensionSlotName, SVGGElement>>;
 
 export interface SvgRendererInternalsExtensions extends ExtensionSlotSvgRoots<ExtensionSlotName> {
 	readonly allocatedSlots: Map<string, Readonly<ExtensionAllocatedSlots>>;

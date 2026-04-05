@@ -1,4 +1,4 @@
-import { merge } from 'lodash-es';
+import { merge } from 'es-toolkit/object';
 import { createSvgGroup } from '../helpers';
 import { renderBoard } from './render';
 import {

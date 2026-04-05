@@ -1,0 +1,47 @@
+import { Writable } from 'type-fest';
+import { ExtensionSlotName } from '../../extensions/types';
+import { ExtensionAllocatedSlots, RenderInitOpptionsInternal, SvgRoots } from '../types';
+import { createSvgElement } from './helpers';
+
+export function createSvgRoots(options: RenderInitOpptionsInternal): SvgRoots {
+	const { doc } = options;
+	const svgRoot = createSvgElement(doc, 'svg', { 'data-chessboard-id': 'svg-root' });
+	const result: SvgRoots = {
+		svgRoot,
+		defs: createSvgElement(doc, 'defs', { 'data-chessboard-id': 'defs-root' }),
+		board: createSvgElement(doc, 'g', { 'data-chessboard-id': 'board-root' }),
+		coordinates: createSvgElement(doc, 'g', { 'data-chessboard-id': 'coordinates-root' }),
+		underPieces: createSvgElement(doc, 'g', { 'data-chessboard-id': 'under-pieces-root' }),
+		pieces: createSvgElement(doc, 'g', { 'data-chessboard-id': 'pieces-root' }),
+		overPieces: createSvgElement(doc, 'g', { 'data-chessboard-id': 'over-pieces-root' }),
+		animation: createSvgElement(doc, 'g', { 'data-chessboard-id': 'animation-root' }),
+		underDrag: createSvgElement(doc, 'g', { 'data-chessboard-id': 'under-drag-root' }),
+		drag: createSvgElement(doc, 'g', { 'data-chessboard-id': 'drag-root' }),
+		overDrag: createSvgElement(doc, 'g', { 'data-chessboard-id': 'over-drag-root' })
+	};
+
+	// Attach layers in the correct order
+	svgRoot.appendChild(result.defs);
+	svgRoot.appendChild(result.board);
+	svgRoot.appendChild(result.coordinates);
+	svgRoot.appendChild(result.underPieces);
+	svgRoot.appendChild(result.pieces);
+	svgRoot.appendChild(result.overPieces);
+	svgRoot.appendChild(result.animation);
+	svgRoot.appendChild(result.underDrag);
+	svgRoot.appendChild(result.drag);
+	svgRoot.appendChild(result.overDrag);
+	return result;
+}
+
+export function allocateExtensionSlotRoots(
+	svgRoots: SvgRoots,
+	slots: readonly ExtensionSlotName[]
+): ExtensionAllocatedSlots {
+	const result = {} as Writable<ExtensionAllocatedSlots>;
+	for (const slot of slots) {
+		const id = `extension-slot-root-${slot}`;
+		result[slot] = createSvgElement(svgRoots[slot], 'g', { 'data-chessboard-id': id });
+	}
+	return result;
+}

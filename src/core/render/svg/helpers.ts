@@ -39,44 +39,6 @@ export function createSvgElement<K extends SvgElementNames>(
 	return el;
 }
 
-export function createSvgGroup(
-	parentOrDoc: Element | Document,
-	attrs: SvgElementWithIdAttributes
-): SVGGElement {
-	return createSvgElement(parentOrDoc, 'g', attrs);
-}
-
-export function createSvgDefs(
-	parentOrDoc: Element | Document,
-	attrs: SvgElementWithIdAttributes
-): SVGDefsElement {
-	return createSvgElement(parentOrDoc, 'defs', attrs);
-}
-
-export function createSvgRect(
-	parentOrDoc: Element | Document,
-	attrs: SvgElementWithIdAttributes
-): SVGRectElement {
-	return createSvgElement(parentOrDoc, 'rect', attrs);
-}
-
-export function createSvgText(
-	parentOrDoc: Element | Document,
-	content: string,
-	attrs: SvgElementWithIdAttributes
-): SVGTextElement {
-	const element = createSvgElement(parentOrDoc, 'text', attrs);
-	element.textContent = content;
-	return element;
-}
-
-export function createSvgImage(
-	parentOrDoc: Element | Document,
-	attrs: SvgElementWithIdAttributes
-): SVGImageElement {
-	return createSvgElement(parentOrDoc, 'image', attrs);
-}
-
 export function updateElementAttributes(element: Element, attrs: SvgElementOtherAttributes): void {
 	for (const [key, value] of Object.entries(attrs)) {
 		element.setAttribute(key, value);

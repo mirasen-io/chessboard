@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { normalizeColor } from '../board/normalize';
 import { viewSetMovability, viewSetOrientation } from './reducers';
 import type { ViewState, ViewStateInitOptions, ViewStateInternal } from './types';

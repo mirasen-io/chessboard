@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { fromAlgebraic } from './coords';
 import { encodePiece } from './encode';
 import { parseFenPlacement, parseFenTurn, START_FEN } from './fen';

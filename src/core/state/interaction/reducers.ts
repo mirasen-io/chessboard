@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { setsEqual } from '../../../helper/util';
 import { toValidSquare } from '../board/coords';
 import type { Square, SquareInput } from '../board/types';

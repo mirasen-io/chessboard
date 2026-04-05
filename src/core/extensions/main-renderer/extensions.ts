@@ -1,5 +1,5 @@
 import { ExtensionSlotName } from '../../extensions/types';
-import { createSvgGroup } from './helpers';
+import { createSvgGroup } from '../../render/svg/helpers';
 import { SvgRendererInternals } from './types';
 
 export function rendererAllocateExtensionSlots(

@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import type { MoveSnapshot } from '../board/types';
 import { movesEqual } from './helpers';
 import type { ChangeStateInternal } from './types';

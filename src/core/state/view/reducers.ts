@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { normalizeColor } from '../board/normalize';
 import type { ColorInput } from '../board/types';
 import { movabilitiesEqual } from './helper';

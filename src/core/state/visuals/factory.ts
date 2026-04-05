@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { visualsSetDragPointer, visualsSetSkipNextCommittedAnimation } from './reducers';
 import { VisualsState, VisualsStateInternal } from './types';
 

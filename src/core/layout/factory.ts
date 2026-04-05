@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { Color } from '../state/board/types';
 import { RenderGeometry } from './geometry/types';
 import { LayoutMutationSession } from './mutation';

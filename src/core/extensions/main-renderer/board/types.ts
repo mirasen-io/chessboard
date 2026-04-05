@@ -1,7 +1,7 @@
 import { PartialDeep } from 'type-fest';
 import { RenderGeometry } from '../../../layout/geometry/types';
+import { InvalidationStateSnapshot } from '../../../render/invalidation/types';
 import { BoardStateSnapshot, Square } from '../../../state/board/types';
-import { InvalidationStateSnapshot } from '../../invalidation/types';
 
 export interface SvgRendererBoardPieceNode {
 	root: SVGImageElement;
@@ -42,10 +42,6 @@ export interface SvgRendererBoardInternals {
 
 export type SvgRendererBoardInitOptions = PartialDeep<RendererBoardConfig>;
 
-//
-// Stable render-facing snapshot derived from runtime state.
-// This is the semantic input baseline used by the render subsystem and renderer.
-//
 export interface RendererBoardFrameSnapshot {
 	readonly board: BoardStateSnapshot;
 	readonly suppressedSquares: ReadonlySet<Square>;

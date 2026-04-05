@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep } from 'es-toolkit/object';
 import { changeStateSetLastMove } from './reducers';
 import type { ChangeState, ChangeStateInternal } from './types';
 
