@@ -1,14 +1,10 @@
 import {
 	ALL_EXTENSION_SLOTS,
-	AnyExtensionDefinition,
-	AnyExtensionInstance,
-	ExtensionAnimationController,
 	ExtensionAnimationSession,
 	ExtensionAnimationStatus,
-	ExtensionInvalidationState,
-	ExtensionSlotName,
+	ExtensionRecordInternal,
+	ExtensionRecordInternalDraft,
 	ExtensionSlotSvgRoots,
-	MainRendererExtensionDefinition,
 	RenderStateFrameSnapshot
 } from '../extensions/types';
 import { Scheduler } from './scheduler/types';
@@ -18,31 +14,25 @@ export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLO
 	readonly defs: SVGDefsElement;
 }
 
-export type ExtensionAllocatedSlots = ExtensionSlotSvgRoots<readonly ExtensionSlotName[]>;
-
-export interface RenderExtensionData {
-	previous: unknown | null;
-	current: unknown;
-}
-
 export interface ExtensionInvalidationStateInternal {
 	dirtyLayers: number; // bitfield of Layer values
 }
 
-export interface ExtensionAnimationControllerInternal {
-	readonly sessions: Map<string, ExtensionAnimationSessionInternal>;
+export interface ExtensionAnimationSessionInternal {
+	id: string;
+	startTime: DOMHighResTimeStamp;
+	duration: DOMHighResTimeStamp;
+	data: unknown;
+	status: ExtensionAnimationStatus;
 }
 
-export interface ExtensionAnimationSessionInternal extends ExtensionAnimationSession {
+export interface ExtensionAnimationSessionRenderInternal extends ExtensionAnimationSession {
 	setStatus(status: ExtensionAnimationStatus): void;
+	readonly publicSession: ExtensionAnimationSession;
 }
 
-export interface RenderExtensionInternal {
-	readonly instance: AnyExtensionInstance;
-	readonly slots: Readonly<ExtensionAllocatedSlots>;
-	readonly data: RenderExtensionData;
-	readonly invalidation: ExtensionInvalidationState;
-	readonly animation: ExtensionAnimationController;
+export interface ExtensionAnimationControllerInternal {
+	readonly sessions: Map<string, ExtensionAnimationSessionRenderInternal>;
 }
 
 export interface RenderInternal {
@@ -50,22 +40,16 @@ export interface RenderInternal {
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
 	// readonly animator: Animator;
-	readonly extensions: Map<string, RenderExtensionInternal>;
+	readonly extensions: Map<string, ExtensionRecordInternal>;
 }
 
-// Our main renderer is now a first-party extension
-// We want that first instance of that array would always be the one with id 'main-renderer'
-export type RenderExtensionDefinitions = [
-	mainRenderer: MainRendererExtensionDefinition,
-	...otherExtensions: AnyExtensionDefinition[]
-];
 export interface RenderInitOptions {
 	doc: Document;
-	extensions: RenderExtensionDefinitions;
+	extensionsDraft: ReadonlyMap<string, ExtensionRecordInternalDraft>;
 }
 
-export interface RenderInitOpptionsInternal extends RenderInitOptions {
-	performRenderState: () => void;
+export interface RenderInitOptionsInternal extends RenderInitOptions {
+	performRender: () => void;
 }
 
 export type RenderStateRequest = RenderStateFrameSnapshot;
@@ -75,6 +59,7 @@ export type RenderAnimationRequest = RenderStateRequest;
 export type RenderVisualsRequest = RenderStateRequest;
 
 export interface Render {
+	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
 	requestRenderState(request: RenderStateRequest): void;
 	requestRenderAnimation(request: RenderAnimationRequest): void;
 	requestRenderVisuals(request: RenderVisualsRequest): void;

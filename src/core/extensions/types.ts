@@ -43,6 +43,8 @@ export type ExtensionSlotSvgRoots<TSlots extends readonly ExtensionSlotName[]> =
 	Record<TSlots[number], SVGGElement>
 >;
 
+export type ExtensionAllocatedSlotsInternal = ExtensionSlotSvgRoots<readonly ExtensionSlotName[]>;
+
 export interface ExtensionInstanceMountOptions<TSlots extends readonly ExtensionSlotName[]> {
 	slotRoots: ExtensionSlotSvgRoots<TSlots>;
 }
@@ -71,7 +73,7 @@ export interface ExtensionAnimationSessionSubmitOptions<TData> {
 	data: TData;
 }
 
-export type ExtensionAnimationStatus = 'submitted' | 'active' | 'ended' | 'canceled';
+export type ExtensionAnimationStatus = 'submitted' | 'active' | 'ended' | 'cancelled';
 
 export interface ExtensionAnimationSession {
 	readonly id: string;
@@ -86,7 +88,7 @@ export interface ExtensionAnimationController {
 	submit<TData>(options: ExtensionAnimationSessionSubmitOptions<TData>): ExtensionAnimationSession;
 	cancel(sessionId: string): void;
 	getAll(
-		status?: ExtensionAnimationStatus | ReadonlySet<ExtensionAnimationStatus>
+		status?: ExtensionAnimationStatus | ExtensionAnimationStatus[]
 	): readonly ExtensionAnimationSession[];
 }
 
@@ -185,8 +187,17 @@ export type AnyExtensionDefinition = ExtensionDefinition<
 	unknown
 >;
 
+export const MAIN_RENDERER_EXTENSION_ID = 'main-renderer' as const;
+
 export type MainRendererExtensionDefinition = ExtensionDefinition<
-	'main-renderer',
+	typeof MAIN_RENDERER_EXTENSION_ID,
+	readonly ExtensionSlotName[],
+	unknown,
+	unknown
+>;
+
+export type MainRendererExtensionInstance = ExtensionInstance<
+	typeof MAIN_RENDERER_EXTENSION_ID,
 	readonly ExtensionSlotName[],
 	unknown,
 	unknown
@@ -211,3 +222,41 @@ export type ExtensionsPublicMap<TExtensions extends readonly AnyExtensionDefinit
 		? ExtensionDefinitionId<TDef>
 		: never]: ExtensionDefinitionPublicApi<TDef>;
 };
+
+export interface ExtensionStoredData {
+	previous: unknown | null;
+	current: unknown;
+}
+
+export interface ExtensionRecordInternalRender {
+	readonly slots: ExtensionAllocatedSlotsInternal;
+	readonly invalidation: ExtensionInvalidationState;
+	readonly animation: ExtensionAnimationController;
+}
+
+export interface ExtensionRecordInternalDraft {
+	readonly id: string;
+	readonly definition: AnyExtensionDefinition;
+	readonly instance: AnyExtensionInstance;
+	readonly data: ExtensionStoredData;
+}
+
+export interface ExtensionRecordInternal extends ExtensionRecordInternalDraft {
+	readonly render: ExtensionRecordInternalRender;
+}
+
+export interface ExtensionSystemInitOptions {
+	extensions: [MainRendererExtensionDefinition, ...AnyExtensionDefinition[]];
+}
+
+export interface ExtensionSystemInternal {
+	draftExtensions: Map<string, ExtensionRecordInternalDraft> | null;
+	readonly extensions: Map<string, ExtensionRecordInternal>;
+}
+
+export interface ExtensionSystem {
+	readonly draftExtensions: ReadonlyMap<string, ExtensionRecordInternalDraft> | null;
+	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
+	updateState(state: RenderStateFrameSnapshot): void;
+	setFinalExtensions(extensions: ReadonlyMap<string, ExtensionRecordInternal>): void;
+}
