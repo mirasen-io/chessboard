@@ -3,7 +3,7 @@ import { mergeReadonlySessions } from '../mutation/session';
 import { createExtensionAnimationController } from './animation/factory';
 import { createExtensionInvalidationState } from './invalidation/factory';
 import { performAnimationPass } from './rendering/animation';
-import { renderState } from './rendering/state';
+import { performRenderStatePass } from './rendering/state';
 import { createScheduler } from './scheduler/scheduler';
 import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
 import {
@@ -55,7 +55,7 @@ interface PerformRenderOptions {
 function performRender(state: RenderInternal, options: PerformRenderOptions) {
 	// First we check and run renderState,
 	if (options.stateRequest) {
-		renderState(state, options.stateRequest);
+		performRenderStatePass(state, options.stateRequest);
 		if (!state.lastRendered) {
 			throw new Error('After renderState, lastRendered context should be set');
 		}

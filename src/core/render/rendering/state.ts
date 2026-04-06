@@ -13,7 +13,10 @@ export function checkNeedsRender(state: RenderInternal): boolean {
 	return false;
 }
 
-export function renderState(state: RenderInternal, request: RenderStateRequest | null): void {
+export function performRenderStatePass(
+	state: RenderInternal,
+	request: RenderStateRequest | null
+): void {
 	if (!request) {
 		throw new Error('Render called without a valid render request');
 	}
