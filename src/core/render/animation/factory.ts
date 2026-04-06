@@ -1,14 +1,10 @@
 import {
-	ExtensionAnimationController,
-	ExtensionAnimationSession,
+	ExtensionAnimationControllerInternalSurface,
+	ExtensionAnimationSessionInternalSurface,
 	ExtensionAnimationSessionSubmitOptions,
 	ExtensionAnimationStatus
 } from '../../extensions/types';
-import {
-	ExtensionAnimationControllerInternal,
-	ExtensionAnimationSessionInternal,
-	ExtensionAnimationSessionRenderInternal
-} from '../types';
+import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from '../types';
 
 function createExtensionAnimationSessionInternal(
 	id: string,
@@ -23,41 +19,28 @@ function createExtensionAnimationSessionInternal(
 	};
 }
 
-function createExtensionAnimationSession(
-	state: ExtensionAnimationSessionInternal
-): ExtensionAnimationSession {
-	return {
-		id: state.id,
-		startTime: state.startTime,
-		duration: state.duration,
-		get status() {
-			return state.status;
-		},
-		setData<TData>(data: TData) {
-			state.data = data;
-		},
-		getData<TData>() {
-			return state.data as TData;
-		}
-	};
-}
-
-export function createExtensionAnimationSessionRenderInternal(
+export function createExtensionAnimationSession(
 	id: string,
 	options: ExtensionAnimationSessionSubmitOptions<unknown>
-): ExtensionAnimationSessionRenderInternal {
+): ExtensionAnimationSessionInternalSurface {
 	const internalState = createExtensionAnimationSessionInternal(id, options);
-	const readonlySession = createExtensionAnimationSession(internalState);
 
 	return {
-		...readonlySession,
+		id: internalState.id,
+		startTime: internalState.startTime,
+		duration: internalState.duration,
 		get status() {
 			return internalState.status;
 		},
+		setData<TData>(data: TData) {
+			internalState.data = data;
+		},
+		getData<TData>() {
+			return internalState.data as TData;
+		},
 		setStatus(newStatus: ExtensionAnimationStatus) {
 			internalState.status = newStatus;
-		},
-		readonlySession
+		}
 	};
 }
 
@@ -67,7 +50,7 @@ function createExtensionAnimationControllerInternal(): ExtensionAnimationControl
 	};
 }
 
-export function createExtensionAnimationController(): ExtensionAnimationController {
+export function createExtensionAnimationController(): ExtensionAnimationControllerInternalSurface {
 	const internalState = createExtensionAnimationControllerInternal();
 	const allStati = new Set<ExtensionAnimationStatus>(['submitted', 'active', 'ended', 'cancelled']);
 	return {
@@ -76,7 +59,7 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 			while (internalState.sessions.has(sessionId)) {
 				sessionId = (performance.now() + Math.random()).toString(); // Ensure uniqueness
 			}
-			const session = createExtensionAnimationSessionRenderInternal(sessionId, options);
+			const session = createExtensionAnimationSession(sessionId, options);
 			internalState.sessions.set(sessionId, session);
 			// Logic to start the animation can be added here
 			return session;
@@ -89,13 +72,23 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 		},
 		getAll(status) {
 			const stati: Set<ExtensionAnimationStatus> = status
-				? Array.isArray(status)
-					? new Set(status)
-					: new Set([status])
+				? // If iterable
+					Symbol.iterator in Object(status)
+					? (new Set([...status]) as Set<ExtensionAnimationStatus>)
+					: (new Set([status]) as Set<ExtensionAnimationStatus>)
 				: allStati;
 			return Array.from(internalState.sessions.values()).filter((session) =>
 				stati.has(session.status)
 			);
+		},
+		remove(sessionId) {
+			if (typeof sessionId === 'string') {
+				internalState.sessions.delete(sessionId);
+			} else {
+				for (const id of sessionId) {
+					internalState.sessions.delete(id);
+				}
+			}
 		}
 	};
 }

@@ -1,5 +1,5 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { visualsSetDragPointer, visualsSetSkipNextCommittedAnimation } from './reducers';
+import { visualsSetDragPointer } from './reducers';
 import { VisualsState, VisualsStateInternal } from './types';
 
 function createVisualsStateInternal(): VisualsStateInternal {
@@ -22,17 +22,6 @@ export function createVisualsState(): VisualsState {
 				'visuals.state.setDragPointer',
 				visualsSetDragPointer(internalState, newPointer),
 				newPointer
-			);
-		},
-
-		getSkipNextCommittedAnimation() {
-			return internalState.skipNextCommittedAnimation;
-		},
-
-		setSkipNextCommittedAnimation(skip, mutationSession) {
-			return mutationSession.addMutation(
-				'visuals.state.setSkipNextCommittedAnimation',
-				visualsSetSkipNextCommittedAnimation(internalState, skip)
 			);
 		},
 

@@ -15,16 +15,3 @@ export function visualsSetDragPointer(
 
 	return changed;
 }
-
-export function visualsSetSkipNextCommittedAnimation(
-	state: VisualsStateInternal,
-	skip: boolean
-): boolean {
-	const changed = state.skipNextCommittedAnimation !== skip;
-
-	if (changed) {
-		state.skipNextCommittedAnimation = skip;
-	}
-
-	return changed;
-}

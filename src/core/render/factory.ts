@@ -1,16 +1,19 @@
-import { MAIN_RENDERER_EXTENSION_ID } from '../extensions/types';
+import { ExtensionRecordInternal } from '../extensions/types';
+import { mergeReadonlySessions } from '../mutation/session';
 import { createExtensionAnimationController } from './animation/factory';
 import { createExtensionInvalidationState } from './invalidation/factory';
+import { performAnimationPass } from './rendering/animation';
 import { renderState } from './rendering/state';
 import { createScheduler } from './scheduler/scheduler';
 import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
 import {
 	Render,
-	RenderExtension,
+	RenderAnimationRequest,
 	RenderInitOptions,
 	RenderInitOptionsInternal,
 	RenderInternal,
-	RenderStateRequest
+	RenderStateRequest,
+	RenderVisualsRequest
 } from './types';
 
 function createRenderInternal(options: RenderInitOptionsInternal): RenderInternal {
@@ -20,69 +23,81 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 		render: options.performRender
 	});
 
-	// Check that the first extension is the main renderer
-	if (options.extensions.length === 0 || options.extensions[0].id !== MAIN_RENDERER_EXTENSION_ID) {
-		throw new Error(
-			`The first extension must be the main renderer with id '${MAIN_RENDERER_EXTENSION_ID}'`
-		);
-	}
-
-	const extensions = new Map<string, RenderExtension>();
-	for (const extensionInstance of options.extensions) {
-		if (extensions.has(extensionInstance.id)) {
-			throw new Error(
-				`Duplicate extension id detected during render initialization: ${extensionInstance.id}`
-			);
-		}
-		const extensionInternal: RenderExtension = {
-			instance: extensionInstance,
-			slots: allocateExtensionSlotRoots(svgRoots, extensionInstance.slots),
-			invalidation: createExtensionInvalidationState(),
-			animation: createExtensionAnimationController(),
-			data: {
-				previous: undefined,
-				current: null
+	const extensions = new Map<string, ExtensionRecordInternal>();
+	for (const extensionDraft of options.extensionsDraft.values()) {
+		const extensionInternal: ExtensionRecordInternal = {
+			...extensionDraft,
+			render: {
+				slots: allocateExtensionSlotRoots(svgRoots, extensionDraft.definition.slots),
+				invalidation: createExtensionInvalidationState(),
+				animation: createExtensionAnimationController()
 			}
 		};
-		extensions.set(extensionInstance.id, extensionInternal);
+		extensions.set(extensionDraft.id, extensionInternal);
 	}
 
 	return {
+		lastRendered: null,
 		svgRoots,
 		scheduler,
-		previouslyRendered: null,
-		extensions
+		extensions,
+		callbacks: options.callbacks
 	};
 }
 
 interface PerformRenderOptions {
 	stateRequest: RenderStateRequest | null;
+	animationRequest: RenderAnimationRequest | null;
+	requestNextRenderAnimation: (request: RenderAnimationRequest | null) => void;
+	visualsRequest: RenderVisualsRequest | null;
 }
 
 function performRender(state: RenderInternal, options: PerformRenderOptions) {
 	// First we check and run renderState,
 	if (options.stateRequest) {
 		renderState(state, options.stateRequest);
-	}
-	// Then we check and run renderAnimation,
-	for (const extension of state.extensions.values()) {
-		const animationController = extension.animation;
-		const activeAnimations = animationController.getAll(['submitted', 'active']);
-		if (activeAnimations.length > 0) {
-			// Yes we have some active animations
-			// TODO: renderAnimation(state)
+		if (!state.lastRendered) {
+			throw new Error('After renderState, lastRendered context should be set');
 		}
+		state.callbacks.renderedState(options.stateRequest, state.lastRendered);
 	}
+
+	// Then we check and run renderAnimation,
+	if (options.animationRequest) {
+		const nextRequest = performAnimationPass(state, options.animationRequest);
+		options.requestNextRenderAnimation(nextRequest);
+	}
+
 	// Finally we run renderVisuals.
+	if (options.visualsRequest) {
+		renderVisuals(state, options.visualsRequest);
+		state.callbacks.renderedVisuals(options.visualsRequest);
+	}
 }
 
 export function createRender(options: RenderInitOptions): Render {
 	let pendingStateRequest: RenderStateRequest | null = null;
+	let pendingAnimationRequest: RenderAnimationRequest | null = null;
+	let pendingVisualsRequest: RenderVisualsRequest | null = null;
 
 	function performRenderClosure() {
-		const request = pendingStateRequest;
+		const stateRequest = pendingStateRequest;
 		pendingStateRequest = null;
-		performRender(internalState, { stateRequest: request });
+		const animationRequest = pendingAnimationRequest;
+		pendingAnimationRequest = null;
+		const visualsRequest = pendingVisualsRequest;
+		pendingVisualsRequest = null;
+		performRender(internalState, {
+			stateRequest: stateRequest,
+			animationRequest: animationRequest,
+			requestNextRenderAnimation: (request) => {
+				if (request) {
+					pendingAnimationRequest = request;
+					internalState.scheduler.schedule();
+				}
+			},
+			visualsRequest: visualsRequest
+		});
 	}
 
 	const internalState = createRenderInternal({
@@ -90,5 +105,29 @@ export function createRender(options: RenderInitOptions): Render {
 		performRender: performRenderClosure
 	});
 
-	return {};
+	return {
+		extensions: internalState.extensions,
+		requestRenderState(request) {
+			pendingStateRequest = {
+				...request,
+				mutation: pendingStateRequest?.mutation
+					? mergeReadonlySessions(pendingStateRequest.mutation, request.mutation)
+					: request.mutation
+			};
+			internalState.scheduler.schedule();
+		},
+		requestRenderAnimation(request) {
+			pendingAnimationRequest = request;
+			internalState.scheduler.schedule();
+		},
+		requestRenderVisuals(request) {
+			pendingVisualsRequest = {
+				...request,
+				mutation: pendingVisualsRequest?.mutation
+					? mergeReadonlySessions(pendingVisualsRequest.mutation, request.mutation)
+					: request.mutation
+			};
+			internalState.scheduler.schedule();
+		}
+	};
 }

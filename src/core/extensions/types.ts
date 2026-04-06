@@ -89,7 +89,7 @@ export interface ExtensionAnimationController {
 	submit<TData>(options: ExtensionAnimationSessionSubmitOptions<TData>): ExtensionAnimationSession;
 	cancel(sessionId: string): void;
 	getAll(
-		status?: ExtensionAnimationStatus | ExtensionAnimationStatus[]
+		status?: ExtensionAnimationStatus | Iterable<ExtensionAnimationStatus>
 	): readonly ExtensionAnimationSession[];
 }
 
@@ -141,7 +141,10 @@ export type AnyExtensionRenderStateContext = ExtensionRenderStateContext<unknown
 export type ExtensionRenderAnimationContextBase = ExtensionRenderStateContextBase;
 
 export type ExtensionRenderAnimationContext<TExtensionData> = ExtensionRenderAnimationContextBase &
+	ExtensionRenderPreviousDataField<TExtensionData> &
 	ExtensionRenderCurrentDataField<TExtensionData>;
+
+export type AnyExtensionRenderAnimationContext = ExtensionRenderAnimationContext<unknown>;
 
 export type ExtensionRenderDragContextBase = ExtensionRenderStateContextBase;
 
@@ -162,9 +165,18 @@ export interface ExtensionInstance<
 	onStateUpdate(context: ExtensionOnUpdateStateContext<TOnStateUpdateData>): TOnStateUpdateData;
 	renderState?(context: ExtensionRenderStateContext<TOnStateUpdateData>): void;
 	// Animation
-	prepareAnimation?(context: ExtensionRenderAnimationContext<TOnStateUpdateData>): void;
-	renderAnimation?(context: ExtensionRenderAnimationContext<TOnStateUpdateData>): void;
-	cleanupAnimation?(context: ExtensionRenderAnimationContext<TOnStateUpdateData>): void;
+	prepareAnimation?(
+		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
+		sessions: readonly ExtensionAnimationSession[]
+	): void;
+	renderAnimation?(
+		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
+		sessions: readonly ExtensionAnimationSession[]
+	): void;
+	cleanAnimation?(
+		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
+		sessions: readonly ExtensionAnimationSession[]
+	): void;
 	// Drag
 	renderDrag?(context: ExtensionRenderDragContext<TOnStateUpdateData>): void;
 	// Public API promoted to board.extensions.<extensionId>.API
@@ -237,10 +249,21 @@ export interface ExtensionStoredData {
 	current: unknown | null;
 }
 
+export interface ExtensionAnimationSessionInternalSurface extends ExtensionAnimationSession {
+	setStatus(status: ExtensionAnimationStatus): void;
+}
+
+export interface ExtensionAnimationControllerInternalSurface extends ExtensionAnimationController {
+	getAll(
+		status?: ExtensionAnimationStatus | Iterable<ExtensionAnimationStatus>
+	): readonly ExtensionAnimationSessionInternalSurface[];
+	remove(sessionId: string | Iterable<string>): void;
+}
+
 export interface ExtensionRecordInternalRender {
 	readonly slots: ExtensionAllocatedSlotsInternal;
 	readonly invalidation: ExtensionInvalidationState;
-	readonly animation: ExtensionAnimationController;
+	readonly animation: ExtensionAnimationControllerInternalSurface;
 }
 
 export interface ExtensionRecordInternalDraft {
@@ -262,7 +285,7 @@ export interface ExtensionSystemInternal {
 	draftExtensions: Map<string, ExtensionRecordInternalDraft> | null;
 	readonly extensions: Map<string, ExtensionRecordInternal>;
 	extensionsFinalized: boolean;
-	previouslyRendered: RenderStateFrameSnapshot | null;
+	lastRendered: ExtensionRenderStateContextCommonBase | null;
 }
 
 export interface ExtensionSystemUpdateRequest {
@@ -275,5 +298,5 @@ export interface ExtensionSystem {
 	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
 	updateState(request: ExtensionSystemUpdateRequest): void;
 	setFinalExtensions(extensions: ReadonlyMap<string, ExtensionRecordInternal>): void;
-	setPreviouslyRendered(snapshot: RenderStateFrameSnapshot): void;
+	setLastRendered(context: ExtensionRenderStateContextCommonBase): void;
 }

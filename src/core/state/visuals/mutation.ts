@@ -4,7 +4,6 @@ import { BoardPoint } from './types';
 
 export type VisualsStateMutationPayloadByCause = {
 	'visuals.state.setDragPointer': ReadonlyDeep<BoardPoint> | null;
-	'visuals.state.setSkipNextCommittedAnimation': undefined;
 };
 
 export type VisualsStateMutationCause = keyof VisualsStateMutationPayloadByCause;

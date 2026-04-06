@@ -97,10 +97,6 @@ export function createMutationSession<
 
 		clear() {
 			payloads.clear();
-		},
-
-		getSnapshot() {
-			return createReadonlyMutationSession(payloads);
 		}
 	};
 }

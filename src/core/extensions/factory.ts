@@ -34,7 +34,7 @@ function createExtensionSystemInternal(
 		draftExtensions,
 		extensions: new Map(), // Will be populated after initialization of the render system is complete
 		extensionsFinalized: false,
-		previouslyRendered: null
+		lastRendered: null
 	};
 }
 
@@ -68,6 +68,9 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			for (const [id, extRec] of extensions.entries()) {
 				internalState.extensions.set(id, extRec);
 			}
+		},
+		setLastRendered(context) {
+			internalState.lastRendered = context;
 		}
 	};
 }
