@@ -1,5 +1,5 @@
-import { Square, SQUARE_COUNT } from '../../../state/board/types';
-import { RendererBoardFrameSnapshot } from './types';
+import { Square, SQUARE_COUNT } from '../../../../state/board/types';
+import { RendererBoardFrameSnapshot } from '../types';
 
 export function collectChangedPieceSquares(
 	previous: RendererBoardFrameSnapshot | null,

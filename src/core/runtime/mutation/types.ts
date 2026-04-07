@@ -1,3 +1,4 @@
+import { LayoutMutationPayloadByCause } from '../../layout/mutation';
 import { MutationSession, ReadonlyMutationSession } from '../../mutation/types';
 import { BoardStateMutationPayloadByCause } from '../../state/board/mutation';
 import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation';
@@ -9,7 +10,11 @@ export type BoardRuntimeStateMutationPayloadByCause = BoardStateMutationPayloadB
 	ChangeStateMutationPayloadByCause &
 	InteractionStateMutationPayloadByCause &
 	ViewStateMutationPayloadByCause &
-	VisualsStateMutationPayloadByCause;
+	VisualsStateMutationPayloadByCause &
+	LayoutMutationPayloadByCause & {
+		'runtime.interaction.dropTo': undefined;
+		'runtime.interaction.releaseTo': undefined;
+	};
 
 export type BoardRuntimeStateMutationCause = keyof BoardRuntimeStateMutationPayloadByCause;
 

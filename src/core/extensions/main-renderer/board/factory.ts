@@ -1,36 +1,28 @@
-import { merge } from 'es-toolkit/object';
-import { renderBoard } from './render';
+import { merge } from 'es-toolkit';
+import { rendererBoardRender } from './render';
 import {
 	DEFAULT_RENDERER_BOARD_CONFIG,
 	SvgRendererBoard,
 	SvgRendererBoardInitOptions,
-	SvgRendererBoardInternals
+	SvgRendererBoardInternal
 } from './types';
+import { rendererBoardOnUpdate } from './update';
 
 function createSvgRendererBoardInternals(
-	doc: Document,
 	options: SvgRendererBoardInitOptions
-): SvgRendererBoardInternals {
-	return {
-		config: merge(DEFAULT_RENDERER_BOARD_CONFIG, options),
-		root: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-root' }),
-		coords: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-coords' }),
-		pieces: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-pieces' }),
-		defsRoot: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-defs' }),
-		pieceNodes: new Map()
-	};
+): SvgRendererBoardInternal {
+	const config = merge(options, DEFAULT_RENDERER_BOARD_CONFIG);
+	return { config };
 }
 
-export function createSvgRendererBoard(
-	doc: Document,
-	options: SvgRendererBoardInitOptions
-): SvgRendererBoard {
-	const internalState = createSvgRendererBoardInternals(doc, options);
-
+export function createSvgRendererBoard(options: SvgRendererBoardInitOptions): SvgRendererBoard {
+	const internalState = createSvgRendererBoardInternals(options);
 	return {
-		...internalState,
-		render(context) {
-			renderBoard(internalState, context);
+		onUpdate(context) {
+			rendererBoardOnUpdate(internalState, context);
+		},
+		render(context, layer) {
+			rendererBoardRender(internalState, context, layer);
 		}
 	};
 }

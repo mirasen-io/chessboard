@@ -1,7 +1,5 @@
 import { PartialDeep } from 'type-fest';
-import { RenderGeometry } from '../../../layout/geometry/types';
-import { InvalidationStateSnapshot } from '../../../render/invalidation/types';
-import { BoardStateSnapshot, Square } from '../../../state/board/types';
+import { SvgRendererOnUpdateContext, SvgRendererRenderStateContext } from '../types/extension';
 
 export interface SvgRendererBoardPieceNode {
 	root: SVGImageElement;
@@ -31,35 +29,13 @@ export const DEFAULT_RENDERER_BOARD_CONFIG: RendererBoardConfig = {
 	}
 };
 
-export interface SvgRendererBoardInternals {
+export interface SvgRendererBoardInternal {
 	readonly config: RendererBoardConfig;
-	readonly root: SVGGElement;
-	readonly coords: SVGGElement;
-	readonly pieces: SVGGElement;
-	readonly defsRoot: SVGGElement;
-	readonly pieceNodes: Map<Square, SvgRendererBoardPieceNode>;
 }
 
 export type SvgRendererBoardInitOptions = PartialDeep<RendererBoardConfig>;
 
-export interface RendererBoardFrameSnapshot {
-	readonly board: BoardStateSnapshot;
-	readonly suppressedSquares: ReadonlySet<Square>;
-	readonly geometry: RenderGeometry;
-}
-
-export interface RendererBoardRenderContext {
-	readonly previous: RendererBoardFrameSnapshot | null;
-	readonly current: RendererBoardFrameSnapshot;
-	readonly invalidation: InvalidationStateSnapshot;
-}
-
 export interface SvgRendererBoard {
-	readonly config: RendererBoardConfig;
-	readonly root: SVGGElement;
-	readonly coords: SVGGElement;
-	readonly pieces: SVGGElement;
-	readonly defsRoot: SVGGElement;
-	readonly pieceNodes: ReadonlyMap<Square, SvgRendererBoardPieceNode>;
-	render(context: RendererBoardRenderContext): void;
+	onUpdate(context: SvgRendererOnUpdateContext): void;
+	render(context: SvgRendererRenderStateContext, layer: SVGElement): void;
 }

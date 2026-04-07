@@ -50,14 +50,15 @@ export interface ExtensionInstanceMountOptions<TSlots extends readonly Extension
 	slotRoots: ExtensionSlotSvgRoots<TSlots>;
 }
 
+export type ExtensionLayoutSnapshot = LayoutSnapshot &
+	ReadonlyDeep<{
+		readonly geometry: RenderGeometry;
+	}>;
+
 export interface RenderStateFrameSnapshot {
 	readonly state: BoardRuntimeStateSnapshot;
-	readonly layout: LayoutSnapshot;
+	readonly layout: ExtensionLayoutSnapshot;
 }
-
-export type ExtensionLayoutSnapshot = LayoutSnapshot & {
-	readonly geometry: RenderGeometry;
-};
 
 export interface ExtensionReadonlyInvalidationState {
 	readonly dirtyLayers: number; // bitfield of Layer values
