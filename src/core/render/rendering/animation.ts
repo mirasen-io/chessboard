@@ -8,7 +8,7 @@ export function performAnimationPass(
 	if (!request) {
 		throw new Error('RenderAnimation called without a valid render request');
 	}
-	const contextCommonBase = state.lastRendered;
+	const contextCommonBase = state.lastRenderedState;
 	let requestNextRenderAnimation = false;
 	if (!contextCommonBase) {
 		throw new Error(

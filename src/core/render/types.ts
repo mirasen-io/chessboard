@@ -34,7 +34,7 @@ export interface ExtensionAnimationControllerInternal {
 }
 
 export interface RenderInternal {
-	lastRendered: ExtensionRenderStateContextCommonBase | null;
+	lastRenderedState: ExtensionRenderStateContextCommonBase | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
 	// readonly animator: Animator;
@@ -48,7 +48,6 @@ export interface RenderStateRequest {
 }
 
 export interface RenderVisualsRequest {
-	previous: VisualsStateSnapshot | null;
 	mutation: BoardRuntimeReadonlyMutationSession;
 	current: VisualsStateSnapshot;
 }
@@ -56,11 +55,14 @@ export interface RenderVisualsRequest {
 export type RenderAnimationRequest = true;
 
 export interface RenderInitOptionsCallbacks {
-	renderedState: (
+	renderStatePassed: (
 		request: RenderStateRequest,
-		lastRendered: ExtensionRenderStateContextCommonBase
+		lastRenderedState: ExtensionRenderStateContextCommonBase
 	) => void;
-	renderedVisuals: (request: RenderVisualsRequest) => void;
+	renderVisualsPassed: (
+		request: RenderVisualsRequest,
+		lastRenderedState: ExtensionRenderStateContextCommonBase
+	) => void;
 }
 
 export interface RenderInitOptions {

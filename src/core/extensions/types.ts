@@ -146,10 +146,13 @@ export type ExtensionRenderAnimationContext<TExtensionData> = ExtensionRenderAni
 
 export type AnyExtensionRenderAnimationContext = ExtensionRenderAnimationContext<unknown>;
 
-export type ExtensionRenderDragContextBase = ExtensionRenderStateContextBase;
+export type ExtensionRenderVisualsContextBase = ExtensionRenderStateContextBase;
 
-export type ExtensionRenderDragContext<TExtensionData> = ExtensionRenderDragContextBase &
+export type ExtensionRenderVisualsContext<TExtensionData> = ExtensionRenderVisualsContextBase &
+	ExtensionRenderPreviousDataField<TExtensionData> &
 	ExtensionRenderCurrentDataField<TExtensionData>;
+
+export type AnyExtensionRenderVisualsContext = ExtensionRenderVisualsContext<unknown>;
 
 export interface ExtensionInstance<
 	TId extends string,
@@ -177,8 +180,8 @@ export interface ExtensionInstance<
 		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
 		sessions: readonly ExtensionAnimationSession[]
 	): void;
-	// Drag
-	renderDrag?(context: ExtensionRenderDragContext<TOnStateUpdateData>): void;
+	// Visuals
+	renderVisuals?(context: ExtensionRenderVisualsContext<TOnStateUpdateData>): void;
 	// Public API promoted to board.extensions.<extensionId>.API
 	getPublic?(): TPublic;
 }
@@ -285,7 +288,7 @@ export interface ExtensionSystemInternal {
 	draftExtensions: Map<string, ExtensionRecordInternalDraft> | null;
 	readonly extensions: Map<string, ExtensionRecordInternal>;
 	extensionsFinalized: boolean;
-	lastRendered: ExtensionRenderStateContextCommonBase | null;
+	lastRenderedState: ExtensionRenderStateContextCommonBase | null;
 }
 
 export interface ExtensionSystemUpdateRequest {
@@ -298,5 +301,5 @@ export interface ExtensionSystem {
 	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
 	updateState(request: ExtensionSystemUpdateRequest): void;
 	setFinalExtensions(extensions: ReadonlyMap<string, ExtensionRecordInternal>): void;
-	setLastRendered(context: ExtensionRenderStateContextCommonBase): void;
+	setLastRenderedState(context: ExtensionRenderStateContextCommonBase): void;
 }

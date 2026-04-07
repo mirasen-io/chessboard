@@ -31,25 +31,25 @@ export function performRenderStatePass(
 	}
 
 	const contextBase: ExtensionRenderStateContextCommonBase = {
-		previous: state.lastRendered?.current ?? null,
+		previous: state.lastRenderedState?.current ?? null,
 		mutation: request.mutation,
 		current: request.current
 	};
 
 	// Now run over the extensions that have invalidation layers marked and call their render method
-	for (const extension of state.extensions.values()) {
-		if (extension.render.invalidation.dirtyLayers !== 0) {
+	for (const extensionRec of state.extensions.values()) {
+		if (extensionRec.render.invalidation.dirtyLayers !== 0) {
 			const context: AnyExtensionRenderStateContext = {
 				...contextBase,
-				previousData: extension.data.previous,
-				currentData: extension.data.current,
-				invalidation: extension.render.invalidation,
-				animation: extension.render.animation
+				previousData: extensionRec.data.previous,
+				currentData: extensionRec.data.current,
+				invalidation: extensionRec.render.invalidation,
+				animation: extensionRec.render.animation
 			};
-			extension.instance.renderState?.(context);
+			extensionRec.instance.renderState?.(context);
 		}
 	}
 
 	// Save the last rendered common base context
-	state.lastRendered = contextBase;
+	state.lastRenderedState = contextBase;
 }

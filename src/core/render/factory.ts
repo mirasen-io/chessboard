@@ -4,6 +4,7 @@ import { createExtensionAnimationController } from './animation/factory';
 import { createExtensionInvalidationState } from './invalidation/factory';
 import { performAnimationPass } from './rendering/animation';
 import { performRenderStatePass } from './rendering/state';
+import { performRenderVisualsPass } from './rendering/visuals';
 import { createScheduler } from './scheduler/scheduler';
 import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
 import {
@@ -37,7 +38,7 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 	}
 
 	return {
-		lastRendered: null,
+		lastRenderedState: null,
 		svgRoots,
 		scheduler,
 		extensions,
@@ -56,10 +57,10 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 	// First we check and run renderState,
 	if (options.stateRequest) {
 		performRenderStatePass(state, options.stateRequest);
-		if (!state.lastRendered) {
-			throw new Error('After renderState, lastRendered context should be set');
+		if (!state.lastRenderedState) {
+			throw new Error('After renderState, lastRenderedState context should be set');
 		}
-		state.callbacks.renderedState(options.stateRequest, state.lastRendered);
+		state.callbacks.renderStatePassed(options.stateRequest, state.lastRenderedState);
 	}
 
 	// Then we check and run renderAnimation,
@@ -70,8 +71,8 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 
 	// Finally we run renderVisuals.
 	if (options.visualsRequest) {
-		renderVisuals(state, options.visualsRequest);
-		state.callbacks.renderedVisuals(options.visualsRequest);
+		const newCommonBaseContext = performRenderVisualsPass(state, options.visualsRequest);
+		state.callbacks.renderVisualsPassed(options.visualsRequest, newCommonBaseContext);
 	}
 }
 
