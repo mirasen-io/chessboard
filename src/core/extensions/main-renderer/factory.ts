@@ -38,7 +38,7 @@ function createSvgRendererInstance(options: SvgRendererInitOptions): SvgRenderer
 	const internalState = createSvgRendererBoardInternal(options);
 	return {
 		id: EXTENSION_ID,
-		onMount(env) {
+		mount(env) {
 			internalState.slotRoots = env.slotRoots;
 		},
 		onStateUpdate(context) {
@@ -49,7 +49,7 @@ function createSvgRendererInstance(options: SvgRendererInitOptions): SvgRenderer
 			validateIsMounted(internalState);
 			internalState.board.render(context, internalState.slotRoots.board);
 		},
-		onDestroy() {
+		unmount() {
 			// For now nothing to do, everything will be just deleted by the chessboard runtime
 		}
 	};

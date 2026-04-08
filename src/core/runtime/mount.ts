@@ -37,9 +37,10 @@ export function boardRuntimeMount(state: BoardRuntimeInternal, container: HTMLEl
 
 export function boardRuntimeUnmount(state: BoardRuntimeInternal): void {
 	boardRuntimeValidateIsMounted(state);
-	state.render.unmount();
 	if (state.resizeObserver) {
 		state.resizeObserver.disconnect();
 		state.resizeObserver = null;
 	}
+	state.render.unmount();
+	state.extensions.onUnmount();
 }

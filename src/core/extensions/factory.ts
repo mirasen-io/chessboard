@@ -50,9 +50,18 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		updateState(request) {
 			if (internalState.extensions.size === 0) {
 				// We at least expect the main renderer extension to be present, so if there are no extensions at all, it means the system hasn't been properly initialized yet
-				throw new Error('Cannot update state before extensions have been finalized.');
+				throw new Error(
+					'Cannot update state before extensions have been created. Expected at least the main renderer extension to be present.'
+				);
 			}
 			extensionSystemUpdateState(internalState, request);
+		},
+		onUnmount() {
+			internalState.lastUpdated = null;
+			for (const extensionRec of internalState.extensions.values()) {
+				extensionRec.invalidation.clear();
+				extensionRec.animation.clear();
+			}
 		}
 	};
 }

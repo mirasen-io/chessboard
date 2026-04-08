@@ -100,10 +100,25 @@ export interface ExtensionOnUpdateStateContextCommon {
 	readonly current: UpdateStateFrameSnapshot;
 }
 
-export interface ExtensionOnUpdateStateContextBase extends ExtensionOnUpdateStateContextCommon {
+export interface ExtensionOnUpdateStateContextCommonUnmounted extends ExtensionOnUpdateStateContextCommon {
+	readonly current: UpdateStateFrameSnapshotUnmounted;
+}
+
+export interface ExtensionOnUpdateStateContextCommonMounted extends ExtensionOnUpdateStateContextCommon {
+	readonly current: UpdateStateFrameSnapshotMounted;
+}
+
+export type ExtensionOnUpdateStateContextBaseUnmounted =
+	ExtensionOnUpdateStateContextCommonUnmounted;
+
+export interface ExtensionOnUpdateStateContextBaseMounted extends ExtensionOnUpdateStateContextCommonMounted {
 	readonly invalidation: ExtensionInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
+
+export type ExtensionOnUpdateStateContextBase =
+	| ExtensionOnUpdateStateContextBaseUnmounted
+	| ExtensionOnUpdateStateContextBaseMounted;
 
 type ExtensionRenderPreviousDataField<TExtensionData> = [TExtensionData] extends [void]
 	? unknown
@@ -172,8 +187,8 @@ export interface ExtensionInstance<
 > {
 	readonly id: TId;
 	// Lifecycle
-	onMount(env: ExtensionInstanceMountOptions<TSlots>): void;
-	onDestroy(): void;
+	mount(env: ExtensionInstanceMountOptions<TSlots>): void;
+	unmount(): void;
 	// Render state cycle
 	onStateUpdate(context: ExtensionOnUpdateStateContext<TOnStateUpdateData>): TOnStateUpdateData;
 	renderState?(context: ExtensionRenderStateContext<TOnStateUpdateData>): void;
@@ -300,4 +315,5 @@ export interface ExtensionSystemUpdateRequest {
 export interface ExtensionSystem {
 	readonly extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
 	updateState(request: ExtensionSystemUpdateRequest): void;
+	onUnmount(): void;
 }

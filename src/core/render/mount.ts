@@ -12,16 +12,14 @@ export function renderMount(state: RenderInternal, element: HTMLElement): void {
 		const slotRoots = extensionRec.render.slots as ExtensionSlotSvgRoots<
 			readonly ExtensionSlotName[]
 		>;
-		extensionRec.extension.instance.onMount({ slotRoots });
+		extensionRec.extension.instance.mount({ slotRoots });
 	}
 }
 
 export function renderUnmount(state: RenderInternal): void {
 	validateIsMounted(state);
 	for (const extensionRec of state.extensions.values()) {
-		extensionRec.extension.instance.onDestroy();
-		extensionRec.extension.invalidation.clear();
-		extensionRec.extension.animation.clear();
+		extensionRec.extension.instance.unmount();
 	}
 	// remove our svg root from the container
 	state.container!.removeChild(state.svgRoots.svgRoot);

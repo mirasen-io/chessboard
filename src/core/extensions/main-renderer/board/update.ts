@@ -1,3 +1,4 @@
+import { isCurrentUpdateContextBaseMounted } from '../../helpers';
 import { DirtyLayer, SvgRendererOnUpdateContext } from '../types/extension';
 import { SvgRendererBoardInternal } from './types';
 
@@ -10,7 +11,7 @@ export function rendererBoardOnUpdate(
 	if (!mutationSession.hasMutation(['board.layout.refreshGeometry'])) {
 		return; // no-op
 	}
-	if (!context.current.isMounted || !context.current.layout.geometry) {
+	if (!isCurrentUpdateContextBaseMounted(context) || !context.current.layout.geometry) {
 		// no-op, we only care about geometry changes on mounted with available geometry, otherwise nothing to do here
 		return;
 	}
