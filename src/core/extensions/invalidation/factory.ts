@@ -1,7 +1,6 @@
-import { ExtensionInvalidationState } from '../../extensions/types';
-import { ExtensionInvalidationStateInternal } from '../types';
+import type { ExtensionInvalidationState, ExtensionInvalidationStateInternal } from './types';
 
-export function createExtensionInvalidationStateInternal(): ExtensionInvalidationStateInternal {
+function createExtensionInvalidationStateInternal(): ExtensionInvalidationStateInternal {
 	return {
 		dirtyLayers: 0
 	};

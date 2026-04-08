@@ -1,11 +1,9 @@
 import {
 	ALL_EXTENSION_SLOTS,
-	ExtensionAnimationSessionInternalSurface,
-	ExtensionAnimationStatus,
-	ExtensionRecordInternal,
-	ExtensionRecordInternalDraft,
-	ExtensionRenderStateContextCommonBase,
+	ExtensionAllocatedSlotsInternal,
+	ExtensionRenderStateContextCommon,
 	ExtensionSlotSvgRoots,
+	ExtensionSystemExtensionRecord,
 	RenderStateFrameSnapshot
 } from '../extensions/types';
 import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
@@ -17,30 +15,23 @@ export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLO
 	readonly defs: SVGDefsElement;
 }
 
-export interface ExtensionInvalidationStateInternal {
-	dirtyLayers: number; // bitfield of Layer values
+export interface RenderExtensionRecordRender {
+	readonly slots: ExtensionAllocatedSlotsInternal;
 }
 
-export interface ExtensionAnimationSessionInternal {
-	id: string;
-	startTime: DOMHighResTimeStamp;
-	duration: DOMHighResTimeStamp;
-	data: unknown;
-	status: ExtensionAnimationStatus;
-}
-
-export interface ExtensionAnimationControllerInternal {
-	readonly sessions: Map<string, ExtensionAnimationSessionInternalSurface>;
+export interface RenderExtensionRecord {
+	readonly id: string;
+	readonly extension: ExtensionSystemExtensionRecord;
+	readonly render: RenderExtensionRecordRender;
 }
 
 export interface RenderInternal {
 	container: HTMLElement | null;
-	lastRenderedState: ExtensionRenderStateContextCommonBase | null;
+	lastRendered: ExtensionRenderStateContextCommon | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
 	// readonly animator: Animator;
-	readonly extensions: Map<string, ExtensionRecordInternal>;
-	readonly callbacks: RenderInitOptionsCallbacks;
+	readonly extensions: Map<string, RenderExtensionRecord>;
 }
 
 export interface RenderStateRequest {
@@ -55,21 +46,9 @@ export interface RenderVisualsRequest {
 
 export type RenderAnimationRequest = true;
 
-export interface RenderInitOptionsCallbacks {
-	renderStatePassed: (
-		request: RenderStateRequest,
-		lastRenderedState: ExtensionRenderStateContextCommonBase
-	) => void;
-	renderVisualsPassed: (
-		request: RenderVisualsRequest,
-		lastRenderedState: ExtensionRenderStateContextCommonBase
-	) => void;
-}
-
 export interface RenderInitOptions {
 	doc: Document;
-	extensionsDraft: ReadonlyMap<string, ExtensionRecordInternalDraft>;
-	callbacks: RenderInitOptionsCallbacks;
+	extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
 }
 
 export interface RenderInitOptionsInternal extends RenderInitOptions {
@@ -77,7 +56,7 @@ export interface RenderInitOptionsInternal extends RenderInitOptions {
 }
 
 export interface Render {
-	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
+	readonly extensions: ReadonlyMap<string, RenderExtensionRecord>;
 	requestRenderState(request: RenderStateRequest): void;
 	requestRenderAnimation(request: RenderAnimationRequest): void;
 	requestRenderVisuals(request: RenderVisualsRequest): void;
@@ -86,4 +65,5 @@ export interface Render {
 	mount(element: HTMLElement): void;
 	unmount(): void;
 	readonly isMounted: boolean;
+	readonly container: HTMLElement | null;
 }

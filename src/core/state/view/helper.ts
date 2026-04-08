@@ -1,4 +1,4 @@
-import { setsEqual } from '../../../helper/util';
+import { setsEqual } from '../../helpers/util';
 import type { Square } from '../board/types';
 import type { MovabilityDestinationsRecord, MovabilitySnapshot, StrictMovability } from './types';
 

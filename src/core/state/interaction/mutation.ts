@@ -12,4 +12,5 @@ export type InteractionStateMutationPayloadByCause = {
 
 export type InteractionStateMutationCause = keyof InteractionStateMutationPayloadByCause;
 
-export type InteractionMutationSession = MutationSession<InteractionStateMutationPayloadByCause>;
+export type InteractionStateMutationSession =
+	MutationSession<InteractionStateMutationPayloadByCause>;

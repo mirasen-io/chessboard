@@ -10,20 +10,18 @@ import { createViewState } from './view/factory';
 import { createVisualsState } from './visuals/factory';
 
 function createBoardRuntimeStateInternal(
-	options: BoardRuntimeStateInitOptions = {}
+	options: BoardRuntimeStateInitOptions
 ): BoardRuntimeStateInternal {
 	return {
-		board: createBoardState(options.board),
-		view: createViewState(options.view),
+		board: createBoardState(options.board ?? {}),
+		view: createViewState(options.view ?? {}),
 		interaction: createInteractionState(),
 		change: createChangeState(),
 		visuals: createVisualsState()
 	};
 }
 
-export function createBoardRuntimeState(
-	options: BoardRuntimeStateInitOptions = {}
-): BoardRuntimeState {
+export function createBoardRuntimeState(options: BoardRuntimeStateInitOptions): BoardRuntimeState {
 	const internalState = createBoardRuntimeStateInternal(options);
 	return {
 		...internalState,

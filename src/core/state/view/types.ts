@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { Color, ColorInput, Square } from '../board/types';
-import { ViewMutationSession } from './mutation';
+import { ViewStateMutationSession } from './mutation';
 
 export type Orientation = Color; // For clarity in context where it applies
 
@@ -50,8 +50,8 @@ export interface ViewStateInitOptions {
 
 export interface ViewState {
 	getOrientation(): Orientation;
-	setOrientation(orientation: ColorInput, mutationSession: ViewMutationSession): boolean;
+	setOrientation(orientation: ColorInput, mutationSession: ViewStateMutationSession): boolean;
 	getMovability(): MovabilitySnapshot;
-	setMovability(movability: MovabilitySnapshot, mutationSession: ViewMutationSession): boolean;
+	setMovability(movability: MovabilitySnapshot, mutationSession: ViewStateMutationSession): boolean;
 	getSnapshot(): ViewStateSnapshot;
 }

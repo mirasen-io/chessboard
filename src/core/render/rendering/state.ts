@@ -1,14 +1,14 @@
 import {
 	AnyExtensionRenderStateContext,
-	ExtensionRenderStateContextCommonBase
+	ExtensionRenderStateContextCommon
 } from '../../extensions/types';
 import { updateElementAttributes } from '../svg/helpers';
 import { RenderInternal, RenderStateRequest } from '../types';
 import { validateIsMounted } from './helpers';
 
 export function checkNeedsRender(state: RenderInternal): boolean {
-	for (const extension of state.extensions.values()) {
-		if (extension.render.invalidation.dirtyLayers !== 0) {
+	for (const extensionRec of state.extensions.values()) {
+		if (extensionRec.extension.invalidation.dirtyLayers !== 0) {
 			return true;
 		}
 	}
@@ -28,7 +28,7 @@ export function performRenderStatePass(
 	}
 
 	const currentSize = request.current.layout.geometry.boardSize;
-	const prevSize = state.lastRenderedState?.current.layout.geometry?.boardSize;
+	const prevSize = state.lastRendered?.current.layout.geometry?.boardSize;
 	if (currentSize !== prevSize) {
 		const size = String(currentSize);
 		updateElementAttributes(state.svgRoots.svgRoot, {
@@ -38,8 +38,8 @@ export function performRenderStatePass(
 		});
 	}
 
-	const contextBase: ExtensionRenderStateContextCommonBase = {
-		previous: state.lastRenderedState?.current ?? null,
+	const contextBase: ExtensionRenderStateContextCommon = {
+		previous: state.lastRendered?.current ?? null,
 		mutation: request.mutation,
 		current: request.current
 	};
@@ -47,25 +47,25 @@ export function performRenderStatePass(
 	// Check if we have any invalidation states
 	if (!checkNeedsRender(state)) {
 		// Save the last rendered common base context
-		state.lastRenderedState = contextBase;
+		state.lastRendered = contextBase;
 		return; // no-op
 	}
 
 	// Now run over the extensions that have invalidation layers marked and call their render method
 	for (const extensionRec of state.extensions.values()) {
-		if (extensionRec.render.invalidation.dirtyLayers !== 0) {
+		if (extensionRec.extension.invalidation.dirtyLayers !== 0) {
 			const context: AnyExtensionRenderStateContext = {
 				...contextBase,
-				previousData: extensionRec.data.previous,
-				currentData: extensionRec.data.current,
-				invalidation: extensionRec.render.invalidation,
-				animation: extensionRec.render.animation
+				previousData: extensionRec.extension.storedData.previous,
+				currentData: extensionRec.extension.storedData.current,
+				invalidation: extensionRec.extension.invalidation,
+				animation: extensionRec.extension.animation
 			};
-			extensionRec.instance.renderState?.(context);
-			extensionRec.render.invalidation.clear();
+			extensionRec.extension.instance.renderState?.(context);
+			extensionRec.extension.invalidation.clear();
 		}
 	}
 
 	// Save the last rendered common base context
-	state.lastRenderedState = contextBase;
+	state.lastRendered = contextBase;
 }

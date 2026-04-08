@@ -12,8 +12,8 @@ function createViewStateInternal(opts: ViewStateInitOptions = {}): ViewStateInte
 	};
 }
 
-export function createViewState(opts: ViewStateInitOptions = {}): ViewState {
-	const internalState = createViewStateInternal(opts);
+export function createViewState(options: ViewStateInitOptions): ViewState {
+	const internalState = createViewStateInternal(options);
 	return {
 		getOrientation() {
 			return internalState.orientation;

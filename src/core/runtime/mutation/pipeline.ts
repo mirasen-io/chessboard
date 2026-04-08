@@ -1,118 +1,33 @@
-import { createMutationPipeline } from '../../state/mutation/pipeline';
-import type { BoardRuntimeStateInternal } from '../types';
-import { clearIfPieceInInteractionChanged } from './interaction';
-import type { BoardRuntimeMutationCause } from './mutation';
-import type {
-	BoardRuntimeMuitationPipe,
-	BoardRuntimeMutationPipeline,
-	BoardRuntimeStateChangeContext,
-	BoardRuntimeStateChangeContextPrevious
-} from './types';
+import { ExtensionSystem } from '../../extensions/types';
+import { Layout, LayoutSnapshot } from '../../layout/types';
+import { MutationPipe, MutationPipeline } from '../../mutation/types';
+import { Render } from '../../render/types';
+import { BoardRuntimeState, BoardRuntimeStateSnapshot } from '../../state/types';
+import { BoardRuntimeMutationPayloadByCause } from './types';
 
-function buildPreviousContext(
-	internalState: BoardRuntimeStateInternal
-): BoardRuntimeStateChangeContextPrevious {
-	return {
-		state: {
-			board: internalState.state.board.getSnapshot(),
-			view: internalState.state.view.getSnapshot(),
-			interaction: internalState.state.interaction.getSnapshot(),
-			change: {
-				lastMove: internalState.state.change.lastMove
-			}
-		}
-	};
+export interface BoardRuntimeMutationPipelineContext {
+	readonly state: BoardRuntimeState;
+	readonly layout: Layout;
+	readonly render: Render;
+	readonly extensions: ExtensionSystem;
 }
 
-export function createBoardRuntimeMutationPipeline(): BoardRuntimeMutationPipeline {
-	let previousContext: BoardRuntimeStateChangeContextPrevious | null = null;
-	// Construct the pipes
-	const pipes: BoardRuntimeMuitationPipe[] = [
-		// State phase: board mutateed -> view -> interaction
-		// Interaction
-		clearIfPieceInInteractionChanged
-	];
+export type BoardRuntimeMutationPipeline = MutationPipeline<
+	BoardRuntimeMutationPayloadByCause,
+	BoardRuntimeMutationPipelineContext
+>;
 
-	const basicPipeline = createMutationPipeline<
-		BoardRuntimeStateChangeContext,
-		BoardRuntimeMutationCause
-	>(pipes);
-	return {
-		getSession() {
-			return basicPipeline.getSession();
-		},
-
-		addMutation: basicPipeline.addMutation,
-
-		run(currentContext): boolean {
-			const pipelineContext: BoardRuntimeStateChangeContext = {
-				previousContext,
-				currentContext
-			};
-			let didRun = false;
-			try {
-				didRun = basicPipeline.run(pipelineContext);
-			} finally {
-				if (didRun) {
-					previousContext = buildPreviousContext(currentContext);
-				}
-			}
-			return didRun;
-		}
-	};
+export interface BoardRuntimeMutationPipeContextPrevious {
+	readonly state: BoardRuntimeStateSnapshot;
+	readonly layout: LayoutSnapshot;
 }
 
-// const stateChangePipeline = createBoardRuntimeStateChangePipeline([
-// 	/**
-// 	 * Derived: Board state mutations
-// 	 */
-// 	(ctx, causes, addMutation) => {
-// 		const call = [causes.has('board.reducer.setBoardPosition')].some(Boolean);
-// 		if (!call) return;
-// 		lastMove = null;
-// 		addMutation('boardRuntime.reducer.setLastMove', true);
-// 	},
-// 	/**
-// 	 * Derived: View state mutations
-// 	 */
-// 	/**
-// 	 * Derived: Layout state mutations
-// 	 */
-// 	/**
-// 	 * Derived: Interaction state mutations
-// 	 */
-// 	(ctx, causes, addMutation) => {
-// 		const call = [causes.has('board.reducer.setBoardPosition')].some(Boolean);
-// 		if (!call) return;
-// 		addMutation('interaction.reducer.clearInteraction', clearInteractionReducer(interactionState));
-// 	},
-// 	/**
-// 	 * Derived: Interaction state mutations
-// 	 */
-// 	/**
-// 	 * Derived: Transient visuals state mutations
-// 	 */
-// 	(ctx, causes, addMutation) => {
-// 		const call = [causes.has('interaction.reducer.clearInteraction')].some(Boolean);
-// 		if (!call) return;
-// 		transientVisuals.dragPointer = null;
-// 		addMutation('transientVisuals.setDragPointer', true);
-// 	},
-// 	/**
-// 	 * Extension updates
-// 	 */
-// 	() => {
-// 		updateExtensions();
-// 	},
-// 	/**
-// 	 * Render and animation scheduling
-// 	 */
-// 	(ctx, causes) => {
-// 		const call = [causes.has('board.reducer.setBoardPosition')].some(Boolean);
-// 		if (!call) return;
-// 		animator?.stop();
-// 	},
-// 	() => {
-// 		scheduleIfAnythingDirty();
-// 	}
-// ]);
+export interface BoardRuntimeMutationPipeContext {
+	previous: BoardRuntimeMutationPipeContextPrevious | null;
+	current: BoardRuntimeMutationPipelineContext;
+}
+
+export type BoardRuntimeMutationPipe = MutationPipe<
+	BoardRuntimeMutationPayloadByCause,
+	BoardRuntimeMutationPipeContext
+>;

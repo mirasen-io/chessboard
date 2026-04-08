@@ -1,1 +1,12 @@
-// TODO: Implement pipe for tracking state.view.orientation changes and updating layout accordingly
+import { LayoutMutationSession } from '../../layout/mutation';
+import { BoardRuntimeMutationPipe } from './pipeline';
+
+export const layoutRefreshGeometryPipe: BoardRuntimeMutationPipe = (context, mutationSession) => {
+	const { current } = context;
+	if (mutationSession.hasMutation(['view.state.setOrientation'])) {
+		current.layout.refreshGeometryForOrientation(
+			current.state.view.getOrientation(),
+			mutationSession as LayoutMutationSession
+		);
+	}
+};

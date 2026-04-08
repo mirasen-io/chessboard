@@ -1,6 +1,8 @@
+import { createExtensionAnimationController } from './animation/factory';
+import { createExtensionInvalidationState } from './invalidation/factory';
 import {
-	ExtensionRecordInternalDraft,
 	ExtensionSystem,
+	ExtensionSystemExtensionRecord,
 	ExtensionSystemInitOptions,
 	ExtensionSystemInternal
 } from './types';
@@ -9,32 +11,32 @@ import { extensionSystemUpdateState } from './update';
 function createExtensionSystemInternal(
 	options: ExtensionSystemInitOptions
 ): ExtensionSystemInternal {
-	const draftExtensions = new Map<string, ExtensionRecordInternalDraft>();
+	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
 	// Check that the first extension is the main renderer extension
 	if (options.extensions.length === 0 || options.extensions[0].id !== 'main-renderer') {
 		throw new Error('The first extension must be the main renderer extension.');
 	}
 	for (const extensionDef of options.extensions) {
-		if (draftExtensions.has(extensionDef.id)) {
+		if (extensions.has(extensionDef.id)) {
 			throw new Error(`Duplicate extension id found: ${extensionDef.id}`);
 		}
 		const instance = extensionDef.createInstance();
-		const recordDraft: ExtensionRecordInternalDraft = {
+		const record: ExtensionSystemExtensionRecord = {
 			id: extensionDef.id,
 			definition: extensionDef,
 			instance,
-			data: {
+			storedData: {
 				previous: null,
 				current: null
-			}
+			},
+			invalidation: createExtensionInvalidationState(),
+			animation: createExtensionAnimationController()
 		};
-		draftExtensions.set(extensionDef.id, recordDraft);
+		extensions.set(extensionDef.id, record);
 	}
 	return {
-		draftExtensions,
 		extensions: new Map(), // Will be populated after initialization of the render system is complete
-		extensionsFinalized: false,
-		lastRenderedState: null
+		lastUpdated: null
 	};
 }
 
@@ -42,38 +44,15 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 	const internalState = createExtensionSystemInternal(options);
 
 	return {
-		get draftExtensions() {
-			return internalState.draftExtensions;
-		},
 		get extensions() {
 			return internalState.extensions;
 		},
 		updateState(request) {
-			if (!internalState.extensionsFinalized) {
+			if (internalState.extensions.size === 0) {
+				// We at least expect the main renderer extension to be present, so if there are no extensions at all, it means the system hasn't been properly initialized yet
 				throw new Error('Cannot update state before extensions have been finalized.');
 			}
 			extensionSystemUpdateState(internalState, request);
-		},
-		setFinalExtensions(extensions) {
-			if (internalState.extensionsFinalized) {
-				throw new Error('Extensions have already been finalized and cannot be updated.');
-			}
-			if (internalState.extensions.size > 0) {
-				throw new Error('Final extensions have already been set and cannot be updated.');
-			}
-			if (internalState.draftExtensions === null) {
-				throw new Error(
-					'Draft extensions are not available. Final extensions have likely already been set.'
-				);
-			}
-			internalState.extensionsFinalized = true;
-			internalState.draftExtensions = null; // Clear draft extensions to free memory
-			for (const [id, extRec] of extensions.entries()) {
-				internalState.extensions.set(id, extRec);
-			}
-		},
-		setLastRenderedState(context) {
-			internalState.lastRenderedState = context;
 		}
 	};
 }

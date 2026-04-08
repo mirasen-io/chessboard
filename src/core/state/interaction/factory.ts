@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash-es/cloneDeep';
+import { cloneDeep } from 'es-toolkit';
 import {
 	interactionClear,
 	interactionClearActive,

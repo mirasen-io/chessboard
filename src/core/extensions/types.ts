@@ -1,8 +1,11 @@
 import { ReadonlyDeep } from 'type-fest';
-import { RenderGeometry } from '../layout/geometry/types';
 import { LayoutSnapshot } from '../layout/types';
 import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { BoardRuntimeStateSnapshot } from '../state/types';
+import {
+	ExtensionInvalidationState,
+	ExtensionReadonlyInvalidationState
+} from './invalidation/types';
 
 export type ExtensionSlotName =
 	| 'defs'
@@ -44,31 +47,28 @@ export type ExtensionSlotSvgRoots<TSlots extends readonly ExtensionSlotName[]> =
 	Record<TSlots[number], SVGGElement>
 >;
 
-export type ExtensionAllocatedSlotsInternal = ExtensionSlotSvgRoots<readonly ExtensionSlotName[]>;
+export type ExtensionAllocatedSlotsInternal = Partial<
+	ExtensionSlotSvgRoots<readonly ExtensionSlotName[]>
+>;
 
 export interface ExtensionInstanceMountOptions<TSlots extends readonly ExtensionSlotName[]> {
 	slotRoots: ExtensionSlotSvgRoots<TSlots>;
 }
 
-export type ExtensionLayoutSnapshot = LayoutSnapshot &
-	ReadonlyDeep<{
-		readonly geometry: RenderGeometry;
-	}>;
-
-export interface RenderStateFrameSnapshot {
+export interface UpdateStateFrameSnapshotUnmounted {
+	readonly isMounted: false;
 	readonly state: BoardRuntimeStateSnapshot;
-	readonly layout: ExtensionLayoutSnapshot;
 }
 
-export interface ExtensionReadonlyInvalidationState {
-	readonly dirtyLayers: number; // bitfield of Layer values
+export interface UpdateStateFrameSnapshotMounted {
+	readonly isMounted: true;
+	readonly state: BoardRuntimeStateSnapshot;
+	readonly layout: LayoutSnapshot;
 }
 
-export interface ExtensionInvalidationState extends ExtensionReadonlyInvalidationState {
-	markDirty(layers: number): void;
-	clearDirty(layers: number): void;
-	clear(): void;
-}
+export type UpdateStateFrameSnapshot =
+	| UpdateStateFrameSnapshotUnmounted
+	| UpdateStateFrameSnapshotMounted;
 
 export interface ExtensionAnimationSessionSubmitOptions<TData> {
 	duration: DOMHighResTimeStamp;
@@ -94,13 +94,13 @@ export interface ExtensionAnimationController {
 	): readonly ExtensionAnimationSession[];
 }
 
-export interface ExtensionOnUpdateStateContextCommonBase {
-	readonly previous: RenderStateFrameSnapshot | null;
+export interface ExtensionOnUpdateStateContextCommon {
+	readonly previous: UpdateStateFrameSnapshot | null;
 	readonly mutation: BoardRuntimeReadonlyMutationSession;
-	readonly current: RenderStateFrameSnapshot;
+	readonly current: UpdateStateFrameSnapshot;
 }
 
-export interface ExtensionOnUpdateStateContextBase extends ExtensionOnUpdateStateContextCommonBase {
+export interface ExtensionOnUpdateStateContextBase extends ExtensionOnUpdateStateContextCommon {
 	readonly invalidation: ExtensionInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
@@ -116,22 +116,31 @@ export type ExtensionOnUpdateStateContext<TExtensionData> = ExtensionOnUpdateSta
 
 export type AnyExtensionOnUpdateStateContext = ExtensionOnUpdateStateContext<unknown>;
 
-type ExtensionRenderCurrentDataField<TExtensionData> = [TExtensionData] extends [void]
-	? unknown
-	: {
-			readonly currentData: ReadonlyDeep<TExtensionData>;
-		};
+export interface RenderLayoutSnapshot extends LayoutSnapshot {
+	readonly geometry: NonNullable<LayoutSnapshot['geometry']>;
+}
 
-export interface ExtensionRenderStateContextCommonBase {
+export interface RenderStateFrameSnapshot {
+	readonly state: BoardRuntimeStateSnapshot;
+	readonly layout: RenderLayoutSnapshot;
+}
+
+export interface ExtensionRenderStateContextCommon {
 	readonly previous: RenderStateFrameSnapshot | null;
 	readonly mutation: BoardRuntimeReadonlyMutationSession;
 	readonly current: RenderStateFrameSnapshot;
 }
 
-export interface ExtensionRenderStateContextBase extends ExtensionRenderStateContextCommonBase {
+export interface ExtensionRenderStateContextBase extends ExtensionRenderStateContextCommon {
 	readonly invalidation: ExtensionReadonlyInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
+
+type ExtensionRenderCurrentDataField<TExtensionData> = [TExtensionData] extends [void]
+	? unknown
+	: {
+			readonly currentData: ReadonlyDeep<TExtensionData>;
+		};
 
 export type ExtensionRenderStateContext<TExtensionData> = ExtensionRenderStateContextBase &
 	ExtensionRenderPreviousDataField<TExtensionData> &
@@ -265,43 +274,30 @@ export interface ExtensionAnimationControllerInternalSurface extends ExtensionAn
 	clear(): void;
 }
 
-export interface ExtensionRecordInternalRender {
-	readonly slots: ExtensionAllocatedSlotsInternal;
+export interface ExtensionSystemExtensionRecord {
+	readonly id: string;
+	readonly definition: AnyExtensionDefinition;
+	readonly instance: AnyExtensionInstance;
+	readonly storedData: ExtensionStoredData;
 	readonly invalidation: ExtensionInvalidationState;
 	readonly animation: ExtensionAnimationControllerInternalSurface;
 }
 
-export interface ExtensionRecordInternalDraft {
-	readonly id: string;
-	readonly definition: AnyExtensionDefinition;
-	readonly instance: AnyExtensionInstance;
-	readonly data: ExtensionStoredData;
-}
-
-export interface ExtensionRecordInternal extends ExtensionRecordInternalDraft {
-	readonly render: ExtensionRecordInternalRender;
-}
-
 export interface ExtensionSystemInitOptions {
-	extensions: [MainRendererExtensionDefinition, ...AnyExtensionDefinition[]];
+	extensions: readonly AnyExtensionDefinition[];
 }
 
 export interface ExtensionSystemInternal {
-	draftExtensions: Map<string, ExtensionRecordInternalDraft> | null;
-	readonly extensions: Map<string, ExtensionRecordInternal>;
-	extensionsFinalized: boolean;
-	lastRenderedState: ExtensionRenderStateContextCommonBase | null;
+	readonly extensions: Map<string, ExtensionSystemExtensionRecord>;
+	lastUpdated: ExtensionOnUpdateStateContextCommon | null;
 }
 
 export interface ExtensionSystemUpdateRequest {
-	readonly state: RenderStateFrameSnapshot;
+	readonly state: UpdateStateFrameSnapshot;
 	readonly mutation: BoardRuntimeReadonlyMutationSession;
 }
 
 export interface ExtensionSystem {
-	readonly draftExtensions: ReadonlyMap<string, ExtensionRecordInternalDraft> | null;
-	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
+	readonly extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
 	updateState(request: ExtensionSystemUpdateRequest): void;
-	setFinalExtensions(extensions: ReadonlyMap<string, ExtensionRecordInternal>): void;
-	setLastRenderedState(context: ExtensionRenderStateContextCommonBase): void;
 }

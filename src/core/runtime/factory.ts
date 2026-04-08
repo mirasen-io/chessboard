@@ -1,80 +1,77 @@
-import { createBoardState } from '../state/board/factory';
-import { createInteractionState } from '../state/interaction/factory';
-import { createViewState } from '../state/view/factory';
-import { createBoardRuntimeMutationPipeline } from './change/pipeline';
-import { BoardRuntimeMutationPipeline } from './change/types';
-import type { BoardRuntime, BoardRuntimeInitOptions, BoardRuntimeStateInternal } from './types';
+import { createExtensionSystem } from '../extensions/factory';
+import { createSvgRenderer } from '../extensions/main-renderer/factory';
+import { ExtensionSystemInitOptions } from '../extensions/types';
+import { createLayout } from '../layout/factory';
+import { createRender } from '../render/factory';
+import { createBoardRuntimeState } from '../state/factory';
+import { boardRuntimeMount, boardRuntimeUnmount } from './mount';
+import { createBoardRuntimeMutationPipeline } from './mutation/factory';
+import type {
+	BoardRuntime,
+	BoardRuntimeInitOptions,
+	BoardRuntimeInitOptionsInternal,
+	BoardRuntimeInternal,
+	BoardRuntimeSnapshot
+} from './types';
 
-function createBoardRuntimeStateInternal(opts: BoardRuntimeInitOptions): BoardRuntimeStateInternal {
+function createBoardRuntimeInternal(
+	options: BoardRuntimeInitOptionsInternal
+): BoardRuntimeInternal {
+	const extensions = options.extensions ?? [];
+	const hasMainRenderer = extensions.some((ext) => ext.id === 'main-renderer');
+	const createExtensions = hasMainRenderer
+		? (extensions as unknown as ExtensionSystemInitOptions['extensions'])
+		: ([createSvgRenderer(options.render.renderer ?? {}), ...extensions] as const);
+	const extensionSystem = createExtensionSystem({ extensions: createExtensions });
+	const render = createRender({
+		doc: options.render.doc,
+		extensions: extensionSystem.extensions
+	});
 	return {
-		state: {
-			board: createBoardState(opts.board),
-			view: createViewState(opts.view),
-			interaction: createInteractionState(),
-			change: {
-				lastMove: null
-			}
-		}
+		state: createBoardRuntimeState(options.state ?? {}),
+		layout: createLayout(),
+		mutation: createBoardRuntimeMutationPipeline(),
+		render: render,
+		extensions: extensionSystem,
+		resizeObserver: null
 	};
 }
 
-/**
- * Create a minimal internal runtime that orchestrates state + scheduler + renderer.
- *
- * Lifecycle:
- * - Pre-mount: state mutations allowed, no rendering
- * - Mount: measure container, create geometry, mark initial dirty, schedule render, observe resize
- * - Post-mount: state mutations schedule renders; host resize refreshes geometry
- * - Destroy: disconnect resize observer, prevent further resize effects, reject remount
- *
- * @param opts Runtime options
- * @returns BoardRuntime instance
- */
-export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime {
-	const internalState = createBoardRuntimeStateInternal(opts);
+export function createBoardRuntime(options: BoardRuntimeInitOptions): BoardRuntime {
+	const optionsInternal: BoardRuntimeInitOptionsInternal = {
+		state: options.state,
+		extensions: options.extensions,
+		render: {
+			doc: options.render.doc,
+			renderer: options.render.renderer
+		}
+	};
+	const internalState = createBoardRuntimeInternal(optionsInternal);
 	// Initial creation, so we mark board position as mutated to trigger mutation pipeline
-	const mutationPipeline = createBoardRuntimeMutationPipeline();
-	mutationPipeline.addMutation('board.state.setPosition', true);
+	internalState.mutation.addMutation('board.state.setPosition', true);
 
 	// We will have two different interfaces here
 	// One is returned, one is for controller - with different methods
 	// At the moment our assumption that controller will use BoardRuntime but not opposite direction
 	// So we can construct these two objects separately so they would not be huge!
-	const runtimeInternal = createBoardRuntimeInternal(internalState, mutationPipeline);
-
-	// TODO: No construct controller surface to access runtime
-	// const controllerSurface = createControllerSurface(internalState, runtimeInternal, mutationPipeline);
+	// TODO: const inputControllerSurface = createBoardRuntimeInputControllerSurface(internalState);
 
 	// Initial run to process initial mutations and set up previousContext for the next runs
-	mutationPipeline.run(internalState);
-	return runtimeInternal;
-}
-
-function createBoardRuntimeInternal(
-	internalState: BoardRuntimeStateInternal,
-	mutationPipeline: BoardRuntimeMutationPipeline
-): BoardRuntime {
+	internalState.mutation.run(internalState);
+	// @ts-expect-error - For now we just return partial object. TODO: REMOVE!!!!
 	return {
-		setPosition(input) {
-			internalState.state.board.setPosition(input, mutationPipeline.getSession());
-			return mutationPipeline.run(internalState);
+		mount(container) {
+			boardRuntimeMount(internalState, container);
 		},
-		setTurn(turn) {
-			internalState.state.board.setTurn(turn, mutationPipeline.getSession());
-			return mutationPipeline.run(internalState);
+		unmount() {
+			boardRuntimeUnmount(internalState);
+			// We keep the state of the runtime even after unmounting, so when we mount it again we can just reuse it and not lose the current position, orientation, etc.
 		},
-		move(move) {
-			const moveResult = internalState.state.board.move(move, mutationPipeline.getSession());
-			mutationPipeline.run(internalState);
-			return moveResult;
-		},
-		setOrientation(orientation) {
-			internalState.state.view.setOrientation(orientation, mutationPipeline.getSession());
-			return mutationPipeline.run(internalState);
-		},
-		setMovability(movability) {
-			internalState.state.view.setMovability(movability, mutationPipeline.getSession());
-			return mutationPipeline.run(internalState);
+		getSnapshot(): BoardRuntimeSnapshot {
+			return {
+				state: internalState.state.getSnapshot(),
+				layout: internalState.layout.getSnapshot()
+			};
 		}
 	};
 }

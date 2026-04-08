@@ -1,5 +1,5 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { setsEqual } from '../../../helper/util';
+import { setsEqual } from '../../helpers/util';
 import { toValidSquare } from '../board/coords';
 import type { Square, SquareInput } from '../board/types';
 import type { DragSessionSnapshot, InteractionStateInternal } from './types';

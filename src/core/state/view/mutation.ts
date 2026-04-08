@@ -6,4 +6,4 @@ export type ViewStateMutationPayloadByCause = {
 };
 export type ViewStateMutationCause = keyof ViewStateMutationPayloadByCause;
 
-export type ViewMutationSession = MutationSession<ViewStateMutationPayloadByCause>;
+export type ViewStateMutationSession = MutationSession<ViewStateMutationPayloadByCause>;

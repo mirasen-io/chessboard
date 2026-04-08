@@ -1,15 +1,11 @@
 <script lang="ts">
-	import { createActiveTargetExtension } from '@mirasen/chessboard/unstable/core/extensions/activeTarget.js';
-	import { createLastMoveExtension } from '@mirasen/chessboard/unstable/core/extensions/lastMove.js';
-	import { createSelectedSquareExtension } from '@mirasen/chessboard/unstable/core/extensions/selectedSquare.js';
-	import { SvgRenderer } from '@mirasen/chessboard/unstable/core/renderer/SvgRenderer.js';
-	import { createBoardRuntime } from '@mirasen/chessboard/unstable/core/runtime/boardRuntime.js';
-	import type { PositionMapShort } from '@mirasen/chessboard/unstable/core/state/boardTypes.js';
+	import { createBoardRuntime } from '@mirasen/chessboard/unstable/core/runtime/factory.js';
+	import type { PositionMapShort } from '@mirasen/chessboard/unstable/core/state/board/types.js';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
 	let runtime: ReturnType<typeof createBoardRuntime> | null = null;
-	let snapshotText = '';
+	let snapshotText = $state('');
 
 	const START_POSITION: PositionMapShort = {
 		a2: { color: 'w', role: 'p' },
@@ -51,7 +47,7 @@
 
 	function refreshSnapshot() {
 		if (!runtime) return;
-		snapshotText = JSON.stringify(runtime.getInteractionSnapshot(), null, 2);
+		snapshotText = JSON.stringify(runtime.getSnapshot(), null, 2);
 	}
 
 	function setWhite() {
@@ -68,7 +64,7 @@
 
 	function resetPosition() {
 		if (!runtime) return;
-		runtime.setBoardPosition(START_POSITION);
+		runtime.setPosition(START_POSITION);
 		refreshSnapshot();
 	}
 
@@ -80,20 +76,9 @@
 
 	onMount(() => {
 		runtime = createBoardRuntime({
-			renderer: new SvgRenderer(),
-			board: {
-				position: START_POSITION
-			},
-			view: {
-				movability: {
-					mode: 'free'
-				}
-			},
-			extensions: [
-				createSelectedSquareExtension(),
-				createLastMoveExtension(),
-				createActiveTargetExtension()
-			]
+			render: {
+				doc: document
+			}
 		});
 
 		runtime.mount(boardEl);
@@ -107,7 +92,7 @@
 	});
 
 	onDestroy(() => {
-		runtime?.destroy();
+		runtime?.unmount();
 		runtime = null;
 	});
 </script>

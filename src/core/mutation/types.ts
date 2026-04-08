@@ -29,7 +29,7 @@ export type MutationPipe<PayloadByCause extends Record<string, unknown>, Context
 	mutationSession: MutationSession<PayloadByCause>
 ) => void;
 
-export interface MutationPipeline<Context, PayloadByCause extends Record<string, unknown>> {
+export interface MutationPipeline<PayloadByCause extends Record<string, unknown>, Context> {
 	getSession(): MutationSession<PayloadByCause>;
 	addMutation<Cause extends keyof PayloadByCause>(
 		cause: Cause,

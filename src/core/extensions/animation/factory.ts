@@ -3,8 +3,8 @@ import {
 	ExtensionAnimationSessionInternalSurface,
 	ExtensionAnimationSessionSubmitOptions,
 	ExtensionAnimationStatus
-} from '../../extensions/types';
-import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from '../types';
+} from '../types';
+import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from './types';
 
 function createExtensionAnimationSessionInternal(
 	id: string,

@@ -1,28 +1,50 @@
+import { SvgRendererInitOptions } from '../extensions/main-renderer/types/extension';
+import { AnyExtensionDefinition, ExtensionSystem } from '../extensions/types';
+import { Layout, LayoutSnapshot } from '../layout/types';
+import { Render } from '../render/types';
+import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
 import {
-	BoardStateInitOptions,
-	ColorInput,
-	Move,
-	MoveInput,
-	PositionInput,
-	Square,
-	SquareInput
-} from '../state/board/types';
-import { BoardRuntimeStateStateInternal } from '../state/types';
-import { Movability, ViewStateInitOptions } from '../state/view/types';
+	BoardRuntimeState,
+	BoardRuntimeStateInitOptions,
+	BoardRuntimeStateSnapshot
+} from '../state/types';
+import { Movability } from '../state/view/types';
+import { BoardRuntimeMutationPipeline } from './mutation/pipeline';
 
-export interface BoardRuntimeStateInternalMount {
-	container: HTMLElement;
+export interface BoardRuntimeInternal {
+	readonly state: BoardRuntimeState;
+	readonly layout: Layout;
+	readonly mutation: BoardRuntimeMutationPipeline;
+	readonly render: Render;
+	readonly extensions: ExtensionSystem;
+	resizeObserver: ResizeObserver | null;
 }
 
-export interface BoardRuntimeStateInternal {
-	state: BoardRuntimeStateStateInternal;
+export interface BoardRuntimeInitOptionsRenderInternal {
+	doc: Document;
+	renderer?: SvgRendererInitOptions;
+}
+
+export interface BoardRuntimeInitOptionsInternal {
+	state?: BoardRuntimeStateInitOptions;
+	extensions?: AnyExtensionDefinition[];
+	render: BoardRuntimeInitOptionsRenderInternal;
+}
+
+export interface BoardRuntimeInitOptionsRender {
+	doc: Document;
+	renderer?: SvgRendererInitOptions;
 }
 
 export interface BoardRuntimeInitOptions {
-	// renderer: Renderer;
-	board?: BoardStateInitOptions;
-	view?: ViewStateInitOptions;
-	// extensions?: BoardExtensionDefinitionInternal[];
+	state?: BoardRuntimeStateInitOptions;
+	extensions?: AnyExtensionDefinition[];
+	render: BoardRuntimeInitOptionsRender;
+}
+
+export interface BoardRuntimeSnapshot {
+	state: BoardRuntimeStateSnapshot;
+	layout: LayoutSnapshot;
 }
 
 /**
@@ -34,7 +56,7 @@ export interface BoardRuntimeInitOptions {
 export interface BoardRuntime {
 	// Lifecycle
 	mount(container: HTMLElement): void;
-	destroy(): void;
+	unmount(): void;
 	// Board state
 	setPosition(input: PositionInput): boolean;
 	setTurn(turn: ColorInput): boolean;
@@ -51,7 +73,5 @@ export interface BoardRuntime {
 	// Clears dragSession, currentTarget, and releaseTargetingActive.
 	// Keeps selectedSquare + destinations.
 	cancelInteraction(): boolean;
-	// Helpers
-	canStartMoveFrom(from: Square): boolean;
-	isMoveAttemptAllowed(from: Square, to: Square): boolean;
+	getSnapshot(): BoardRuntimeSnapshot;
 }

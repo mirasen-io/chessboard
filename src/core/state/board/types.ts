@@ -6,7 +6,7 @@
  */
 
 import type { ReadonlyDeep } from 'type-fest';
-import type { BoardMutationSession } from './mutation';
+import type { BoardStateMutationSession } from './mutation';
 
 export type Color = 'white' | 'black';
 export type ColorShort = 'w' | 'b';
@@ -175,9 +175,9 @@ export interface BoardStateInitOptions {
 }
 
 export interface BoardState {
-	setPosition(input: PositionInput, mutationSession: BoardMutationSession): boolean;
-	setTurn(turn: ColorInput, mutationSession: BoardMutationSession): boolean;
-	move(move: MoveInput, mutationSession: BoardMutationSession): Move;
+	setPosition(input: PositionInput, mutationSession: BoardStateMutationSession): boolean;
+	setTurn(turn: ColorInput, mutationSession: BoardStateMutationSession): boolean;
+	move(move: MoveInput, mutationSession: BoardStateMutationSession): Move;
 	getPieceCodeAt(square: Square): number;
 	getSnapshot(): BoardStateSnapshot;
 }

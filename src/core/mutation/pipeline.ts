@@ -3,7 +3,7 @@ import type { MutationPipe, MutationPipeline } from './types';
 
 export function createMutationPipeline<PayloadByCause extends Record<string, unknown>, Context>(
 	pipes: readonly MutationPipe<PayloadByCause, Context>[]
-): MutationPipeline<Context, PayloadByCause> {
+): MutationPipeline<PayloadByCause, Context> {
 	const registeredPipes: MutationPipe<PayloadByCause, Context>[] = [...pipes] as const;
 	const session = createMutationSession<PayloadByCause>();
 

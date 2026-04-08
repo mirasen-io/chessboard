@@ -1,6 +1,6 @@
 import {
 	AnyExtensionOnUpdateStateContext,
-	ExtensionOnUpdateStateContextCommonBase,
+	ExtensionOnUpdateStateContextCommon,
 	ExtensionSystemInternal,
 	ExtensionSystemUpdateRequest
 } from './types';
@@ -8,25 +8,25 @@ import {
 export function extensionSystemUpdateState(
 	state: ExtensionSystemInternal,
 	request: ExtensionSystemUpdateRequest
-): ExtensionOnUpdateStateContextCommonBase {
+): void {
 	// Prepare base context
-	const contextCommonBase: ExtensionOnUpdateStateContextCommonBase = {
-		previous: state.lastRenderedState?.current ?? null,
+	const contextCommonBase: ExtensionOnUpdateStateContextCommon = {
+		previous: state.lastUpdated?.current ?? null,
 		mutation: request.mutation,
 		current: request.state
 	};
+
 	// Update invalidation state based on the new request
 	for (const extension of state.extensions.values()) {
 		const context: AnyExtensionOnUpdateStateContext = {
 			...contextCommonBase,
-			previousData: extension.data.current,
-			invalidation: extension.render.invalidation,
-			animation: extension.render.animation
+			previousData: extension.storedData.current,
+			invalidation: extension.invalidation,
+			animation: extension.animation
 		};
 		const newData = extension.instance.onStateUpdate(context);
-		extension.data.previous = extension.data.current;
-		extension.data.current = newData;
+		extension.storedData.previous = extension.storedData.current;
+		extension.storedData.current = newData;
 	}
-	state.lastRenderedState = contextCommonBase;
-	return contextCommonBase;
+	state.lastUpdated = contextCommonBase;
 }

@@ -1,6 +1,6 @@
 import { Writable } from 'type-fest';
-import { ExtensionSlotName } from '../../extensions/types';
-import { ExtensionAllocatedSlots, RenderInitOptionsInternal, SvgRoots } from '../types';
+import { ExtensionAllocatedSlotsInternal, ExtensionSlotName } from '../../extensions/types';
+import { RenderInitOptionsInternal, SvgRoots } from '../types';
 import { createSvgElement } from './helpers';
 
 export function createSvgRoots(options: RenderInitOptionsInternal): SvgRoots {
@@ -36,11 +36,12 @@ export function createSvgRoots(options: RenderInitOptionsInternal): SvgRoots {
 
 export function allocateExtensionSlotRoots(
 	svgRoots: SvgRoots,
+	extensionId: string,
 	slots: readonly ExtensionSlotName[]
-): ExtensionAllocatedSlots {
-	const result = {} as Writable<ExtensionAllocatedSlots>;
+): ExtensionAllocatedSlotsInternal {
+	const result = {} as Writable<ExtensionAllocatedSlotsInternal>;
 	for (const slot of slots) {
-		const id = `extension-slot-root-${slot}`;
+		const id = `extension-slot-root-${slot}-${extensionId}`;
 		result[slot] = createSvgElement(svgRoots[slot], 'g', { 'data-chessboard-id': id });
 	}
 	return result;

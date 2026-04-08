@@ -1,6 +1,6 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type { Square } from '../board/types';
-import type { InteractionMutationSession } from './mutation';
+import type { InteractionStateMutationSession } from './mutation';
 
 /**
  * Active drag session facts.
@@ -45,22 +45,25 @@ export type InteractionStateSnapshot = ReadonlyDeep<InteractionStateInternal>;
 
 export interface InteractionState {
 	getSelectedSquare(): Square | null;
-	setSelectedSquare(sq: Square | null, mutationSession: InteractionMutationSession): boolean;
+	setSelectedSquare(sq: Square | null, mutationSession: InteractionStateMutationSession): boolean;
 	getDestinations(): readonly Square[];
 	setDestinations(
 		dests: readonly Square[] | null,
-		mutationSession: InteractionMutationSession
+		mutationSession: InteractionStateMutationSession
 	): boolean;
 	getDragSession(): DragSessionSnapshot | null;
 	setDragSession(
 		session: DragSessionSnapshot | null,
-		mutationSession: InteractionMutationSession
+		mutationSession: InteractionStateMutationSession
 	): boolean;
 	getCurrentTarget(): Square | null;
-	setCurrentTarget(sq: Square | null, mutationSession: InteractionMutationSession): boolean;
+	setCurrentTarget(sq: Square | null, mutationSession: InteractionStateMutationSession): boolean;
 	getReleaseTargetingActive(): boolean;
-	setReleaseTargetingActive(active: boolean, mutationSession: InteractionMutationSession): boolean;
-	clear(mutationSession: InteractionMutationSession): boolean;
-	clearActive(mutationSession: InteractionMutationSession): boolean;
+	setReleaseTargetingActive(
+		active: boolean,
+		mutationSession: InteractionStateMutationSession
+	): boolean;
+	clear(mutationSession: InteractionStateMutationSession): boolean;
+	clearActive(mutationSession: InteractionStateMutationSession): boolean;
 	getSnapshot(): InteractionStateSnapshot;
 }

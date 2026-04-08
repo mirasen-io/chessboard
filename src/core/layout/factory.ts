@@ -1,7 +1,4 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { Color } from '../state/board/types';
-import { RenderGeometry } from './geometry/types';
-import { LayoutMutationSession } from './mutation';
 import { layoutRefreshGeometry, layoutRefreshGeometryForOrientation } from './reducers';
 import { Layout, LayoutInternal } from './types';
 
@@ -17,29 +14,22 @@ export function createLayout(): Layout {
 	const internalState = createLayoutInternal();
 
 	return {
-		getBoardSize(): number {
+		getBoardSize() {
 			return internalState.boardSize;
 		},
-		getGeometry(): RenderGeometry | null {
+		getGeometry() {
 			return internalState.geometry;
 		},
-		getLayoutVersion(): number {
+		getLayoutVersion() {
 			return internalState.layoutVersion;
 		},
-		refreshGeometry(
-			container: HTMLElement,
-			orientation: Color,
-			mutationSession: LayoutMutationSession
-		): boolean {
+		refreshGeometry(container, orientation, mutationSession) {
 			return mutationSession.addMutation(
 				'board.layout.refreshGeometry',
 				layoutRefreshGeometry(internalState, container, orientation)
 			);
 		},
-		refreshGeometryForOrientation(
-			orientation: Color,
-			mutationSession: LayoutMutationSession
-		): boolean {
+		refreshGeometryForOrientation(orientation, mutationSession) {
 			return mutationSession.addMutation(
 				'board.layout.refreshGeometry',
 				layoutRefreshGeometryForOrientation(internalState, orientation)

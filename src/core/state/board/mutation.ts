@@ -9,4 +9,4 @@ export type BoardStateMutationPayloadByCause = {
 
 export type BoardStateMutationCause = keyof BoardStateMutationPayloadByCause;
 
-export type BoardMutationSession = MutationSession<BoardStateMutationPayloadByCause>;
+export type BoardStateMutationSession = MutationSession<BoardStateMutationPayloadByCause>;

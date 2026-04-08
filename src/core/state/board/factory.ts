@@ -64,7 +64,7 @@ function coercePieceInput(p: { color: string; role: string }): Piece {
 	return { color, role };
 }
 
-export function createBoardState(options?: BoardStateInitOptions): BoardState {
+export function createBoardState(options: BoardStateInitOptions): BoardState {
 	const internalState = createBoardStateInternal(options);
 
 	return {

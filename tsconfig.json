@@ -16,6 +16,6 @@
 		"sourceMap": true,
 		"declarationMap": true
 	},
-	"include": ["src-old"],
+	"include": ["src"],
 	"exclude": ["node_modules", "dist", "coverage"]
 }

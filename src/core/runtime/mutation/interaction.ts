@@ -1,3 +1,4 @@
+/*
 import type { BoardRuntimeMuitationPipe } from './types';
 
 export const clearIfPieceInInteractionChanged: BoardRuntimeMuitationPipe = (
@@ -22,3 +23,4 @@ export const clearIfPieceInInteractionChanged: BoardRuntimeMuitationPipe = (
 	// Ok, these are different pieces, so we clear interaction state to avoid mismatches (e.g. selected square with no piece, or just a different piece)
 	currentContext.state.interaction.clear(mutationSession);
 };
+*/

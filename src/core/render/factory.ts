@@ -1,7 +1,4 @@
-import { ExtensionRecordInternal } from '../extensions/types';
 import { mergeReadonlySessions } from '../mutation/session';
-import { createExtensionAnimationController } from './animation/factory';
-import { createExtensionInvalidationState } from './invalidation/factory';
 import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
 import { validateIsMounted } from './rendering/helpers';
@@ -12,6 +9,7 @@ import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
 import {
 	Render,
 	RenderAnimationRequest,
+	RenderExtensionRecord,
 	RenderInitOptions,
 	RenderInitOptionsInternal,
 	RenderInternal,
@@ -26,26 +24,28 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 		render: options.performRender
 	});
 
-	const extensions = new Map<string, ExtensionRecordInternal>();
-	for (const extensionDraft of options.extensionsDraft.values()) {
-		const extensionInternal: ExtensionRecordInternal = {
-			...extensionDraft,
+	const extensions = new Map<string, RenderExtensionRecord>();
+	for (const extensionSystemExt of options.extensions.values()) {
+		const extensionInternal: RenderExtensionRecord = {
+			id: extensionSystemExt.id,
+			extension: extensionSystemExt,
 			render: {
-				slots: allocateExtensionSlotRoots(svgRoots, extensionDraft.definition.slots),
-				invalidation: createExtensionInvalidationState(),
-				animation: createExtensionAnimationController()
+				slots: allocateExtensionSlotRoots(
+					svgRoots,
+					extensionSystemExt.id,
+					extensionSystemExt.definition.slots
+				)
 			}
 		};
-		extensions.set(extensionDraft.id, extensionInternal);
+		extensions.set(extensionInternal.id, extensionInternal);
 	}
 
 	return {
 		container: null,
-		lastRenderedState: null,
+		lastRendered: null,
 		svgRoots,
 		scheduler,
-		extensions,
-		callbacks: options.callbacks
+		extensions
 	};
 }
 
@@ -60,10 +60,9 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 	// First we check and run renderState,
 	if (options.stateRequest) {
 		performRenderStatePass(state, options.stateRequest);
-		if (!state.lastRenderedState) {
-			throw new Error('After renderState, lastRenderedState context should be set');
+		if (!state.lastRendered) {
+			throw new Error('After renderState, lastRendered context should be set');
 		}
-		state.callbacks.renderStatePassed(options.stateRequest, state.lastRenderedState);
 	}
 
 	// Then we check and run renderAnimation,
@@ -75,10 +74,9 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 	// Finally we run renderVisuals.
 	if (options.visualsRequest) {
 		performRenderVisualsPass(state, options.visualsRequest);
-		if (!state.lastRenderedState) {
-			throw new Error('After renderVisuals, lastRenderedState context should be set');
+		if (!state.lastRendered) {
+			throw new Error('After renderVisuals, lastRendered context should be set');
 		}
-		state.callbacks.renderVisualsPassed(options.visualsRequest, state.lastRenderedState);
 	}
 }
 
@@ -150,6 +148,9 @@ export function createRender(options: RenderInitOptions): Render {
 		},
 		get isMounted() {
 			return internalState.container !== null;
+		},
+		get container() {
+			return internalState.container;
 		}
 	};
 }
