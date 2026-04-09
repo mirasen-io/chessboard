@@ -1,50 +1,38 @@
-import {
-	AnyExtensionRenderVisualsContext,
-	ExtensionRenderStateContextCommon
-} from '../../extensions/types';
-import { mergeReadonlySessions } from '../../mutation/session';
+import { ExtensionRenderVisualsContext, RenderStateFrameSnapshot } from '../../extensions/types';
 import { BoardRuntimeStateSnapshot } from '../../state/types';
-import { RenderInternal, RenderVisualsRequest } from '../types';
+import { VisualsStateSnapshot } from '../../state/visuals/types';
+import { RenderInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
 export function performRenderVisualsPass(
 	state: RenderInternal,
-	request: RenderVisualsRequest
+	request: VisualsStateSnapshot
 ): void {
 	validateIsMounted(state);
-	const contextCommonBase = state.lastRendered;
-	if (!contextCommonBase) {
+	const lastRendered = state.lastRendered;
+	if (!lastRendered) {
 		throw new Error(
 			'RenderVisuals called but no previous render state found. RenderState must be called before RenderVisuals.'
 		);
 	}
-	const mutation = state.lastRendered?.mutation
-		? mergeReadonlySessions([state.lastRendered.mutation, request.mutation], 'visuals.state.')
-		: request.mutation;
 
 	// Just update state.lastRendered.current.state.visuals and the rest is the same
 	const newCurrentState: BoardRuntimeStateSnapshot = {
-		...contextCommonBase.current.state,
-		visuals: request.current
+		...lastRendered.state,
+		visuals: request
 	};
-	const newContextCommonBase: ExtensionRenderStateContextCommon = {
-		...contextCommonBase,
-		mutation,
-		current: {
-			...contextCommonBase.current,
-			state: newCurrentState
-		}
+	const newRendered: RenderStateFrameSnapshot = {
+		...lastRendered,
+		state: newCurrentState
 	};
 	for (const extensionRec of state.extensions.values()) {
-		const context: AnyExtensionRenderVisualsContext = {
-			...newContextCommonBase,
-			previousData: extensionRec.extension.storedData.previous,
-			currentData: extensionRec.extension.storedData.current,
+		const context: ExtensionRenderVisualsContext = {
+			current: newRendered,
 			invalidation: extensionRec.extension.invalidation,
 			animation: extensionRec.extension.animation
 		};
 		extensionRec.extension.instance.renderVisuals?.(context);
 	}
 
-	state.lastRendered = newContextCommonBase;
+	state.lastRendered = newRendered;
 }

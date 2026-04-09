@@ -1,4 +1,5 @@
-import { mergeReadonlySessions } from '../mutation/session';
+import { RenderStateFrameSnapshot } from '../extensions/types';
+import { VisualsStateSnapshot } from '../state/visuals/types';
 import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
 import { validateIsMounted } from './rendering/helpers';
@@ -8,13 +9,10 @@ import { createScheduler } from './scheduler/scheduler';
 import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
 import {
 	Render,
-	RenderAnimationRequest,
 	RenderExtensionRecord,
 	RenderInitOptions,
 	RenderInitOptionsInternal,
-	RenderInternal,
-	RenderStateRequest,
-	RenderVisualsRequest
+	RenderInternal
 } from './types';
 
 function createRenderInternal(options: RenderInitOptionsInternal): RenderInternal {
@@ -50,40 +48,36 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 }
 
 interface PerformRenderOptions {
-	stateRequest: RenderStateRequest | null;
-	animationRequest: RenderAnimationRequest | null;
-	requestNextRenderAnimation: (request: RenderAnimationRequest | null) => void;
-	visualsRequest: RenderVisualsRequest | null;
+	stateRequest: RenderStateFrameSnapshot | null;
+	animationRequest: true | null;
+	requestNextRenderAnimation: () => void;
+	visualsRequest: VisualsStateSnapshot | null;
 }
 
 function performRender(state: RenderInternal, options: PerformRenderOptions) {
 	// First we check and run renderState,
 	if (options.stateRequest) {
 		performRenderStatePass(state, options.stateRequest);
-		if (!state.lastRendered) {
-			throw new Error('After renderState, lastRendered context should be set');
-		}
 	}
 
 	// Then we check and run renderAnimation,
 	if (options.animationRequest) {
-		const nextRequest = performAnimationPass(state, options.animationRequest);
-		options.requestNextRenderAnimation(nextRequest);
+		const nextRequest = performAnimationPass(state);
+		if (nextRequest) {
+			options.requestNextRenderAnimation();
+		}
 	}
 
 	// Finally we run renderVisuals.
 	if (options.visualsRequest) {
 		performRenderVisualsPass(state, options.visualsRequest);
-		if (!state.lastRendered) {
-			throw new Error('After renderVisuals, lastRendered context should be set');
-		}
 	}
 }
 
 export function createRender(options: RenderInitOptions): Render {
-	let pendingStateRequest: RenderStateRequest | null = null;
-	let pendingAnimationRequest: RenderAnimationRequest | null = null;
-	let pendingVisualsRequest: RenderVisualsRequest | null = null;
+	let pendingStateRequest: RenderStateFrameSnapshot | null = null;
+	let pendingAnimationRequest: true | null = null;
+	let pendingVisualsRequest: VisualsStateSnapshot | null = null;
 
 	function performRenderClosure() {
 		const stateRequest = pendingStateRequest;
@@ -95,9 +89,9 @@ export function createRender(options: RenderInitOptions): Render {
 		performRender(internalState, {
 			stateRequest: stateRequest,
 			animationRequest: animationRequest,
-			requestNextRenderAnimation: (request) => {
-				if (request) {
-					pendingAnimationRequest = request;
+			requestNextRenderAnimation: () => {
+				if (animationRequest) {
+					pendingAnimationRequest = true;
 					internalState.scheduler.schedule();
 				}
 			},
@@ -115,25 +109,19 @@ export function createRender(options: RenderInitOptions): Render {
 		requestRenderState(request) {
 			validateIsMounted(internalState);
 			pendingStateRequest = {
-				...request,
-				mutation: pendingStateRequest?.mutation
-					? mergeReadonlySessions([pendingStateRequest.mutation, request.mutation])
-					: request.mutation
+				...request
 			};
 			internalState.scheduler.schedule();
 		},
-		requestRenderAnimation(request) {
+		requestRenderAnimation() {
 			validateIsMounted(internalState);
-			pendingAnimationRequest = request;
+			pendingAnimationRequest = true;
 			internalState.scheduler.schedule();
 		},
 		requestRenderVisuals(request) {
 			validateIsMounted(internalState);
 			pendingVisualsRequest = {
-				...request,
-				mutation: pendingVisualsRequest?.mutation
-					? mergeReadonlySessions([pendingVisualsRequest.mutation, request.mutation])
-					: request.mutation
+				...request
 			};
 			internalState.scheduler.schedule();
 		},

@@ -1,9 +1,6 @@
-import {
-	AnyExtensionRenderStateContext,
-	ExtensionRenderStateContextCommon
-} from '../../extensions/types';
+import { ExtensionRenderStateContext, RenderStateFrameSnapshot } from '../../extensions/types';
 import { updateElementAttributes } from '../svg/helpers';
-import { RenderInternal, RenderStateRequest } from '../types';
+import { RenderInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
 export function checkNeedsRender(state: RenderInternal): boolean {
@@ -17,18 +14,18 @@ export function checkNeedsRender(state: RenderInternal): boolean {
 
 export function performRenderStatePass(
 	state: RenderInternal,
-	request: RenderStateRequest | null
+	request: RenderStateFrameSnapshot | null
 ): void {
 	validateIsMounted(state);
 	if (!request) {
 		throw new Error('Render called without a valid render request');
 	}
-	if (!request.current.layout.geometry) {
+	if (!request.layout.geometry) {
 		throw new Error('Render called without a valid layout geometry');
 	}
 
-	const currentSize = request.current.layout.geometry.boardSize;
-	const prevSize = state.lastRendered?.current.layout.geometry?.boardSize;
+	const currentSize = request.layout.geometry.boardSize;
+	const prevSize = state.lastRendered?.layout.geometry?.boardSize;
 	if (currentSize !== prevSize) {
 		const size = String(currentSize);
 		updateElementAttributes(state.svgRoots.svgRoot, {
@@ -38,26 +35,18 @@ export function performRenderStatePass(
 		});
 	}
 
-	const contextBase: ExtensionRenderStateContextCommon = {
-		previous: state.lastRendered?.current ?? null,
-		mutation: request.mutation,
-		current: request.current
-	};
-
 	// Check if we have any invalidation states
 	if (!checkNeedsRender(state)) {
 		// Save the last rendered common base context
-		state.lastRendered = contextBase;
+		state.lastRendered = request;
 		return; // no-op
 	}
 
 	// Now run over the extensions that have invalidation layers marked and call their render method
 	for (const extensionRec of state.extensions.values()) {
 		if (extensionRec.extension.invalidation.dirtyLayers !== 0) {
-			const context: AnyExtensionRenderStateContext = {
-				...contextBase,
-				previousData: extensionRec.extension.storedData.previous,
-				currentData: extensionRec.extension.storedData.current,
+			const context: ExtensionRenderStateContext = {
+				current: request,
 				invalidation: extensionRec.extension.invalidation,
 				animation: extensionRec.extension.animation
 			};
@@ -67,5 +56,5 @@ export function performRenderStatePass(
 	}
 
 	// Save the last rendered common base context
-	state.lastRendered = contextBase;
+	state.lastRendered = request;
 }

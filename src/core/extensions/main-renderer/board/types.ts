@@ -1,11 +1,11 @@
+import { ExtensionOnUpdateStateContext, ExtensionRenderStateContext } from '../../types';
 import { ConfigColorPair } from '../types/config';
-import { MainRendererOnUpdateContext, MainRendererRenderStateContext } from '../types/extension';
 
 export interface MainRendererBoardInternal {
 	readonly config: ConfigColorPair;
 }
 
 export interface MainRendererBoard {
-	onUpdate(context: MainRendererOnUpdateContext): void;
-	render(context: MainRendererRenderStateContext, layer: SVGElement): void;
+	onUpdate(context: ExtensionOnUpdateStateContext): void;
+	render(context: ExtensionRenderStateContext, layer: SVGElement): void;
 }

@@ -31,8 +31,6 @@ export interface BoardRuntimeInitOptionsInternal extends BoardRuntimeInitOptions
 	extensionCreateInstanceOptions: ExtensionCreateInstanceOptions;
 }
 
-export type BoardRuntimeSnapshot = BoardRuntimeExtensionSurfaceSnapshot;
-
 /**
  * Public interface for the internal runtime.
  * Orchestrates board state, view state, interaction state, and invalidation.
@@ -45,5 +43,5 @@ export interface BoardRuntime extends BoardRuntimeExtensionSurface {
 	mount(container: HTMLElement): void;
 	unmount(): void; // just unmount, can be remounted
 	destroy(): void; // unmount + cleanup internal state, observers, etc. cannot be reused anymore
-	getSnapshot(): BoardRuntimeSnapshot;
+	getSnapshot(): BoardRuntimeExtensionSurfaceSnapshot;
 }

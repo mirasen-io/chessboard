@@ -1,12 +1,13 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
 import { toAlgebraic } from '../../../state/board/coords';
 import { Square } from '../../../state/board/types';
-import { DirtyLayer, MainRendererRenderStateContext } from '../types/extension';
+import { ExtensionRenderStateContext } from '../../types';
+import { DirtyLayer } from '../types/extension';
 import { MainRendererBoardInternal } from './types';
 
 export function rendererBoardRender(
 	state: MainRendererBoardInternal,
-	context: MainRendererRenderStateContext,
+	context: ExtensionRenderStateContext,
 	layer: SVGElement
 ): void {
 	// Check if we need to render

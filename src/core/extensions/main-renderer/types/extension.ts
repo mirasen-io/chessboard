@@ -3,9 +3,6 @@ import {
 	ExtensionDefinition,
 	ExtensionInstance,
 	ExtensionInstanceMountOptions,
-	ExtensionOnUpdateStateContext,
-	ExtensionRenderStateContext,
-	ExtensionRenderVisualsContext,
 	ExtensionSlotSvgRoots
 } from '../../types';
 import { ConfigColors, PieceUrls } from './config';
@@ -24,26 +21,14 @@ export type MainRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS
 export type MainRendererDefinition = ExtensionDefinition<
 	typeof EXTENSION_ID,
 	typeof EXTENSION_SLOTS,
-	never,
-	void
+	never
 >;
 
 export type MainRendererInstance = ExtensionInstance<
 	typeof EXTENSION_ID,
 	typeof EXTENSION_SLOTS,
-	never,
-	void
+	never
 >;
-
-export type MainRendererData = void;
-
-export type MainRendererOnUpdateContext = ExtensionOnUpdateStateContext<MainRendererData>;
-
-export type MainRendererRenderStateContext = ExtensionRenderStateContext<MainRendererData>;
-
-export type MainRendererRenderAnimationContext = ExtensionRenderStateContext<MainRendererData>;
-
-export type MainRendererRenderVisualsContext = ExtensionRenderVisualsContext<MainRendererData>;
 
 export enum DirtyLayer {
 	Board = 1, // 1 << 0,

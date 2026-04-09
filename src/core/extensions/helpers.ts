@@ -1,8 +1,8 @@
 import type {
-	ExtensionOnUpdateStateContextBase,
-	ExtensionOnUpdateStateContextBaseMounted,
+	ExtensionOnUpdateStateContext,
 	ExtensionOnUpdateStateContextCommon,
-	ExtensionOnUpdateStateContextCommonMounted
+	ExtensionOnUpdateStateContextCommonMounted,
+	ExtensionOnUpdateStateContextMounted
 } from './types';
 
 export function isCurrentUpdateContextCommonMounted<T extends ExtensionOnUpdateStateContextCommon>(
@@ -11,8 +11,8 @@ export function isCurrentUpdateContextCommonMounted<T extends ExtensionOnUpdateS
 	return context.current.isMounted;
 }
 
-export function isCurrentUpdateContextBaseMounted<T extends ExtensionOnUpdateStateContextBase>(
+export function isCurrentUpdateContextMounted<T extends ExtensionOnUpdateStateContext>(
 	context: T
-): context is T & ExtensionOnUpdateStateContextBaseMounted {
+): context is T & ExtensionOnUpdateStateContextMounted {
 	return context.current.isMounted;
 }

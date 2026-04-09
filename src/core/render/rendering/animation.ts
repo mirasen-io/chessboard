@@ -1,28 +1,20 @@
-import { AnyExtensionRenderAnimationContext } from '../../extensions/types';
-import { RenderAnimationRequest, RenderInternal } from '../types';
+import { ExtensionRenderAnimationContext } from '../../extensions/types';
+import { RenderInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
-export function performAnimationPass(
-	state: RenderInternal,
-	request: RenderAnimationRequest | null
-): RenderAnimationRequest | null {
+export function performAnimationPass(state: RenderInternal): boolean {
 	validateIsMounted(state);
-	if (!request) {
-		throw new Error('RenderAnimation called without a valid render request');
-	}
-	const contextCommonBase = state.lastRendered;
 	let requestNextRenderAnimation = false;
-	if (!contextCommonBase) {
+	const lastRendered = state.lastRendered;
+	if (!lastRendered) {
 		throw new Error(
 			'RenderAnimation called but no previous render state found. RenderState must be called before RenderAnimation.'
 		);
 	}
 	for (const extensionRec of state.extensions.values()) {
 		// Prepare the animation context
-		const context: AnyExtensionRenderAnimationContext = {
-			...contextCommonBase,
-			previousData: extensionRec.extension.storedData.previous,
-			currentData: extensionRec.extension.storedData.current,
+		const context: ExtensionRenderAnimationContext = {
+			current: lastRendered,
 			invalidation: extensionRec.extension.invalidation,
 			animation: extensionRec.extension.animation
 		};
@@ -65,5 +57,5 @@ export function performAnimationPass(
 			requestNextRenderAnimation || extensionRec.extension.animation.getAll('active').length > 0;
 	}
 
-	return requestNextRenderAnimation ? request : null;
+	return requestNextRenderAnimation;
 }

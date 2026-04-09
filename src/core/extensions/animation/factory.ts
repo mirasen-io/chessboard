@@ -8,20 +8,19 @@ import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal
 
 function createExtensionAnimationSessionInternal(
 	id: string,
-	options: ExtensionAnimationSessionSubmitOptions<unknown>
+	options: ExtensionAnimationSessionSubmitOptions
 ): ExtensionAnimationSessionInternal {
 	return {
 		id,
 		startTime: performance.now(),
 		duration: options.duration,
-		data: options.data,
 		status: 'submitted' as ExtensionAnimationStatus
 	};
 }
 
 export function createExtensionAnimationSession(
 	id: string,
-	options: ExtensionAnimationSessionSubmitOptions<unknown>
+	options: ExtensionAnimationSessionSubmitOptions
 ): ExtensionAnimationSessionInternalSurface {
 	const internalState = createExtensionAnimationSessionInternal(id, options);
 
@@ -31,12 +30,6 @@ export function createExtensionAnimationSession(
 		duration: internalState.duration,
 		get status() {
 			return internalState.status;
-		},
-		setData<TData>(data: TData) {
-			internalState.data = data;
-		},
-		getData<TData>() {
-			return internalState.data as TData;
 		},
 		setStatus(newStatus: ExtensionAnimationStatus) {
 			internalState.status = newStatus;

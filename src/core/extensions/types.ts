@@ -1,4 +1,3 @@
-import { ReadonlyDeep } from 'type-fest';
 import { LayoutSnapshot } from '../layout/types';
 import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
@@ -72,9 +71,8 @@ export type UpdateStateFrameSnapshot =
 	| UpdateStateFrameSnapshotUnmounted
 	| UpdateStateFrameSnapshotMounted;
 
-export interface ExtensionAnimationSessionSubmitOptions<TData> {
+export interface ExtensionAnimationSessionSubmitOptions {
 	duration: DOMHighResTimeStamp;
-	data: TData;
 }
 
 export type ExtensionAnimationStatus = 'submitted' | 'active' | 'ended' | 'cancelled';
@@ -84,12 +82,10 @@ export interface ExtensionAnimationSession {
 	readonly startTime: DOMHighResTimeStamp;
 	readonly duration: DOMHighResTimeStamp;
 	readonly status: ExtensionAnimationStatus;
-	setData<TData>(data: TData): void;
-	getData<TData>(): TData;
 }
 
 export interface ExtensionAnimationController {
-	submit<TData>(options: ExtensionAnimationSessionSubmitOptions<TData>): ExtensionAnimationSession;
+	submit(options: ExtensionAnimationSessionSubmitOptions): ExtensionAnimationSession;
 	cancel(sessionId: string): void;
 	getAll(
 		status?: ExtensionAnimationStatus | Iterable<ExtensionAnimationStatus>
@@ -110,28 +106,16 @@ export interface ExtensionOnUpdateStateContextCommonMounted extends ExtensionOnU
 	readonly current: UpdateStateFrameSnapshotMounted;
 }
 
-export type ExtensionOnUpdateStateContextBaseUnmounted =
-	ExtensionOnUpdateStateContextCommonUnmounted;
+export type ExtensionOnUpdateStateContextUnmounted = ExtensionOnUpdateStateContextCommonUnmounted;
 
-export interface ExtensionOnUpdateStateContextBaseMounted extends ExtensionOnUpdateStateContextCommonMounted {
+export interface ExtensionOnUpdateStateContextMounted extends ExtensionOnUpdateStateContextCommonMounted {
 	readonly invalidation: ExtensionInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
 
-export type ExtensionOnUpdateStateContextBase =
-	| ExtensionOnUpdateStateContextBaseUnmounted
-	| ExtensionOnUpdateStateContextBaseMounted;
-
-type ExtensionRenderPreviousDataField<TExtensionData> = [TExtensionData] extends [void]
-	? unknown
-	: {
-			readonly previousData: ReadonlyDeep<TExtensionData>;
-		};
-
-export type ExtensionOnUpdateStateContext<TExtensionData> = ExtensionOnUpdateStateContextBase &
-	ExtensionRenderPreviousDataField<TExtensionData>;
-
-export type AnyExtensionOnUpdateStateContext = ExtensionOnUpdateStateContext<unknown>;
+export type ExtensionOnUpdateStateContext =
+	| ExtensionOnUpdateStateContextUnmounted
+	| ExtensionOnUpdateStateContextMounted;
 
 export interface RenderLayoutSnapshot extends LayoutSnapshot {
 	readonly geometry: NonNullable<LayoutSnapshot['geometry']>;
@@ -142,87 +126,58 @@ export interface RenderStateFrameSnapshot {
 	readonly layout: RenderLayoutSnapshot;
 }
 
-export interface ExtensionRenderStateContextCommon {
-	readonly previous: RenderStateFrameSnapshot | null;
-	readonly mutation: BoardRuntimeReadonlyMutationSession;
+export interface ExtensionRenderStateContext {
 	readonly current: RenderStateFrameSnapshot;
-}
-
-export interface ExtensionRenderStateContextBase extends ExtensionRenderStateContextCommon {
 	readonly invalidation: ExtensionReadonlyInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
 
-type ExtensionRenderCurrentDataField<TExtensionData> = [TExtensionData] extends [void]
-	? unknown
-	: {
-			readonly currentData: ReadonlyDeep<TExtensionData>;
-		};
+export type ExtensionRenderAnimationContext = ExtensionRenderStateContext;
 
-export type ExtensionRenderStateContext<TExtensionData> = ExtensionRenderStateContextBase &
-	ExtensionRenderPreviousDataField<TExtensionData> &
-	ExtensionRenderCurrentDataField<TExtensionData>;
-
-export type AnyExtensionRenderStateContext = ExtensionRenderStateContext<unknown>;
-
-export type ExtensionRenderAnimationContextBase = ExtensionRenderStateContextBase;
-
-export type ExtensionRenderAnimationContext<TExtensionData> = ExtensionRenderAnimationContextBase &
-	ExtensionRenderPreviousDataField<TExtensionData> &
-	ExtensionRenderCurrentDataField<TExtensionData>;
-
-export type AnyExtensionRenderAnimationContext = ExtensionRenderAnimationContext<unknown>;
-
-export type ExtensionRenderVisualsContextBase = ExtensionRenderStateContextBase;
-
-export type ExtensionRenderVisualsContext<TExtensionData> = ExtensionRenderVisualsContextBase &
-	ExtensionRenderPreviousDataField<TExtensionData> &
-	ExtensionRenderCurrentDataField<TExtensionData>;
-
-export type AnyExtensionRenderVisualsContext = ExtensionRenderVisualsContext<unknown>;
+export type ExtensionRenderVisualsContext = ExtensionRenderStateContext;
 
 export interface ExtensionInstance<
 	TId extends string,
 	TSlots extends readonly ExtensionSlotName[],
-	TPublic,
-	TOnStateUpdateData
+	TPublic
 > {
 	readonly id: TId;
 	// Lifecycle
 	mount(env: ExtensionInstanceMountOptions<TSlots>): void;
 	unmount(): void;
 	// Render state cycle
-	onStateUpdate(context: ExtensionOnUpdateStateContext<TOnStateUpdateData>): TOnStateUpdateData;
-	renderState?(context: ExtensionRenderStateContext<TOnStateUpdateData>): void;
+	onStateUpdate(context: ExtensionOnUpdateStateContext): void;
+	renderState?(context: ExtensionRenderStateContext): void;
 	// Animation
 	prepareAnimation?(
-		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
+		context: ExtensionRenderAnimationContext,
 		sessions: readonly ExtensionAnimationSession[]
 	): void;
 	renderAnimation?(
-		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
+		context: ExtensionRenderAnimationContext,
 		sessions: readonly ExtensionAnimationSession[]
 	): void;
 	cleanAnimation?(
-		context: ExtensionRenderAnimationContext<TOnStateUpdateData>,
+		context: ExtensionRenderAnimationContext,
 		sessions: readonly ExtensionAnimationSession[]
 	): void;
 	// Visuals
-	renderVisuals?(context: ExtensionRenderVisualsContext<TOnStateUpdateData>): void;
+	renderVisuals?(context: ExtensionRenderVisualsContext): void;
 	// Public API promoted to board.extensions.<extensionId>.API
 	getPublic?(): TPublic;
 }
 
-export type AnyExtensionInstance = ExtensionInstance<
-	string,
-	readonly ExtensionSlotName[],
-	unknown,
-	unknown
->;
+export type AnyExtensionInstance = ExtensionInstance<string, readonly ExtensionSlotName[], unknown>;
 
 export interface BoardRuntimeExtensionSurfaceSnapshot {
 	state: BoardRuntimeStateSnapshot;
 	layout: LayoutSnapshot;
+}
+
+export interface BoardRuntimeExtensionSurfaceRenderRequest {
+	state?: boolean;
+	animation?: boolean;
+	visuals?: boolean;
 }
 
 export interface BoardRuntimeExtensionSurface {
@@ -243,6 +198,7 @@ export interface BoardRuntimeExtensionSurface {
 	// Keeps selectedSquare + destinations.
 	cancelInteraction(): boolean;
 	getSnapshot(): BoardRuntimeExtensionSurfaceSnapshot;
+	requestRender(request: BoardRuntimeExtensionSurfaceRenderRequest): void;
 }
 
 export interface ExtensionCreateInstanceOptions {
@@ -251,32 +207,26 @@ export interface ExtensionCreateInstanceOptions {
 export interface ExtensionDefinition<
 	TId extends string,
 	TSlots extends readonly ExtensionSlotName[],
-	TPublic,
-	TOnStateUpdateData
+	TPublic
 > {
 	readonly id: TId;
 	readonly slots: TSlots;
-	createInstance(
-		options: ExtensionCreateInstanceOptions
-	): ExtensionInstance<TId, TSlots, TPublic, TOnStateUpdateData>;
+	createInstance(options: ExtensionCreateInstanceOptions): ExtensionInstance<TId, TSlots, TPublic>;
 }
 
 export type AnyExtensionDefinition = ExtensionDefinition<
 	string,
 	readonly ExtensionSlotName[],
-	unknown,
 	unknown
 >;
 
 export const MAIN_RENDERER_EXTENSION_ID = 'main-renderer' as const;
 
 type ExtensionDefinitionId<T> =
-	T extends ExtensionDefinition<infer TId, readonly ExtensionSlotName[], unknown, unknown>
-		? TId
-		: never;
+	T extends ExtensionDefinition<infer TId, readonly ExtensionSlotName[], unknown> ? TId : never;
 
 type ExtensionDefinitionPublicApi<T> =
-	T extends ExtensionDefinition<string, readonly ExtensionSlotName[], infer TPublicApi, unknown>
+	T extends ExtensionDefinition<string, readonly ExtensionSlotName[], infer TPublicApi>
 		? TPublicApi
 		: never;
 
@@ -289,11 +239,6 @@ export type ExtensionsPublicMap<TExtensions extends readonly AnyExtensionDefinit
 		? ExtensionDefinitionId<TDef>
 		: never]: ExtensionDefinitionPublicApi<TDef>;
 };
-
-export interface ExtensionStoredData {
-	previous: unknown | null;
-	current: unknown | null;
-}
 
 export interface ExtensionAnimationSessionInternalSurface extends ExtensionAnimationSession {
 	setStatus(status: ExtensionAnimationStatus): void;
@@ -311,7 +256,6 @@ export interface ExtensionSystemExtensionRecord {
 	readonly id: string;
 	readonly definition: AnyExtensionDefinition;
 	readonly instance: AnyExtensionInstance;
-	readonly storedData: ExtensionStoredData;
 	readonly invalidation: ExtensionInvalidationState;
 	readonly animation: ExtensionAnimationControllerInternalSurface;
 }
@@ -333,6 +277,7 @@ export interface ExtensionSystemUpdateRequest {
 
 export interface ExtensionSystem {
 	readonly extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
+	readonly lastUpdated: ExtensionOnUpdateStateContextCommon | null;
 	updateState(request: ExtensionSystemUpdateRequest): void;
 	onUnmount(): void;
 	onDestroy(): void;

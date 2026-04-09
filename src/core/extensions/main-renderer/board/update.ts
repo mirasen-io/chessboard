@@ -1,17 +1,18 @@
-import { isCurrentUpdateContextBaseMounted } from '../../helpers';
-import { DirtyLayer, MainRendererOnUpdateContext } from '../types/extension';
+import { isCurrentUpdateContextMounted } from '../../helpers';
+import { ExtensionOnUpdateStateContext } from '../../types';
+import { DirtyLayer } from '../types/extension';
 import { MainRendererBoardInternal } from './types';
 
 export function rendererBoardOnUpdate(
 	_state: MainRendererBoardInternal,
-	context: MainRendererOnUpdateContext
+	context: ExtensionOnUpdateStateContext
 ): void {
 	// Check if geometry changed
 	const mutationSession = context.mutation;
 	if (!mutationSession.hasMutation(['layout.refreshGeometry'])) {
 		return; // no-op
 	}
-	if (!isCurrentUpdateContextBaseMounted(context) || !context.current.layout.geometry) {
+	if (!isCurrentUpdateContextMounted(context) || !context.current.layout.geometry) {
 		// no-op, we only care about geometry changes on mounted with available geometry, otherwise nothing to do here
 		return;
 	}

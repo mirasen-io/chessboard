@@ -1,6 +1,6 @@
 import { isCurrentUpdateContextCommonMounted } from './helpers';
 import {
-	AnyExtensionOnUpdateStateContext,
+	ExtensionOnUpdateStateContext,
 	ExtensionOnUpdateStateContextCommon,
 	ExtensionOnUpdateStateContextCommonUnmounted,
 	ExtensionSystemInternal,
@@ -20,22 +20,18 @@ export function extensionSystemUpdateState(
 
 	// Update invalidation state based on the new request
 	for (const extension of state.extensions.values()) {
-		const context: AnyExtensionOnUpdateStateContext = isCurrentUpdateContextCommonMounted(
+		const context: ExtensionOnUpdateStateContext = isCurrentUpdateContextCommonMounted(
 			contextCommon
 		)
 			? {
 					...contextCommon,
-					previousData: extension.storedData.previous,
 					invalidation: extension.invalidation,
 					animation: extension.animation
 				}
 			: {
-					...(contextCommon as ExtensionOnUpdateStateContextCommonUnmounted),
-					previousData: extension.storedData.previous
+					...(contextCommon as ExtensionOnUpdateStateContextCommonUnmounted)
 				};
-		const newData = extension.instance.onStateUpdate(context);
-		extension.storedData.previous = extension.storedData.current;
-		extension.storedData.current = newData;
+		extension.instance.onStateUpdate(context);
 	}
 	state.lastUpdated = contextCommon;
 }

@@ -1,16 +1,19 @@
-import { RenderLayoutSnapshot } from '../../extensions/types';
+import { isCurrentUpdateContextCommonMounted } from '../../extensions/helpers';
+import { RenderStateFrameSnapshot } from '../../extensions/types';
 import { BoardRuntimeMutationPipe } from './pipeline';
 
-export const renderPipe: BoardRuntimeMutationPipe = (context, mutationSession) => {
+export const requestRenderStatePipe: BoardRuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;
-	const needOp = mutationSession.hasMutation('state.') || mutationSession.hasMutation('layout.');
-	if (needOp && current.render.isMounted && current.layout.getGeometry() !== null) {
-		current.render.requestRenderState({
-			current: {
-				state: current.state.getSnapshot(),
-				layout: current.layout.getSnapshot() as RenderLayoutSnapshot
-			},
-			mutation: mutationSession
-		});
-	}
+	const mayNeedRender =
+		mutationSession.hasMutation('state.board.') ||
+		mutationSession.hasMutation('state.view.') ||
+		mutationSession.hasMutation('state.interaction.') ||
+		mutationSession.hasMutation('state.change.') ||
+		(mutationSession.hasMutation('layout.') && current.render.isMounted);
+	if (!mayNeedRender) return;
+	const lastUpdated = current.extensions.lastUpdated;
+	if (lastUpdated === null || !isCurrentUpdateContextCommonMounted(lastUpdated)) return;
+	const lastCurrent = lastUpdated.current;
+	if (lastCurrent.layout.geometry === null) return;
+	current.render.requestRenderState(lastCurrent as RenderStateFrameSnapshot);
 };

@@ -22,10 +22,6 @@ function createExtensionSystemInternal(
 			id: extensionDef.id,
 			definition: extensionDef,
 			instance,
-			storedData: {
-				previous: null,
-				current: null
-			},
 			invalidation: createExtensionInvalidationState(),
 			animation: createExtensionAnimationController()
 		};
@@ -44,14 +40,15 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		get extensions() {
 			return internalState.extensions;
 		},
+		get lastUpdated() {
+			return internalState.lastUpdated;
+		},
 		updateState(request) {
 			extensionSystemUpdateState(internalState, request);
 		},
 		onUnmount() {
 			internalState.lastUpdated = null;
 			for (const extensionRec of internalState.extensions.values()) {
-				extensionRec.storedData.previous = null;
-				extensionRec.storedData.current = null;
 				extensionRec.invalidation.clear();
 				extensionRec.animation.clear();
 			}
@@ -60,8 +57,6 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			// We assume that the onUnmout was already called by runtime, but let's still validate
 			for (const extensionRec of internalState.extensions.values()) {
 				const onUnmountCalled = [
-					extensionRec.storedData.current === null,
-					extensionRec.storedData.previous === null,
 					extensionRec.invalidation.dirtyLayers === 0,
 					extensionRec.animation.getAll().length === 0
 				].every(Boolean);

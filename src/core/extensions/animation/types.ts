@@ -4,7 +4,6 @@ export interface ExtensionAnimationSessionInternal {
 	readonly id: string;
 	readonly startTime: DOMHighResTimeStamp;
 	readonly duration: DOMHighResTimeStamp;
-	data: unknown;
 	status: ExtensionAnimationStatus;
 }
 

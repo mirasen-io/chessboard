@@ -1,12 +1,10 @@
 import {
 	ALL_EXTENSION_SLOTS,
 	ExtensionAllocatedSlotsInternal,
-	ExtensionRenderStateContextCommon,
 	ExtensionSlotSvgRoots,
 	ExtensionSystemExtensionRecord,
 	RenderStateFrameSnapshot
 } from '../extensions/types';
-import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { VisualsStateSnapshot } from '../state/visuals/types';
 import { Scheduler } from './scheduler/types';
 
@@ -27,24 +25,12 @@ export interface RenderExtensionRecord {
 
 export interface RenderInternal {
 	container: HTMLElement | null;
-	lastRendered: ExtensionRenderStateContextCommon | null;
+	lastRendered: RenderStateFrameSnapshot | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
 	// readonly animator: Animator;
 	readonly extensions: Map<string, RenderExtensionRecord>;
 }
-
-export interface RenderStateRequest {
-	current: RenderStateFrameSnapshot;
-	mutation: BoardRuntimeReadonlyMutationSession;
-}
-
-export interface RenderVisualsRequest {
-	mutation: BoardRuntimeReadonlyMutationSession;
-	current: VisualsStateSnapshot;
-}
-
-export type RenderAnimationRequest = true;
 
 export interface RenderInitOptions {
 	doc: Document;
@@ -57,9 +43,9 @@ export interface RenderInitOptionsInternal extends RenderInitOptions {
 
 export interface Render {
 	readonly extensions: ReadonlyMap<string, RenderExtensionRecord>;
-	requestRenderState(request: RenderStateRequest): void;
-	requestRenderAnimation(request: RenderAnimationRequest): void;
-	requestRenderVisuals(request: RenderVisualsRequest): void;
+	requestRenderState(request: RenderStateFrameSnapshot): void;
+	requestRenderAnimation(): void;
+	requestRenderVisuals(request: VisualsStateSnapshot): void;
 
 	// Lifecycle methods
 	mount(element: HTMLElement): void;
