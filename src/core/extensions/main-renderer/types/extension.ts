@@ -1,3 +1,4 @@
+import { PartialDeep } from 'type-fest';
 import {
 	ExtensionDefinition,
 	ExtensionInstance,
@@ -7,43 +8,42 @@ import {
 	ExtensionRenderVisualsContext,
 	ExtensionSlotSvgRoots
 } from '../../types';
-import { PieceUrls } from '../assets';
-import { SvgRendererBoardInitOptions } from '../board/types';
+import { ConfigColors, PieceUrls } from './config';
 
-export interface SvgRendererInitOptions {
-	board?: SvgRendererBoardInitOptions;
+export interface MainRendererInitOptions {
+	colors?: PartialDeep<ConfigColors>;
 	pieceUrls?: PieceUrls;
 }
 
 export const EXTENSION_SLOTS = ['board', 'coordinates', 'pieces', 'animation', 'drag'] as const;
 export const EXTENSION_ID = 'main-renderer' as const;
 
-export type SvgRendererMountOptions = ExtensionInstanceMountOptions<typeof EXTENSION_SLOTS>;
-export type SvgRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
+export type MainRendererMountOptions = ExtensionInstanceMountOptions<typeof EXTENSION_SLOTS>;
+export type MainRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
-export type SvgRendererDefinition = ExtensionDefinition<
+export type MainRendererDefinition = ExtensionDefinition<
 	typeof EXTENSION_ID,
 	typeof EXTENSION_SLOTS,
 	never,
 	void
 >;
 
-export type SvgRendererInstance = ExtensionInstance<
+export type MainRendererInstance = ExtensionInstance<
 	typeof EXTENSION_ID,
 	typeof EXTENSION_SLOTS,
 	never,
 	void
 >;
 
-export type SvgRendererData = void;
+export type MainRendererData = void;
 
-export type SvgRendererOnUpdateContext = ExtensionOnUpdateStateContext<SvgRendererData>;
+export type MainRendererOnUpdateContext = ExtensionOnUpdateStateContext<MainRendererData>;
 
-export type SvgRendererRenderStateContext = ExtensionRenderStateContext<SvgRendererData>;
+export type MainRendererRenderStateContext = ExtensionRenderStateContext<MainRendererData>;
 
-export type SvgRendererRenderAnimationContext = ExtensionRenderStateContext<SvgRendererData>;
+export type MainRendererRenderAnimationContext = ExtensionRenderStateContext<MainRendererData>;
 
-export type SvgRendererRenderVisualsContext = ExtensionRenderVisualsContext<SvgRendererData>;
+export type MainRendererRenderVisualsContext = ExtensionRenderVisualsContext<MainRendererData>;
 
 export enum DirtyLayer {
 	Board = 1, // 1 << 0,

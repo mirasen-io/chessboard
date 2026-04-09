@@ -1,7 +1,9 @@
-import { SvgRendererBoard } from '../board/types';
-import { SvgRendererSlotRoots } from './extension';
+import { MainRendererBoard } from '../board/types';
+import { MainRendererCoordinates } from '../coordinates/types';
+import { MainRendererSlotRoots } from './extension';
 
-export interface SvgRendererInstanceInternal {
-	board: SvgRendererBoard;
-	slotRoots: SvgRendererSlotRoots | null;
+export interface MainRendererInstanceInternal {
+	board: MainRendererBoard;
+	coordinates: MainRendererCoordinates;
+	slotRoots: MainRendererSlotRoots | null;
 }

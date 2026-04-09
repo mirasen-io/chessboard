@@ -1,10 +1,10 @@
 import { isCurrentUpdateContextBaseMounted } from '../../helpers';
-import { DirtyLayer, SvgRendererOnUpdateContext } from '../types/extension';
-import { SvgRendererBoardInternal } from './types';
+import { DirtyLayer, MainRendererOnUpdateContext } from '../types/extension';
+import { MainRendererBoardInternal } from './types';
 
 export function rendererBoardOnUpdate(
-	state: SvgRendererBoardInternal,
-	context: SvgRendererOnUpdateContext
+	_state: MainRendererBoardInternal,
+	context: MainRendererOnUpdateContext
 ): void {
 	// Check if geometry changed
 	const mutationSession = context.mutation;
@@ -29,5 +29,5 @@ export function rendererBoardOnUpdate(
 	if (!needsUpdate) {
 		return; // no-op
 	}
-	context.invalidation.markDirty(DirtyLayer.Board);
+	context.invalidation.markDirty(DirtyLayer.Board | DirtyLayer.Coordinates);
 }

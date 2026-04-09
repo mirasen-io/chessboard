@@ -1,57 +1,60 @@
-import { createSvgRendererBoard } from './board/factory';
+import { toMerged } from 'es-toolkit';
+import { createMainRendererBoard } from './board/factory';
+import { createMainRendererCoordinates } from './coordinates/factory';
+import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/config';
 import {
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
-	SvgRendererDefinition,
-	SvgRendererInitOptions,
-	SvgRendererInstance
+	MainRendererDefinition,
+	MainRendererInitOptions,
+	MainRendererInstance
 } from './types/extension';
-import { SvgRendererInstanceInternal } from './types/instance';
+import { MainRendererInstanceInternal } from './types/instance';
 
-export function createSvgRenderer(options: SvgRendererInitOptions): SvgRendererDefinition {
+export function createMainRenderer(options: MainRendererInitOptions = {}): MainRendererDefinition {
+	const config: MainRendererConfig = toMerged(DEFAULT_MAIN_RENDERER_CONFIG, options);
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
 		createInstance() {
-			return createSvgRendererInstance(options);
+			return createMainRendererInstance(config);
 		}
 	};
 }
 
-function createSvgRendererBoardInternal(
-	options: SvgRendererInitOptions
-): SvgRendererInstanceInternal {
-	const board = createSvgRendererBoard(options.board ?? {});
-	return { board, slotRoots: null };
+function createMainRendererInternalState(config: MainRendererConfig): MainRendererInstanceInternal {
+	const board = createMainRendererBoard(config.colors.board);
+	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
+	return { board, coordinates, slotRoots: null };
 }
 
 function validateIsMounted(
-	state: SvgRendererInstanceInternal
-): asserts state is SvgRendererInstanceInternal & {
-	slotRoots: NonNullable<SvgRendererInstanceInternal['slotRoots']>;
+	state: MainRendererInstanceInternal
+): asserts state is MainRendererInstanceInternal & {
+	slotRoots: NonNullable<MainRendererInstanceInternal['slotRoots']>;
 } {
 	if (state.slotRoots === null) {
 		throw new Error('Extension instance is not mounted yet');
 	}
 }
-function createSvgRendererInstance(options: SvgRendererInitOptions): SvgRendererInstance {
-	const internalState = createSvgRendererBoardInternal(options);
+function createMainRendererInstance(config: MainRendererConfig): MainRendererInstance {
+	const internalState = createMainRendererInternalState(config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
 			internalState.slotRoots = env.slotRoots;
 		},
 		onStateUpdate(context) {
-			let result: unknown = null;
-			const boardResult = internalState.board.onUpdate(context);
-			result = boardResult;
-			// const coordinatesResult = internalState.coordinates.onUpdate(context);
+			internalState.board.onUpdate(context);
+			// result = boardResult;
+			// internalState.coordinates.onUpdate(context); // For now the coordinates are updated together with the board
 			// result = toMerged(result, coordinatesResult);
-			return result;
+			// return result;
 		},
 		renderState(context) {
 			validateIsMounted(internalState);
 			internalState.board.render(context, internalState.slotRoots.board);
+			internalState.coordinates.render(context, internalState.slotRoots.coordinates);
 		},
 		unmount() {
 			// For now nothing to do, everything will be just deleted by the chessboard runtime

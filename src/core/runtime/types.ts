@@ -1,4 +1,3 @@
-import { SvgRendererInitOptions } from '../extensions/main-renderer/types/extension';
 import {
 	AnyExtensionDefinition,
 	BoardRuntimeExtensionSurface,
@@ -22,27 +21,14 @@ export interface BoardRuntimeInternal {
 	resizeObserver: ResizeObserver | null;
 }
 
-export interface BoardRuntimeInitOptionsRenderInternal {
-	doc: Document;
-	renderer?: SvgRendererInitOptions;
-}
-
-export interface BoardRuntimeInitOptionsInternal {
-	extensionCreateInstanceOptions: ExtensionCreateInstanceOptions;
-	state?: BoardRuntimeStateInitOptions;
-	extensions?: AnyExtensionDefinition[];
-	render: BoardRuntimeInitOptionsRenderInternal;
-}
-
-export interface BoardRuntimeInitOptionsRender {
-	doc: Document;
-	renderer?: SvgRendererInitOptions;
-}
-
 export interface BoardRuntimeInitOptions {
+	doc: Document;
 	state?: BoardRuntimeStateInitOptions;
-	extensions?: AnyExtensionDefinition[];
-	render: BoardRuntimeInitOptionsRender;
+	extensions?: readonly AnyExtensionDefinition[];
+}
+
+export interface BoardRuntimeInitOptionsInternal extends BoardRuntimeInitOptions {
+	extensionCreateInstanceOptions: ExtensionCreateInstanceOptions;
 }
 
 export type BoardRuntimeSnapshot = BoardRuntimeExtensionSurfaceSnapshot;

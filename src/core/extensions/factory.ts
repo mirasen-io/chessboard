@@ -12,11 +12,8 @@ function createExtensionSystemInternal(
 	options: ExtensionSystemInitOptions
 ): ExtensionSystemInternal {
 	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
-	// Check that the first extension is the main renderer extension
-	if (options.extensions.length === 0 || options.extensions[0].id !== 'main-renderer') {
-		throw new Error('The first extension must be the main renderer extension.');
-	}
-	for (const extensionDef of options.extensions) {
+	const extensionsArray = options.extensions ?? [];
+	for (const extensionDef of extensionsArray) {
 		if (extensions.has(extensionDef.id)) {
 			throw new Error(`Duplicate extension id found: ${extensionDef.id}`);
 		}
@@ -48,12 +45,6 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			return internalState.extensions;
 		},
 		updateState(request) {
-			if (internalState.extensions.size === 0) {
-				// We at least expect the main renderer extension to be present, so if there are no extensions at all, it means the system hasn't been properly initialized yet
-				throw new Error(
-					'Cannot update state before extensions have been created. Expected at least the main renderer extension to be present.'
-				);
-			}
 			extensionSystemUpdateState(internalState, request);
 		},
 		onUnmount() {

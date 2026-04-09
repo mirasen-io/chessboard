@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createMainRenderer } from '@mirasen/chessboard/unstable/core/extensions/main-renderer/factory.js';
 	import { createBoardRuntime } from '@mirasen/chessboard/unstable/core/runtime/factory.js';
 	import type { PositionMapShort } from '@mirasen/chessboard/unstable/core/state/board/types.js';
 	import { onDestroy, onMount } from 'svelte';
@@ -76,11 +77,9 @@
 
 	onMount(() => {
 		runtime = createBoardRuntime({
-			render: {
-				doc: document
-			}
+			doc: document,
+			extensions: [createMainRenderer()]
 		});
-
 		runtime.mount(boardEl);
 		refreshSnapshot();
 
@@ -107,11 +106,11 @@
 		<p class="subtitle">Internal runtime smoke page · movable free · both colors</p>
 
 		<div class="controls">
-			<button on:click={setWhite}>Orientation: white</button>
-			<button on:click={setBlack}>Orientation: black</button>
-			<button on:click={resetPosition}>Reset position</button>
-			<button on:click={clearSelection}>Clear selection</button>
-			<button on:click={refreshSnapshot}>Refresh snapshot</button>
+			<button onclick={setWhite}>Orientation: white</button>
+			<button onclick={setBlack}>Orientation: black</button>
+			<button onclick={resetPosition}>Reset position</button>
+			<button onclick={clearSelection}>Clear selection</button>
+			<button onclick={refreshSnapshot}>Refresh snapshot</button>
 		</div>
 
 		<div class="board-wrap">
@@ -194,8 +193,9 @@
 		width: 100%;
 		aspect-ratio: 1 / 1;
 		background: #e5e7eb;
-		border-radius: 12px;
 		overflow: hidden;
+		touch-action: pinch-zoom;
+		user-select: none;
 	}
 
 	pre {

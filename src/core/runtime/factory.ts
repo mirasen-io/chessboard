@@ -1,9 +1,7 @@
 import { createExtensionSystem } from '../extensions/factory';
-import { createSvgRenderer } from '../extensions/main-renderer/factory';
 import {
 	BoardRuntimeExtensionSurface,
-	BoardRuntimeExtensionSurfaceSnapshot,
-	ExtensionSystemInitOptions
+	BoardRuntimeExtensionSurfaceSnapshot
 } from '../extensions/types';
 import { createLayout } from '../layout/factory';
 import { createRender } from '../render/factory';
@@ -21,17 +19,12 @@ import type {
 function createBoardRuntimeInternal(
 	options: BoardRuntimeInitOptionsInternal
 ): BoardRuntimeInternal {
-	const extensions = options.extensions ?? [];
-	const hasMainRenderer = extensions.some((ext) => ext.id === 'main-renderer');
-	const createExtensions = hasMainRenderer
-		? (extensions as unknown as ExtensionSystemInitOptions['extensions'])
-		: ([createSvgRenderer(options.render.renderer ?? {}), ...extensions] as const);
 	const extensionSystem = createExtensionSystem({
-		extensions: createExtensions,
+		extensions: options.extensions,
 		createInstanceOptions: options.extensionCreateInstanceOptions
 	});
 	const render = createRender({
-		doc: options.render.doc,
+		doc: options.doc,
 		extensions: extensionSystem.extensions
 	});
 	return {
@@ -77,14 +70,9 @@ export function createBoardRuntime(options: BoardRuntimeInitOptions): BoardRunti
 
 	// Now construct the internal state
 	const optionsInternal: BoardRuntimeInitOptionsInternal = {
-		state: options.state,
+		...options,
 		extensionCreateInstanceOptions: {
 			runtime: extensionSurface
-		},
-		extensions: options.extensions,
-		render: {
-			doc: options.render.doc,
-			renderer: options.render.renderer
 		}
 	};
 	internalState = createBoardRuntimeInternal(optionsInternal);

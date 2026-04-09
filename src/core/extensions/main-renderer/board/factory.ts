@@ -1,22 +1,14 @@
-import { toMerged } from 'es-toolkit';
+import { ConfigColorPair } from '../types/config';
 import { rendererBoardRender } from './render';
-import {
-	DEFAULT_RENDERER_BOARD_CONFIG,
-	SvgRendererBoard,
-	SvgRendererBoardInitOptions,
-	SvgRendererBoardInternal
-} from './types';
+import { MainRendererBoard, MainRendererBoardInternal } from './types';
 import { rendererBoardOnUpdate } from './update';
 
-function createSvgRendererBoardInternals(
-	options: SvgRendererBoardInitOptions
-): SvgRendererBoardInternal {
-	const config = toMerged(DEFAULT_RENDERER_BOARD_CONFIG, options);
+function createMainRendererBoardInternal(config: ConfigColorPair): MainRendererBoardInternal {
 	return { config };
 }
 
-export function createSvgRendererBoard(options: SvgRendererBoardInitOptions): SvgRendererBoard {
-	const internalState = createSvgRendererBoardInternals(options);
+export function createMainRendererBoard(config: ConfigColorPair): MainRendererBoard {
+	const internalState = createMainRendererBoardInternal(config);
 	return {
 		onUpdate(context) {
 			rendererBoardOnUpdate(internalState, context);

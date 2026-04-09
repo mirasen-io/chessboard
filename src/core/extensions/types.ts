@@ -270,20 +270,6 @@ export type AnyExtensionDefinition = ExtensionDefinition<
 
 export const MAIN_RENDERER_EXTENSION_ID = 'main-renderer' as const;
 
-export type MainRendererExtensionDefinition = ExtensionDefinition<
-	typeof MAIN_RENDERER_EXTENSION_ID,
-	readonly ExtensionSlotName[],
-	unknown,
-	unknown
->;
-
-export type MainRendererExtensionInstance = ExtensionInstance<
-	typeof MAIN_RENDERER_EXTENSION_ID,
-	readonly ExtensionSlotName[],
-	unknown,
-	unknown
->;
-
 type ExtensionDefinitionId<T> =
 	T extends ExtensionDefinition<infer TId, readonly ExtensionSlotName[], unknown, unknown>
 		? TId
@@ -332,7 +318,7 @@ export interface ExtensionSystemExtensionRecord {
 
 export interface ExtensionSystemInitOptions {
 	createInstanceOptions: ExtensionCreateInstanceOptions;
-	extensions: readonly AnyExtensionDefinition[];
+	extensions?: readonly AnyExtensionDefinition[];
 }
 
 export interface ExtensionSystemInternal {

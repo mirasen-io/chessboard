@@ -1,12 +1,12 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
 import { toAlgebraic } from '../../../state/board/coords';
 import { Square } from '../../../state/board/types';
-import { DirtyLayer, SvgRendererRenderStateContext } from '../types/extension';
-import { SvgRendererBoardInternal } from './types';
+import { DirtyLayer, MainRendererRenderStateContext } from '../types/extension';
+import { MainRendererBoardInternal } from './types';
 
 export function rendererBoardRender(
-	state: SvgRendererBoardInternal,
-	context: SvgRendererRenderStateContext,
+	state: MainRendererBoardInternal,
+	context: MainRendererRenderStateContext,
 	layer: SVGElement
 ): void {
 	// Check if we need to render
@@ -16,11 +16,11 @@ export function rendererBoardRender(
 	const geometry = context.current.layout.geometry;
 	clearElementChildren(layer);
 
-	const { light, dark } = state.config.board;
+	const { light, dark } = state.config;
 
 	for (let sq = 0 as Square; sq < 64; sq++) {
 		const r = geometry.squareRect(sq);
-		const rect = createSvgElement(layer.ownerDocument, 'rect', {
+		createSvgElement(layer, 'rect', {
 			'data-chessboard-id': `square-${sq}`,
 			'data-chessboard-square': toAlgebraic(sq),
 			x: r.x.toString(),
@@ -30,6 +30,5 @@ export function rendererBoardRender(
 			fill: isLightSquare(sq) ? light : dark,
 			'shape-rendering': 'crispEdges'
 		});
-		layer.appendChild(rect);
 	}
 }
