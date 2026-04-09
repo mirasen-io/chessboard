@@ -59,6 +59,8 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		onUnmount() {
 			internalState.lastUpdated = null;
 			for (const extensionRec of internalState.extensions.values()) {
+				extensionRec.storedData.previous = null;
+				extensionRec.storedData.current = null;
 				extensionRec.invalidation.clear();
 				extensionRec.animation.clear();
 			}

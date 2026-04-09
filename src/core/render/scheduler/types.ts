@@ -9,6 +9,6 @@ export interface Scheduler {
 	schedule(): void;
 	/** Flush immediately (synchronous), useful for deterministic tests or SSR. */
 	flushNow(): void;
-	/** Cancel any pending frame and dispose resources. */
-	destroy(): void;
+	/** Cancel any pending frame. */
+	cancel(): void;
 }

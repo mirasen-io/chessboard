@@ -142,6 +142,7 @@ export function createRender(options: RenderInitOptions): Render {
 		},
 		unmount() {
 			renderUnmount(internalState);
+			internalState.scheduler.cancel();
 			pendingStateRequest = null;
 			pendingAnimationRequest = null;
 			pendingVisualsRequest = null;

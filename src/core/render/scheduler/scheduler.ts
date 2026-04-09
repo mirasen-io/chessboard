@@ -8,6 +8,10 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 	let rafHandle: number | null = null;
 
 	const flushCore = () => {
+		if (!scheduled && rafHandle == null) {
+			// Maybe was cancelled after the rAF callback was scheduled but before it fired.
+			return;
+		}
 		// Reset scheduled flags first to allow schedule() during render to queue the next frame.
 		scheduled = false;
 		if (rafHandle != null) {
@@ -41,7 +45,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 			}
 			flushCore();
 		},
-		destroy() {
+		cancel() {
 			scheduled = false;
 			if (rafHandle != null) {
 				const caf = globalThis.cancelAnimationFrame;
