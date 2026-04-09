@@ -20,7 +20,7 @@ function createExtensionSystemInternal(
 		if (extensions.has(extensionDef.id)) {
 			throw new Error(`Duplicate extension id found: ${extensionDef.id}`);
 		}
-		const instance = extensionDef.createInstance();
+		const instance = extensionDef.createInstance(options.createInstanceOptions);
 		const record: ExtensionSystemExtensionRecord = {
 			id: extensionDef.id,
 			definition: extensionDef,
@@ -63,6 +63,25 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 				extensionRec.storedData.current = null;
 				extensionRec.invalidation.clear();
 				extensionRec.animation.clear();
+			}
+		},
+		onDestroy() {
+			// We assume that the onUnmout was already called by runtime, but let's still validate
+			for (const extensionRec of internalState.extensions.values()) {
+				const onUnmountCalled = [
+					extensionRec.storedData.current === null,
+					extensionRec.storedData.previous === null,
+					extensionRec.invalidation.dirtyLayers === 0,
+					extensionRec.animation.getAll().length === 0
+				].every(Boolean);
+				if (!onUnmountCalled) {
+					throw new Error(
+						`Extension ${extensionRec.id} was not properly unmounted before destroy. Please make sure to call onUnmount before onDestroy to allow the extension to clean up its state and resources.`
+					);
+				}
+				// So we just clear the extension map to release references to extension definitions and instances and allow them to be garbage collected
+				// Cause they also have back reference to our surface to manipulate the core state
+				internalState.extensions.clear();
 			}
 		}
 	};

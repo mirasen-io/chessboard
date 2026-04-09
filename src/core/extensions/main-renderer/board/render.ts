@@ -1,4 +1,5 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
+import { toAlgebraic } from '../../../state/board/coords';
 import { Square } from '../../../state/board/types';
 import { DirtyLayer, SvgRendererRenderStateContext } from '../types/extension';
 import { SvgRendererBoardInternal } from './types';
@@ -21,6 +22,7 @@ export function rendererBoardRender(
 		const r = geometry.squareRect(sq);
 		const rect = createSvgElement(layer.ownerDocument, 'rect', {
 			'data-chessboard-id': `square-${sq}`,
+			'data-chessboard-square': toAlgebraic(sq),
 			x: r.x.toString(),
 			y: r.y.toString(),
 			width: r.size.toString(),

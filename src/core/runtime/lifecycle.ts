@@ -44,3 +44,8 @@ export function boardRuntimeUnmount(state: BoardRuntimeInternal): void {
 	state.render.unmount();
 	state.extensions.onUnmount();
 }
+
+export function boardRuntimeDestroy(state: BoardRuntimeInternal): void {
+	boardRuntimeUnmount(state);
+	state.extensions.onDestroy();
+}

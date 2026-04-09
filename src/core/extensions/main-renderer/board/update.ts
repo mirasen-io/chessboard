@@ -16,12 +16,17 @@ export function rendererBoardOnUpdate(
 		return;
 	}
 	// Ok geometry changed, let's check the board size
-	const currentGeometry = context.current.layout.geometry;
-	const currentBoardSize = currentGeometry.boardSize;
+	const currentBoardSize = context.current.layout.geometry.boardSize;
+	const currentOrientation = context.current.layout.geometry.orientation;
 	const previousBoardSize = context.previous?.isMounted
 		? context.previous?.layout.geometry?.boardSize
 		: null;
-	if (currentBoardSize === previousBoardSize) {
+	const previousOrientation = context.previous?.isMounted
+		? context.previous?.layout.geometry?.orientation
+		: null;
+	const needsUpdate =
+		currentBoardSize !== previousBoardSize || currentOrientation !== previousOrientation;
+	if (!needsUpdate) {
 		return; // no-op
 	}
 	context.invalidation.markDirty(DirtyLayer.Board);

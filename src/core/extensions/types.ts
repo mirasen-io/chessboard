@@ -1,7 +1,9 @@
 import { ReadonlyDeep } from 'type-fest';
 import { LayoutSnapshot } from '../layout/types';
 import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
+import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
 import { BoardRuntimeStateSnapshot } from '../state/types';
+import { Movability } from '../state/view/types';
 import {
 	ExtensionInvalidationState,
 	ExtensionReadonlyInvalidationState
@@ -218,6 +220,34 @@ export type AnyExtensionInstance = ExtensionInstance<
 	unknown
 >;
 
+export interface BoardRuntimeExtensionSurfaceSnapshot {
+	state: BoardRuntimeStateSnapshot;
+	layout: LayoutSnapshot;
+}
+
+export interface BoardRuntimeExtensionSurface {
+	// Board state
+	setPosition(input: PositionInput): boolean;
+	setTurn(turn: ColorInput): boolean;
+	move(move: MoveInput): Move;
+	// View state
+	setOrientation(orientation: ColorInput): boolean;
+	setMovability(movability: Movability): boolean;
+	// Interaction — semantic selection transition
+	// Synchronized: sets selectedSquare + derives destinations + clears drag/target.
+	// Throws if a drag session is active (use cancelInteraction() first).
+	// Does NOT check occupancy, color, or legality — "select a square", not "select a piece".
+	select(square: SquareInput | null): boolean;
+	// cancelInteraction: clear active interaction mode and currentTarget, preserve selection context.
+	// Clears dragSession, currentTarget, and releaseTargetingActive.
+	// Keeps selectedSquare + destinations.
+	cancelInteraction(): boolean;
+	getSnapshot(): BoardRuntimeExtensionSurfaceSnapshot;
+}
+
+export interface ExtensionCreateInstanceOptions {
+	runtime: BoardRuntimeExtensionSurface;
+}
 export interface ExtensionDefinition<
 	TId extends string,
 	TSlots extends readonly ExtensionSlotName[],
@@ -226,7 +256,9 @@ export interface ExtensionDefinition<
 > {
 	readonly id: TId;
 	readonly slots: TSlots;
-	createInstance(): ExtensionInstance<TId, TSlots, TPublic, TOnStateUpdateData>;
+	createInstance(
+		options: ExtensionCreateInstanceOptions
+	): ExtensionInstance<TId, TSlots, TPublic, TOnStateUpdateData>;
 }
 
 export type AnyExtensionDefinition = ExtensionDefinition<
@@ -299,6 +331,7 @@ export interface ExtensionSystemExtensionRecord {
 }
 
 export interface ExtensionSystemInitOptions {
+	createInstanceOptions: ExtensionCreateInstanceOptions;
 	extensions: readonly AnyExtensionDefinition[];
 }
 
@@ -316,4 +349,5 @@ export interface ExtensionSystem {
 	readonly extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
 	updateState(request: ExtensionSystemUpdateRequest): void;
 	onUnmount(): void;
+	onDestroy(): void;
 }

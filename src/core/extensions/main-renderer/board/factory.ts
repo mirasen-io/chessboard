@@ -1,4 +1,4 @@
-import { merge } from 'es-toolkit';
+import { toMerged } from 'es-toolkit';
 import { rendererBoardRender } from './render';
 import {
 	DEFAULT_RENDERER_BOARD_CONFIG,
@@ -11,7 +11,7 @@ import { rendererBoardOnUpdate } from './update';
 function createSvgRendererBoardInternals(
 	options: SvgRendererBoardInitOptions
 ): SvgRendererBoardInternal {
-	const config = merge(options, DEFAULT_RENDERER_BOARD_CONFIG);
+	const config = toMerged(DEFAULT_RENDERER_BOARD_CONFIG, options);
 	return { config };
 }
 

@@ -1,5 +1,5 @@
 import { LayoutMutationSession } from '../layout/mutation';
-import { boardRuntimeValidateIsMounted } from './mount';
+import { boardRuntimeValidateIsMounted } from './lifecycle';
 import { boardRuntimeRunMutationPipeline } from './mutation';
 import { BoardRuntimeInternal } from './types';
 

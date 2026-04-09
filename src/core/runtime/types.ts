@@ -1,15 +1,17 @@
 import { SvgRendererInitOptions } from '../extensions/main-renderer/types/extension';
-import { AnyExtensionDefinition, ExtensionSystem } from '../extensions/types';
-import { Layout, LayoutSnapshot } from '../layout/types';
-import { Render } from '../render/types';
-import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
 import {
-	BoardRuntimeState,
-	BoardRuntimeStateInitOptions,
-	BoardRuntimeStateSnapshot
-} from '../state/types';
-import { Movability } from '../state/view/types';
+	AnyExtensionDefinition,
+	BoardRuntimeExtensionSurface,
+	BoardRuntimeExtensionSurfaceSnapshot,
+	ExtensionCreateInstanceOptions,
+	ExtensionSystem
+} from '../extensions/types';
+import { Layout } from '../layout/types';
+import { Render } from '../render/types';
+import { BoardRuntimeState, BoardRuntimeStateInitOptions } from '../state/types';
 import { BoardRuntimeMutationPipeline } from './mutation/pipeline';
+
+export type BoardRuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
 
 export interface BoardRuntimeInternal {
 	readonly state: BoardRuntimeState;
@@ -26,6 +28,7 @@ export interface BoardRuntimeInitOptionsRenderInternal {
 }
 
 export interface BoardRuntimeInitOptionsInternal {
+	extensionCreateInstanceOptions: ExtensionCreateInstanceOptions;
 	state?: BoardRuntimeStateInitOptions;
 	extensions?: AnyExtensionDefinition[];
 	render: BoardRuntimeInitOptionsRenderInternal;
@@ -42,10 +45,7 @@ export interface BoardRuntimeInitOptions {
 	render: BoardRuntimeInitOptionsRender;
 }
 
-export interface BoardRuntimeSnapshot {
-	state: BoardRuntimeStateSnapshot;
-	layout: LayoutSnapshot;
-}
+export type BoardRuntimeSnapshot = BoardRuntimeExtensionSurfaceSnapshot;
 
 /**
  * Public interface for the internal runtime.
@@ -53,25 +53,11 @@ export interface BoardRuntimeSnapshot {
  * Board/view/interaction reducers own mutation logic; the runtime coordinates scheduling
  * and geometry updates in response to state changes.
  */
-export interface BoardRuntime {
+export interface BoardRuntime extends BoardRuntimeExtensionSurface {
 	// Lifecycle
+	readonly status: BoardRuntimeStatus;
 	mount(container: HTMLElement): void;
-	unmount(): void;
-	// Board state
-	setPosition(input: PositionInput): boolean;
-	setTurn(turn: ColorInput): boolean;
-	move(move: MoveInput): Move;
-	// View state
-	setOrientation(orientation: ColorInput): boolean;
-	setMovability(movability: Movability): boolean;
-	// Interaction — semantic selection transition
-	// Synchronized: sets selectedSquare + derives destinations + clears drag/target.
-	// Throws if a drag session is active (use cancelInteraction() first).
-	// Does NOT check occupancy, color, or legality — "select a square", not "select a piece".
-	select(square: SquareInput | null): boolean;
-	// cancelInteraction: clear active interaction mode and currentTarget, preserve selection context.
-	// Clears dragSession, currentTarget, and releaseTargetingActive.
-	// Keeps selectedSquare + destinations.
-	cancelInteraction(): boolean;
+	unmount(): void; // just unmount, can be remounted
+	destroy(): void; // unmount + cleanup internal state, observers, etc. cannot be reused anymore
 	getSnapshot(): BoardRuntimeSnapshot;
 }
