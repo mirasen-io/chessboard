@@ -1,7 +1,7 @@
 import { isFrameRenderable } from '../../extensions/helpers';
-import { BoardRuntimeMutationPipe } from './pipeline';
+import { RuntimeMutationPipe } from './pipeline';
 
-export const requestRenderPipe: BoardRuntimeMutationPipe = (context, mutationSession) => {
+export const requestRenderPipe: RuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;
 	const hasMutation = mutationSession.hasMutation({
 		prefixes: ['state.', 'layout.']

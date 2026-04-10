@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { createMainRenderer } from '@mirasen/chessboard/unstable/core/extensions/main-renderer/factory.js';
-	import { createBoardRuntime } from '@mirasen/chessboard/unstable/core/runtime/factory.js';
-	import type { PositionMapShort } from '@mirasen/chessboard/unstable/core/state/board/types.js';
+	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/main-renderer/factory.js';
+	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory.js';
+	import type { PositionMapShort } from '@mirasen/chessboard/unstable/state/board/types.js';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
-	let runtime: ReturnType<typeof createBoardRuntime> | null = null;
+	let runtime: ReturnType<typeof createRuntime> | null = null;
 	let snapshotText = $state('');
 
 	const START_POSITION: PositionMapShort = {
@@ -76,7 +76,7 @@
 	}
 
 	onMount(() => {
-		runtime = createBoardRuntime({
+		runtime = createRuntime({
 			doc: document,
 			extensions: [createMainRenderer()]
 		});

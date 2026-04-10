@@ -2,18 +2,18 @@ import { createMutationPipeline } from '../../mutation/pipeline';
 import { extensionSystemUpdatePipe } from './extensionUpdate';
 import { layoutRefreshGeometryPipe } from './layout';
 import {
-	BoardRuntimeMutationPipe,
-	BoardRuntimeMutationPipeContext,
-	BoardRuntimeMutationPipeContextPrevious,
-	BoardRuntimeMutationPipeline,
-	BoardRuntimeMutationPipelineContext
+	RuntimeMutationPipe,
+	RuntimeMutationPipeContext,
+	RuntimeMutationPipeContextPrevious,
+	RuntimeMutationPipeline,
+	RuntimeMutationPipelineContext
 } from './pipeline';
 import { requestRenderPipe } from './requestRender';
-import { BoardRuntimeMutationPayloadByCause } from './types';
+import { RuntimeMutationPayloadByCause } from './types';
 
 function buildPreviousContext(
-	current: BoardRuntimeMutationPipelineContext
-): NonNullable<BoardRuntimeMutationPipeContext['previous']> {
+	current: RuntimeMutationPipelineContext
+): NonNullable<RuntimeMutationPipeContext['previous']> {
 	return {
 		state: current.state.getSnapshot(),
 		layout: current.layout.getSnapshot(),
@@ -21,18 +21,18 @@ function buildPreviousContext(
 	};
 }
 
-export function createBoardRuntimeMutationPipeline(): BoardRuntimeMutationPipeline {
-	let previousContext: BoardRuntimeMutationPipeContextPrevious | null = null;
+export function createRuntimeMutationPipeline(): RuntimeMutationPipeline {
+	let previousContext: RuntimeMutationPipeContextPrevious | null = null;
 	// Construct the pipes
-	const pipes: BoardRuntimeMutationPipe[] = [
+	const pipes: RuntimeMutationPipe[] = [
 		layoutRefreshGeometryPipe,
 		extensionSystemUpdatePipe,
 		requestRenderPipe
 	];
 
 	const basicPipeline = createMutationPipeline<
-		BoardRuntimeMutationPayloadByCause,
-		BoardRuntimeMutationPipeContext
+		RuntimeMutationPayloadByCause,
+		RuntimeMutationPipeContext
 	>(pipes);
 	return {
 		getSession() {
@@ -42,7 +42,7 @@ export function createBoardRuntimeMutationPipeline(): BoardRuntimeMutationPipeli
 		addMutation: basicPipeline.addMutation,
 
 		run(currentContext): boolean {
-			const pipelineContext: BoardRuntimeMutationPipeContext = {
+			const pipelineContext: RuntimeMutationPipeContext = {
 				previous: previousContext,
 				current: currentContext
 			};

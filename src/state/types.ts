@@ -3,30 +3,30 @@ import type { InteractionState, InteractionStateSnapshot } from '../state/intera
 import type { ViewState, ViewStateInitOptions, ViewStateSnapshot } from '../state/view/types';
 import type { ChangeState, ChangeStateSnapshot } from './change/types';
 
-export interface BoardRuntimeStateInternal {
-	// TODO: rename to BoardRuntime to Runtime
+export interface RuntimeStateInternal {
+	// TODO: rename to Runtime to Runtime
 	readonly board: BoardState;
 	readonly view: ViewState;
 	readonly interaction: InteractionState;
 	readonly change: ChangeState;
 }
 
-export interface BoardRuntimeStateSnapshot {
+export interface RuntimeStateSnapshot {
 	readonly board: BoardStateSnapshot;
 	readonly view: ViewStateSnapshot;
 	readonly interaction: InteractionStateSnapshot;
 	readonly change: ChangeStateSnapshot;
 }
 
-export interface BoardRuntimeStateInitOptions {
+export interface RuntimeStateInitOptions {
 	board?: BoardStateInitOptions;
 	view?: ViewStateInitOptions;
 }
 
-export interface BoardRuntimeState {
+export interface RuntimeState {
 	readonly board: BoardState;
 	readonly view: ViewState;
 	readonly interaction: InteractionState;
 	readonly change: ChangeState;
-	getSnapshot(): BoardRuntimeStateSnapshot;
+	getSnapshot(): RuntimeStateSnapshot;
 }

@@ -1,6 +1,6 @@
-import { BoardRuntimeMutationPipe } from './pipeline';
+import { RuntimeMutationPipe } from './pipeline';
 
-export const extensionSystemUpdatePipe: BoardRuntimeMutationPipe = (context, mutationSession) => {
+export const extensionSystemUpdatePipe: RuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;
 	const hasMutation = mutationSession.hasMutation({
 		prefixes: ['state.', 'layout.']

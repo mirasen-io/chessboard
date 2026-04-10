@@ -1,5 +1,5 @@
-import { BoardRuntimeInternal } from './types';
+import { RuntimeInternal } from './types';
 
-export function boardRuntimeRunMutationPipeline(state: BoardRuntimeInternal): void {
+export function runtimeRunMutationPipeline(state: RuntimeInternal): void {
 	state.mutation.run(state);
 }

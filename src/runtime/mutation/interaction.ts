@@ -1,7 +1,7 @@
 /*
-import type { BoardRuntimeMuitationPipe } from './types';
+import type { RuntimeMuitationPipe } from './types';
 
-export const clearIfPieceInInteractionChanged: BoardRuntimeMuitationPipe = (
+export const clearIfPieceInInteractionChanged: RuntimeMuitationPipe = (
 	context,
 	mutationSession
 ) => {

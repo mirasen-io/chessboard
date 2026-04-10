@@ -6,7 +6,7 @@ import { InteractionStateMutationPayloadByCause } from '../../state/interaction/
 import { ViewStateMutationPayloadByCause } from '../../state/view/mutation';
 import { TransientVisualsMutationPayloadByCause } from '../../transientVisuals/mutation';
 
-export type BoardRuntimeMutationPayloadByCause = BoardStateMutationPayloadByCause &
+export type RuntimeMutationPayloadByCause = BoardStateMutationPayloadByCause &
 	ChangeStateMutationPayloadByCause &
 	InteractionStateMutationPayloadByCause &
 	ViewStateMutationPayloadByCause &
@@ -16,8 +16,5 @@ export type BoardRuntimeMutationPayloadByCause = BoardStateMutationPayloadByCaus
 		'runtime.interaction.releaseTo': undefined;
 	};
 
-export type BoardRuntimeMutationCause = keyof BoardRuntimeMutationPayloadByCause;
-
-export type BoardRuntimeMutationSession = MutationSession<BoardRuntimeMutationPayloadByCause>;
-export type BoardRuntimeReadonlyMutationSession =
-	ReadonlyMutationSession<BoardRuntimeMutationPayloadByCause>;
+export type RuntimeMutationSession = MutationSession<RuntimeMutationPayloadByCause>;
+export type RuntimeReadonlyMutationSession = ReadonlyMutationSession<RuntimeMutationPayloadByCause>;

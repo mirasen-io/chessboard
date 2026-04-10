@@ -1,10 +1,10 @@
 import { LayoutMutationSession } from '../layout/mutation';
-import { boardRuntimeValidateIsMounted } from './lifecycle';
-import { boardRuntimeRunMutationPipeline } from './mutation';
-import { BoardRuntimeInternal } from './types';
+import { runtimeValidateIsMounted } from './lifecycle';
+import { runtimeRunMutationPipeline } from './mutation';
+import { RuntimeInternal } from './types';
 
-export function boardRuntimeRefreshGeometry(state: BoardRuntimeInternal): void {
-	boardRuntimeValidateIsMounted(state);
+export function runtimeRefreshGeometry(state: RuntimeInternal): void {
+	runtimeValidateIsMounted(state);
 	state.layout.refreshGeometry(
 		{
 			orientation: state.state.view.getOrientation(),
@@ -12,5 +12,5 @@ export function boardRuntimeRefreshGeometry(state: BoardRuntimeInternal): void {
 		},
 		state.mutation.getSession() as LayoutMutationSession
 	);
-	boardRuntimeRunMutationPipeline(state);
+	runtimeRunMutationPipeline(state);
 }

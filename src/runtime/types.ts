@@ -1,29 +1,26 @@
 import {
 	AnyExtensionDefinition,
-	BoardRuntimeExtensionSurface,
-	BoardRuntimeExtensionSurfaceSnapshot,
-	ExtensionCreateInstanceOptions
+	ExtensionCreateInstanceOptions,
+	RuntimeExtensionSurface,
+	RuntimeExtensionSurfaceSnapshot
 } from '../extensions/types';
-import { BoardRuntimeStateInitOptions } from '../state/types';
-import {
-	BoardRuntimeMutationPipeline,
-	BoardRuntimeMutationPipelineContext
-} from './mutation/pipeline';
+import { RuntimeStateInitOptions } from '../state/types';
+import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from './mutation/pipeline';
 
-export type BoardRuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
+export type RuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
 
-export interface BoardRuntimeInternal extends BoardRuntimeMutationPipelineContext {
-	readonly mutation: BoardRuntimeMutationPipeline;
+export interface RuntimeInternal extends RuntimeMutationPipelineContext {
+	readonly mutation: RuntimeMutationPipeline;
 	resizeObserver: ResizeObserver | null;
 }
 
-export interface BoardRuntimeInitOptions {
+export interface RuntimeInitOptions {
 	doc: Document;
-	state?: BoardRuntimeStateInitOptions;
+	state?: RuntimeStateInitOptions;
 	extensions?: readonly AnyExtensionDefinition[];
 }
 
-export interface BoardRuntimeInitOptionsInternal extends BoardRuntimeInitOptions {
+export interface RuntimeInitOptionsInternal extends RuntimeInitOptions {
 	extensionCreateInstanceOptions: ExtensionCreateInstanceOptions;
 }
 
@@ -33,11 +30,11 @@ export interface BoardRuntimeInitOptionsInternal extends BoardRuntimeInitOptions
  * Board/view/interaction reducers own mutation logic; the runtime coordinates scheduling
  * and geometry updates in response to state changes.
  */
-export interface BoardRuntime extends BoardRuntimeExtensionSurface {
+export interface Runtime extends RuntimeExtensionSurface {
 	// Lifecycle
-	readonly status: BoardRuntimeStatus;
+	readonly status: RuntimeStatus;
 	mount(container: HTMLElement): void;
 	unmount(): void; // just unmount, can be remounted
 	destroy(): void; // unmount + cleanup internal state, observers, etc. cannot be reused anymore
-	getSnapshot(): BoardRuntimeExtensionSurfaceSnapshot;
+	getSnapshot(): RuntimeExtensionSurfaceSnapshot;
 }

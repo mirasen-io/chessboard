@@ -1,42 +1,38 @@
 import { RenderSystem } from '../render/types';
-import { boardRuntimeRefreshGeometry } from './layout';
-import { BoardRuntimeInternal } from './types';
+import { runtimeRefreshGeometry } from './layout';
+import { RuntimeInternal } from './types';
 
-export function boardRuntimeIsMounted(state: BoardRuntimeInternal): boolean {
+export function runtimeIsMounted(state: RuntimeInternal): boolean {
 	return state.renderSystem.isMounted;
 }
 
-export function boardRuntimeValidateIsMounted(
-	state: BoardRuntimeInternal
-): asserts state is BoardRuntimeInternal & {
+export function runtimeValidateIsMounted(
+	state: RuntimeInternal
+): asserts state is RuntimeInternal & {
 	renderSystem: { container: NonNullable<RenderSystem['container']> };
 } {
-	if (!boardRuntimeIsMounted(state)) {
-		throw new Error(
-			'BoardRuntime is not mounted. Please call mount() before performing this action.'
-		);
+	if (!runtimeIsMounted(state)) {
+		throw new Error('Runtime is not mounted. Please call mount() before performing this action.');
 	}
 }
 
-export function boardRuntimeValidateIsNotMounted(state: BoardRuntimeInternal): void {
-	if (boardRuntimeIsMounted(state)) {
-		throw new Error(
-			'BoardRuntime is already mounted. This action cannot be performed after mounting.'
-		);
+export function runtimeValidateIsNotMounted(state: RuntimeInternal): void {
+	if (runtimeIsMounted(state)) {
+		throw new Error('Runtime is already mounted. This action cannot be performed after mounting.');
 	}
 }
 
-export function boardRuntimeMount(state: BoardRuntimeInternal, container: HTMLElement): void {
-	boardRuntimeValidateIsNotMounted(state);
+export function runtimeMount(state: RuntimeInternal, container: HTMLElement): void {
+	runtimeValidateIsNotMounted(state);
 	state.renderSystem.mount(container);
 	state.resizeObserver = new ResizeObserver(() => {
-		boardRuntimeRefreshGeometry(state);
+		runtimeRefreshGeometry(state);
 	});
 	state.resizeObserver.observe(container);
 }
 
-export function boardRuntimeUnmount(state: BoardRuntimeInternal): void {
-	boardRuntimeValidateIsMounted(state);
+export function runtimeUnmount(state: RuntimeInternal): void {
+	runtimeValidateIsMounted(state);
 	if (state.resizeObserver) {
 		state.resizeObserver.disconnect();
 		state.resizeObserver = null;
@@ -45,7 +41,7 @@ export function boardRuntimeUnmount(state: BoardRuntimeInternal): void {
 	state.extensionSystem.onUnmount();
 }
 
-export function boardRuntimeDestroy(state: BoardRuntimeInternal): void {
-	boardRuntimeUnmount(state);
+export function runtimeDestroy(state: RuntimeInternal): void {
+	runtimeUnmount(state);
 	state.extensionSystem.onDestroy();
 }

@@ -2,35 +2,35 @@ import { ExtensionSystem } from '../../extensions/types';
 import { Layout, LayoutSnapshot } from '../../layout/types';
 import { MutationPipe, MutationPipeline } from '../../mutation/types';
 import { RenderSystem } from '../../render/types';
-import { BoardRuntimeState, BoardRuntimeStateSnapshot } from '../../state/types';
+import { RuntimeState, RuntimeStateSnapshot } from '../../state/types';
 import { TransientVisuals, TransientVisualsSnapshot } from '../../transientVisuals/types';
-import { BoardRuntimeMutationPayloadByCause } from './types';
+import { RuntimeMutationPayloadByCause } from './types';
 
-export interface BoardRuntimeMutationPipelineContext {
-	readonly state: BoardRuntimeState;
+export interface RuntimeMutationPipelineContext {
+	readonly state: RuntimeState;
 	readonly layout: Layout;
 	readonly transientVisuals: TransientVisuals;
 	readonly renderSystem: RenderSystem;
 	readonly extensionSystem: ExtensionSystem;
 }
 
-export type BoardRuntimeMutationPipeline = MutationPipeline<
-	BoardRuntimeMutationPayloadByCause,
-	BoardRuntimeMutationPipelineContext
+export type RuntimeMutationPipeline = MutationPipeline<
+	RuntimeMutationPayloadByCause,
+	RuntimeMutationPipelineContext
 >;
 
-export interface BoardRuntimeMutationPipeContextPrevious {
-	readonly state: BoardRuntimeStateSnapshot;
+export interface RuntimeMutationPipeContextPrevious {
+	readonly state: RuntimeStateSnapshot;
 	readonly layout: LayoutSnapshot;
 	readonly transientVisuals: TransientVisualsSnapshot;
 }
 
-export interface BoardRuntimeMutationPipeContext {
-	previous: BoardRuntimeMutationPipeContextPrevious | null;
-	current: BoardRuntimeMutationPipelineContext;
+export interface RuntimeMutationPipeContext {
+	previous: RuntimeMutationPipeContextPrevious | null;
+	current: RuntimeMutationPipelineContext;
 }
 
-export type BoardRuntimeMutationPipe = MutationPipe<
-	BoardRuntimeMutationPayloadByCause,
-	BoardRuntimeMutationPipeContext
+export type RuntimeMutationPipe = MutationPipe<
+	RuntimeMutationPayloadByCause,
+	RuntimeMutationPipeContext
 >;

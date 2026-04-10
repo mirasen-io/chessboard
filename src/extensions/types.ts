@@ -1,7 +1,7 @@
 import { LayoutSnapshot } from '../layout/types';
-import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
+import { RuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
-import { BoardRuntimeStateSnapshot } from '../state/types';
+import { RuntimeStateSnapshot } from '../state/types';
 import { Movability } from '../state/view/types';
 import { TransientVisualsSnapshot } from '../transientVisuals/types';
 import {
@@ -59,12 +59,12 @@ export interface ExtensionInstanceMountOptions<TSlots extends readonly Extension
 
 export interface UpdateFrameSnapshotUnmounted {
 	readonly isMounted: false;
-	readonly state: BoardRuntimeStateSnapshot;
+	readonly state: RuntimeStateSnapshot;
 }
 
 export interface UpdateFrameSnapshotMounted {
 	readonly isMounted: true;
-	readonly state: BoardRuntimeStateSnapshot;
+	readonly state: RuntimeStateSnapshot;
 	readonly layout: LayoutSnapshot;
 }
 
@@ -93,7 +93,7 @@ export interface ExtensionAnimationController {
 
 export interface ExtensionUpdateContextCommon {
 	readonly previousFrame: UpdateFrameSnapshot | null;
-	readonly mutation: BoardRuntimeReadonlyMutationSession;
+	readonly mutation: RuntimeReadonlyMutationSession;
 	readonly currentFrame: UpdateFrameSnapshot;
 }
 
@@ -121,7 +121,7 @@ export interface RenderLayoutSnapshot extends LayoutSnapshot {
 }
 
 export interface RenderFrameSnapshot {
-	readonly state: BoardRuntimeStateSnapshot;
+	readonly state: RuntimeStateSnapshot;
 	readonly layout: RenderLayoutSnapshot;
 }
 
@@ -174,19 +174,19 @@ export interface ExtensionInstance<
 
 export type AnyExtensionInstance = ExtensionInstance<string, readonly ExtensionSlotName[], unknown>;
 
-export interface BoardRuntimeExtensionSurfaceSnapshot {
-	state: BoardRuntimeStateSnapshot;
+export interface RuntimeExtensionSurfaceSnapshot {
+	state: RuntimeStateSnapshot;
 	layout: LayoutSnapshot;
 	transientVisuals: TransientVisualsSnapshot;
 }
 
-export interface BoardRuntimeExtensionSurfaceRenderRequest {
+export interface RuntimeExtensionSurfaceRenderRequest {
 	state?: boolean;
 	animation?: boolean;
 	visuals?: boolean;
 }
 
-export interface BoardRuntimeExtensionSurface {
+export interface RuntimeExtensionSurface {
 	// Board state
 	setPosition(input: PositionInput): boolean;
 	setTurn(turn: ColorInput): boolean;
@@ -203,12 +203,12 @@ export interface BoardRuntimeExtensionSurface {
 	// Clears dragSession, currentTarget, and releaseTargetingActive.
 	// Keeps selectedSquare + destinations.
 	cancelInteraction(): boolean;
-	getSnapshot(): BoardRuntimeExtensionSurfaceSnapshot;
-	requestRender(request: BoardRuntimeExtensionSurfaceRenderRequest): void;
+	getSnapshot(): RuntimeExtensionSurfaceSnapshot;
+	requestRender(request: RuntimeExtensionSurfaceRenderRequest): void;
 }
 
 export interface ExtensionCreateInstanceOptions {
-	runtime: BoardRuntimeExtensionSurface;
+	runtime: RuntimeExtensionSurface;
 }
 export interface ExtensionDefinition<
 	TId extends string,
@@ -278,7 +278,7 @@ export interface ExtensionSystemInternal {
 
 export interface ExtensionSystemUpdateRequest {
 	readonly state: UpdateFrameSnapshot;
-	readonly mutation: BoardRuntimeReadonlyMutationSession;
+	readonly mutation: RuntimeReadonlyMutationSession;
 }
 
 export interface ExtensionSystem {

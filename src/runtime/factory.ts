@@ -1,25 +1,20 @@
 import { createExtensionSystem } from '../extensions/factory';
-import {
-	BoardRuntimeExtensionSurface,
-	BoardRuntimeExtensionSurfaceSnapshot
-} from '../extensions/types';
+import { RuntimeExtensionSurface, RuntimeExtensionSurfaceSnapshot } from '../extensions/types';
 import { createLayout } from '../layout/factory';
 import { createRender } from '../render/factory';
-import { createBoardRuntimeState } from '../state/factory';
+import { createRuntimeState } from '../state/factory';
 import { createTransientVisuals } from '../transientVisuals/factory';
-import { boardRuntimeDestroy, boardRuntimeMount, boardRuntimeUnmount } from './lifecycle';
-import { createBoardRuntimeMutationPipeline } from './mutation/factory';
+import { runtimeDestroy, runtimeMount, runtimeUnmount } from './lifecycle';
+import { createRuntimeMutationPipeline } from './mutation/factory';
 import type {
-	BoardRuntime,
-	BoardRuntimeInitOptions,
-	BoardRuntimeInitOptionsInternal,
-	BoardRuntimeInternal,
-	BoardRuntimeStatus
+	Runtime,
+	RuntimeInitOptions,
+	RuntimeInitOptionsInternal,
+	RuntimeInternal,
+	RuntimeStatus
 } from './types';
 
-function createBoardRuntimeInternal(
-	options: BoardRuntimeInitOptionsInternal
-): BoardRuntimeInternal {
+function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
 	const extensionSystem = createExtensionSystem({
 		extensions: options.extensions,
 		createInstanceOptions: options.extensionCreateInstanceOptions
@@ -29,22 +24,22 @@ function createBoardRuntimeInternal(
 		extensions: extensionSystem.extensions
 	});
 	return {
-		state: createBoardRuntimeState(options.state ?? {}),
+		state: createRuntimeState(options.state ?? {}),
 		layout: createLayout(),
 		transientVisuals: createTransientVisuals(),
-		mutation: createBoardRuntimeMutationPipeline(),
+		mutation: createRuntimeMutationPipeline(),
 		renderSystem: render,
 		extensionSystem: extensionSystem,
 		resizeObserver: null
 	};
 }
 
-function createBoardRuntimeExtensionSurface(
-	getInternalState: () => BoardRuntimeInternal
-): BoardRuntimeExtensionSurface {
+function createRuntimeExtensionSurface(
+	getInternalState: () => RuntimeInternal
+): RuntimeExtensionSurface {
 	// @ts-expect-error - For now we just return partial object. TODO: REMOVE!!!!
 	return {
-		getSnapshot(): BoardRuntimeExtensionSurfaceSnapshot {
+		getSnapshot(): RuntimeExtensionSurfaceSnapshot {
 			const state = getInternalState();
 			return {
 				state: state.state.getSnapshot(),
@@ -55,10 +50,10 @@ function createBoardRuntimeExtensionSurface(
 	};
 }
 
-export function createBoardRuntime(options: BoardRuntimeInitOptions): BoardRuntime {
-	let internalState: BoardRuntimeInternal | null = null;
-	let internalStatus: BoardRuntimeStatus = 'constructing';
-	function getInternalState(): BoardRuntimeInternal {
+export function createRuntime(options: RuntimeInitOptions): Runtime {
+	let internalState: RuntimeInternal | null = null;
+	let internalStatus: RuntimeStatus = 'constructing';
+	function getInternalState(): RuntimeInternal {
 		if (internalStatus === 'constructing' || internalStatus === 'destroyed') {
 			throw new Error(`Cannot access internal state when runtime is ${internalStatus}`);
 		}
@@ -68,26 +63,26 @@ export function createBoardRuntime(options: BoardRuntimeInitOptions): BoardRunti
 		return internalState;
 	}
 
-	// Create BoardRuntimeExtensionSurface to pass to the extension system for initialization of extension instances
-	const extensionSurface = createBoardRuntimeExtensionSurface(getInternalState);
+	// Create RuntimeExtensionSurface to pass to the extension system for initialization of extension instances
+	const extensionSurface = createRuntimeExtensionSurface(getInternalState);
 
 	// Now construct the internal state
-	const optionsInternal: BoardRuntimeInitOptionsInternal = {
+	const optionsInternal: RuntimeInitOptionsInternal = {
 		...options,
 		extensionCreateInstanceOptions: {
 			runtime: extensionSurface
 		}
 	};
-	internalState = createBoardRuntimeInternal(optionsInternal);
+	internalState = createRuntimeInternal(optionsInternal);
 
 	// Initial creation, so we mark board position as mutated to trigger mutation pipeline
 	internalState.mutation.addMutation('state.board.setPosition', true);
 
 	// We will have two different interfaces here
 	// One is returned, one is for controller - with different methods
-	// At the moment our assumption that controller will use BoardRuntime but not opposite direction
+	// At the moment our assumption that controller will use Runtime but not opposite direction
 	// So we can construct these two objects separately so they would not be huge!
-	// TODO: const inputControllerSurface = createBoardRuntimeInputControllerSurface(internalState);
+	// TODO: const inputControllerSurface = createRuntimeInputControllerSurface(internalState);
 
 	// Initial run to process initial mutations and set up previousContext for the next runs
 	internalStatus = 'unmounted';
@@ -97,15 +92,15 @@ export function createBoardRuntime(options: BoardRuntimeInitOptions): BoardRunti
 			return internalStatus;
 		},
 		mount(container) {
-			boardRuntimeMount(getInternalState(), container);
+			runtimeMount(getInternalState(), container);
 			internalStatus = 'mounted';
 		},
 		unmount() {
-			boardRuntimeUnmount(getInternalState());
+			runtimeUnmount(getInternalState());
 			internalStatus = 'unmounted';
 		},
 		destroy() {
-			boardRuntimeDestroy(getInternalState());
+			runtimeDestroy(getInternalState());
 			internalStatus = 'destroyed';
 			internalState = null;
 		},
