@@ -2,14 +2,9 @@ import { cloneDeep } from 'es-toolkit/object';
 import { setsEqual } from '../../helpers/util';
 import { toValidSquare } from '../board/coords';
 import type { Square, SquareInput } from '../board/types';
-import type { DragSessionSnapshot, InteractionStateInternal } from './types';
+import { movabilitiesEqual } from './movability';
+import type { DragSessionSnapshot, InteractionStateInternal, MovabilitySnapshot } from './types';
 
-/**
- * Set or clear the selected square.
- * Accepts numeric or algebraic square input, or null to clear.
- * Returns true if the value changed, false if no-op.
- * Does not take an InvalidationWriter — no direct invalidation side-effects.
- */
 export function interactionSetSelectedSquare(
 	state: InteractionStateInternal,
 	sq: SquareInput | null
@@ -20,27 +15,24 @@ export function interactionSetSelectedSquare(
 	return true;
 }
 
-/**
- * Set or clear the active destinations for the current selected/drag source square.
- * [] means no active destinations. Null is accepted and normalized to [].
- * Returns true if the value changed, false if no-op (reference equality check).
- * Does not take an InvalidationWriter — no direct invalidation side-effects.
- */
-export function interactionSetDestinations(
+export function interactionSetMovability(
 	state: InteractionStateInternal,
-	dests: readonly Square[] | null
+	m: MovabilitySnapshot
 ): boolean {
-	if (setsEqual(new Set(state.destinations), new Set(dests))) return false;
-	state.destinations = dests ? [...dests] : [];
+	if (movabilitiesEqual(state.movability, m)) return false; // no-op
+	state.movability = cloneDeep(m);
 	return true;
 }
 
-/**
- * Set or clear the active drag session.
- * Null means no drag in progress.
- * Returns true if the value changed, false if no-op (reference equality check).
- * Does not take an InvalidationWriter — no direct invalidation side-effects.
- */
+export function interactionSetActiveDestinations(
+	state: InteractionStateInternal,
+	dests: ReadonlySet<Square>
+): boolean {
+	if (setsEqual(state.activeDestinations, dests)) return false;
+	state.activeDestinations = new Set(dests);
+	return true;
+}
+
 export function interactionSetDragSession(
 	state: InteractionStateInternal,
 	session: DragSessionSnapshot | null
@@ -51,12 +43,6 @@ export function interactionSetDragSession(
 	return true;
 }
 
-/**
- * Set or clear the current target square.
- * Accepts numeric or algebraic square input, or null to clear.
- * Returns true if the value changed, false if no-op.
- * Does not take an InvalidationWriter — no direct invalidation side-effects.
- */
 export function interactionSetCurrentTarget(
 	state: InteractionStateInternal,
 	sq: SquareInput | null
@@ -67,11 +53,6 @@ export function interactionSetCurrentTarget(
 	return true;
 }
 
-/**
- * Set or clear the release targeting active flag.
- * Returns true if the value changed, false if no-op.
- * Does not take an InvalidationWriter — no direct invalidation side-effects.
- */
 export function interactionSetReleaseTargetingActive(
 	state: InteractionStateInternal,
 	active: boolean
@@ -81,15 +62,10 @@ export function interactionSetReleaseTargetingActive(
 	return true;
 }
 
-/**
- * Clear all interaction state fields.
- * Returns true if any field changed, false if all were already null/false (no-op).
- * Use this when the board position changes or interaction is fully cancelled.
- */
 export function interactionClear(state: InteractionStateInternal): boolean {
 	const anySet =
 		state.selectedSquare !== null ||
-		state.destinations.length > 0 ||
+		state.activeDestinations.size > 0 ||
 		state.dragSession !== null ||
 		state.currentTarget !== null ||
 		state.releaseTargetingActive !== false;
@@ -97,7 +73,7 @@ export function interactionClear(state: InteractionStateInternal): boolean {
 	if (!anySet) return false;
 
 	state.selectedSquare = null;
-	state.destinations = [];
+	state.activeDestinations = new Set();
 	state.dragSession = null;
 	state.currentTarget = null;
 	state.releaseTargetingActive = false;

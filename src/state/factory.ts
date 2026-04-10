@@ -8,7 +8,7 @@ function createRuntimeStateInternal(options: RuntimeStateInitOptions): RuntimeSt
 	return {
 		board: createBoardState(options.board ?? {}),
 		view: createViewState(options.view ?? {}),
-		interaction: createInteractionState(),
+		interaction: createInteractionState(options.interaction ?? {}),
 		change: createChangeState()
 	};
 }

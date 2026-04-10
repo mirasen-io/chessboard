@@ -9,7 +9,9 @@ export function runtimeIsMounted(state: RuntimeInternal): boolean {
 export function runtimeValidateIsMounted(
 	state: RuntimeInternal
 ): asserts state is RuntimeInternal & {
-	renderSystem: { container: NonNullable<RenderSystem['container']> };
+	readonly renderSystem: RuntimeInternal['renderSystem'] & {
+		readonly container: NonNullable<RenderSystem['container']>;
+	};
 } {
 	if (!runtimeIsMounted(state)) {
 		throw new Error('Runtime is not mounted. Please call mount() before performing this action.');

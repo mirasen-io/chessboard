@@ -1,13 +1,18 @@
 import { setsEqual } from '../../helpers/util';
 import type { Square } from '../board/types';
-import type { MovabilityDestinationsRecord, MovabilitySnapshot, StrictMovability } from './types';
+import { interactionSetActiveDestinations } from './reducers';
+import type {
+	InteractionStateInternal,
+	MovabilityDestinations,
+	MovabilityDestinationsRecord,
+	MovabilitySnapshot,
+	StrictMovability
+} from './types';
 
 function assertNever(x: never): never {
 	throw new Error(`Unhandled movability comparison case: ${String(x)}`);
 }
-/**
- * Local helper for structural movability equality.
- */
+
 export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot): boolean {
 	if (a === b) return true;
 	if (a.mode !== b.mode) return false;
@@ -49,4 +54,33 @@ export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot):
 		default:
 			return assertNever(a);
 	}
+}
+
+export function getActiveDestinations(
+	state: InteractionStateInternal,
+	from: Square
+): ReadonlySet<Square> {
+	const movability = state.movability;
+	if (movability.mode === 'disabled') return new Set();
+	if (movability.mode === 'free') return new Set();
+	// strict mode: look up the destinations for this square
+	return new Set(getDestinationsForSource(movability.destinations, from) ?? []);
+}
+
+function getDestinationsForSource(
+	destinations: MovabilityDestinations,
+	source: Square
+): readonly Square[] | undefined {
+	if (typeof destinations === 'function') {
+		return destinations(source);
+	}
+	return destinations[source];
+}
+
+export function updateActiveDestinations(state: InteractionStateInternal): boolean {
+	if (!state.selectedSquare) {
+		return interactionSetActiveDestinations(state, new Set());
+	}
+	const activeDests = getActiveDestinations(state, state.selectedSquare);
+	return interactionSetActiveDestinations(state, activeDests);
 }

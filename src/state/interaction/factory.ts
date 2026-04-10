@@ -1,50 +1,81 @@
 import { cloneDeep } from 'es-toolkit';
+import { updateActiveDestinations } from './movability';
 import {
 	interactionClear,
 	interactionClearActive,
 	interactionSetCurrentTarget,
-	interactionSetDestinations,
 	interactionSetDragSession,
+	interactionSetMovability,
 	interactionSetReleaseTargetingActive,
 	interactionSetSelectedSquare
 } from './reducers';
-import type { InteractionState, InteractionStateInternal } from './types';
+import type {
+	InteractionState,
+	InteractionStateInitOptions,
+	InteractionStateInternal
+} from './types';
 
 /**
  * Create a fresh interaction state with all fields set to null or false.
  */
-function createInteractionStateInternal(): InteractionStateInternal {
+function createInteractionStateInternal(
+	options: InteractionStateInitOptions
+): InteractionStateInternal {
+	const movability = options.movability ?? { mode: 'disabled' };
+
 	return {
+		movability: cloneDeep(movability),
 		selectedSquare: null,
-		destinations: [],
+		activeDestinations: new Set(),
 		dragSession: null,
 		currentTarget: null,
 		releaseTargetingActive: false
 	};
 }
 
-export function createInteractionState(): InteractionState {
-	const internalState = createInteractionStateInternal();
+export function createInteractionState(options: InteractionStateInitOptions): InteractionState {
+	const internalState = createInteractionStateInternal(options);
 	return {
-		getSelectedSquare() {
+		get selectedSquare() {
 			return internalState.selectedSquare;
 		},
 		setSelectedSquare(sq, mutationSession) {
-			return mutationSession.addMutation(
+			const changed = mutationSession.addMutation(
 				'state.interaction.setSelectedSquare',
 				interactionSetSelectedSquare(internalState, sq)
 			);
-		},
-		getDestinations() {
-			return [...(internalState.destinations ?? [])];
-		},
-		setDestinations(dests, mutationSession) {
-			return mutationSession.addMutation(
-				'state.interaction.setDestinations',
-				interactionSetDestinations(internalState, dests)
+
+			if (!changed) return false; // no-op
+
+			mutationSession.addMutation(
+				'state.interaction.setActiveDestinations',
+				updateActiveDestinations(internalState)
 			);
+
+			return changed;
 		},
-		getDragSession() {
+		get movability() {
+			return internalState.movability;
+		},
+		setMovability(movability, mutationSession) {
+			const changed = mutationSession.addMutation(
+				'state.interaction.setMovability',
+				interactionSetMovability(internalState, movability)
+			);
+
+			if (!changed) return false; // no-op
+
+			mutationSession.addMutation(
+				'state.interaction.setActiveDestinations',
+				updateActiveDestinations(internalState)
+			);
+
+			return changed;
+		},
+		get activeDestinations() {
+			return new Set(internalState.activeDestinations);
+		},
+		get dragSession() {
 			return internalState.dragSession ? { ...internalState.dragSession } : null;
 		},
 		setDragSession(session, mutationSession) {
@@ -54,7 +85,7 @@ export function createInteractionState(): InteractionState {
 			);
 		},
 
-		getCurrentTarget() {
+		get currentTarget() {
 			return internalState.currentTarget;
 		},
 		setCurrentTarget(sq, mutationSession) {
@@ -63,7 +94,7 @@ export function createInteractionState(): InteractionState {
 				interactionSetCurrentTarget(internalState, sq)
 			);
 		},
-		getReleaseTargetingActive() {
+		get releaseTargetingActive() {
 			return internalState.releaseTargetingActive;
 		},
 		setReleaseTargetingActive(active, mutationSession) {

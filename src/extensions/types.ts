@@ -1,8 +1,8 @@
 import { LayoutSnapshot } from '../layout/types';
 import { RuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
+import { Movability } from '../state/interaction/types';
 import { RuntimeStateSnapshot } from '../state/types';
-import { Movability } from '../state/view/types';
 import { TransientVisualsSnapshot } from '../transientVisuals/types';
 import {
 	ExtensionInvalidationState,

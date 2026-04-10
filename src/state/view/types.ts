@@ -1,57 +1,21 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { Color, ColorInput, Square } from '../board/types';
+import type { Color, ColorInput } from '../board/types';
 import { ViewStateMutationSession } from './mutation';
 
 export type Orientation = Color; // For clarity in context where it applies
 
-// Maps source square to array of destination squares
-export type MovabilityDestinationsRecord = Partial<Record<Square, readonly Square[]>>;
-// Returns undefined if source is not movable, otherwise array of destinations
-export type MovabilityResolver = (source: Square) => readonly Square[] | undefined;
-export type MovabilityDestinations = MovabilityDestinationsRecord | MovabilityResolver;
-
-export type StrictMovability = {
-	mode: 'strict';
-	destinations: MovabilityDestinations;
-};
-
-export type FreeMovability = {
-	mode: 'free';
-};
-
-// Disables move interaction only, not all board interaction
-export type DisabledMovability = {
-	mode: 'disabled';
-};
-
-export type Movability = StrictMovability | FreeMovability | DisabledMovability;
-export type MovabilitySnapshot = ReadonlyDeep<Movability>;
-
-/**
- * Internal mutable view/config state used by reducers/runtime.
- * Owns presentation config and interaction policy config.
- * User interaction facts (selection, destinations, drag) live in InteractionStateInternal.
- */
 export interface ViewStateInternal {
 	orientation: Orientation;
-	movability: Movability;
 }
 
-/**
- * State snapshot shape exposed to consumers. Contains only view-owned fields; board state is separate.
- * Interaction state is separate.
- */
 export type ViewStateSnapshot = ReadonlyDeep<ViewStateInternal>;
 
 export interface ViewStateInitOptions {
-	orientation?: ColorInput; // 'white' | 'black' | 'w' | 'b'
-	movability?: Movability; // optional externally-provided interaction policy
+	orientation?: ColorInput;
 }
 
 export interface ViewState {
-	getOrientation(): Orientation;
+	readonly orientation: Orientation;
 	setOrientation(orientation: ColorInput, mutationSession: ViewStateMutationSession): boolean;
-	getMovability(): MovabilitySnapshot;
-	setMovability(movability: MovabilitySnapshot, mutationSession: ViewStateMutationSession): boolean;
 	getSnapshot(): ViewStateSnapshot;
 }

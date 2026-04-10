@@ -9,9 +9,10 @@ export function createReadonlyMutationSession<PayloadByCause extends Record<stri
 	payloads: ReadonlyMap<
 		MutationCause<PayloadByCause>,
 		PayloadByCause[MutationCause<PayloadByCause>][] | undefined
-	>
+	>,
+	clone: boolean = false
 ): ReadonlyMutationSession<PayloadByCause> {
-	const internalPayloads = new Map(payloads); // Create a mutable copy to prevent external mutations
+	const internalPayloads = clone ? new Map(payloads) : payloads;
 	return {
 		hasMutation(match) {
 			if (!match) {
