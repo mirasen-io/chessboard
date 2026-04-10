@@ -47,10 +47,7 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 
 			if (!changed) return false; // no-op
 
-			mutationSession.addMutation(
-				'state.interaction.setActiveDestinations',
-				updateActiveDestinations(internalState)
-			);
+			updateActiveDestinations(internalState);
 
 			return changed;
 		},
@@ -65,10 +62,7 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 
 			if (!changed) return false; // no-op
 
-			mutationSession.addMutation(
-				'state.interaction.setActiveDestinations',
-				updateActiveDestinations(internalState)
-			);
+			updateActiveDestinations(internalState);
 
 			return changed;
 		},

@@ -2,7 +2,6 @@ import type { MutationSession } from '../../mutation/types';
 
 export type InteractionStateMutationPayloadByCause = {
 	'state.interaction.setSelectedSquare': undefined;
-	'state.interaction.setActiveDestinations': undefined;
 	'state.interaction.setDragSession': undefined;
 	'state.interaction.setCurrentTarget': undefined;
 	'state.interaction.setReleaseTargetingActive': undefined;
