@@ -1,5 +1,5 @@
 import { cloneDeep } from 'es-toolkit';
-import { updateActiveDestinations } from './movability';
+import { updateActiveDestinations } from './helpers';
 import {
 	interactionClear,
 	interactionClearActive,
@@ -7,7 +7,7 @@ import {
 	interactionSetDragSession,
 	interactionSetMovability,
 	interactionSetReleaseTargetingActive,
-	interactionSetSelectedSquare
+	interactionSetSelected
 } from './reducers';
 import type {
 	InteractionState,
@@ -25,7 +25,7 @@ function createInteractionStateInternal(
 
 	return {
 		movability: cloneDeep(movability),
-		selectedSquare: null,
+		selected: null,
 		activeDestinations: new Set(),
 		dragSession: null,
 		currentTarget: null,
@@ -36,23 +36,23 @@ function createInteractionStateInternal(
 export function createInteractionState(options: InteractionStateInitOptions): InteractionState {
 	const internalState = createInteractionStateInternal(options);
 	return {
-		get selectedSquare() {
-			return internalState.selectedSquare;
+		get selected() {
+			return cloneDeep(internalState.selected);
 		},
-		setSelectedSquare(sq, mutationSession) {
+		setSelected(selected, mutationSession) {
 			const changed = mutationSession.addMutation(
 				'state.interaction.setSelectedSquare',
-				interactionSetSelectedSquare(internalState, sq)
+				interactionSetSelected(internalState, selected)
 			);
 
 			if (!changed) return false; // no-op
 
-			updateActiveDestinations(internalState);
+			updateActiveDestinations(internalState, mutationSession);
 
 			return changed;
 		},
 		get movability() {
-			return internalState.movability;
+			return cloneDeep(internalState.movability);
 		},
 		setMovability(movability, mutationSession) {
 			const changed = mutationSession.addMutation(
@@ -62,12 +62,15 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 
 			if (!changed) return false; // no-op
 
-			updateActiveDestinations(internalState);
+			updateActiveDestinations(internalState, mutationSession);
 
 			return changed;
 		},
 		get activeDestinations() {
 			return new Set(internalState.activeDestinations);
+		},
+		updateActiveDestinations(mutationSession) {
+			return updateActiveDestinations(internalState, mutationSession);
 		},
 		get dragSession() {
 			return internalState.dragSession ? { ...internalState.dragSession } : null;
@@ -98,10 +101,13 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 			);
 		},
 		clear(mutationSession) {
-			return mutationSession.addMutation(
+			const changed = mutationSession.addMutation(
 				'state.interaction.clear',
 				interactionClear(internalState)
 			);
+			if (!changed) return false; // no-op
+			updateActiveDestinations(internalState, mutationSession);
+			return true;
 		},
 		clearActive(mutationSession) {
 			return mutationSession.addMutation(

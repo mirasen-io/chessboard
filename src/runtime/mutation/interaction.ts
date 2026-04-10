@@ -1,26 +1,37 @@
-/*
-import type { RuntimeMuitationPipe } from './types';
+import { selectedEqual } from '../../state/interaction/helpers';
+import { InteractionStateMutationSession } from '../../state/interaction/mutation';
+import { InteractionStateSelected } from '../../state/interaction/types';
+import { RuntimeMutationPipe } from './pipeline';
 
-export const clearIfPieceInInteractionChanged: RuntimeMuitationPipe = (
+export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutationPipe = (
 	context,
 	mutationSession
 ) => {
-	const { previousContext, currentContext } = context;
-	// If previous context is null, this is the first mutation run, so no-op
-	if (!previousContext) {
+	const { current } = context;
+	if (!mutationSession.hasMutation({ prefixes: ['state.board.'] })) {
 		return;
 	}
-	// We clear interaction state only if the piece in interaction (color or role) changed
-	const prevSelectedSquare = previousContext.state.interaction.selectedSquare;
-	if (prevSelectedSquare === null) return; // no-op
-	const prevPieceCode = previousContext.state.board.pieces[prevSelectedSquare];
-	const currentSelectedSquare = currentContext.state.interaction.getSelectedSquare();
-	if (currentSelectedSquare === null) return; // no-op
-	if (prevSelectedSquare !== currentSelectedSquare) return; // no-op (selected square changed, but we only care if the piece on that square changed)
-	const currentPieceCode = currentContext.state.board.getPieceCodeAt(currentSelectedSquare);
-	if (prevPieceCode === currentPieceCode) return; // no-op
+	const currentSelected = current.state.interaction.selected ?? null;
+	const currentSelectedSquare = currentSelected?.square ?? null;
+	const wouldBeCurrentSelectedPieceCode =
+		currentSelectedSquare !== null
+			? current.state.board.getPieceCodeAt(currentSelectedSquare)
+			: null;
 
-	// Ok, these are different pieces, so we clear interaction state to avoid mismatches (e.g. selected square with no piece, or just a different piece)
-	currentContext.state.interaction.clear(mutationSession);
+	const wouldBeCurrentSelected: InteractionStateSelected | null =
+		currentSelectedSquare !== null && wouldBeCurrentSelectedPieceCode !== null
+			? {
+					square: currentSelectedSquare,
+					pieceCode: wouldBeCurrentSelectedPieceCode
+				}
+			: null;
+
+	const notChanged = selectedEqual(currentSelected, wouldBeCurrentSelected);
+	if (notChanged) {
+		current.state.interaction.updateActiveDestinations(
+			mutationSession as InteractionStateMutationSession
+		);
+		return;
+	}
+	current.state.interaction.clear(mutationSession as InteractionStateMutationSession);
 };
-*/

@@ -2,9 +2,15 @@ import { ExtensionRenderAnimationContext } from '../../extensions/types';
 import { RenderSystemInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
-export function performAnimationPass(state: RenderSystemInternal): boolean {
+export interface RenderAnimationResult {
+	requestRenderAnimation: boolean;
+	requestRender: boolean;
+}
+
+export function performAnimationPass(state: RenderSystemInternal): RenderAnimationResult {
 	validateIsMounted(state);
-	let requestNextRenderAnimation = false;
+	let requestRenderAnimation = false;
+	let requestRender = false;
 	const currentFrame = state.currentFrame;
 	if (!currentFrame) {
 		throw new Error(
@@ -47,15 +53,20 @@ export function performAnimationPass(state: RenderSystemInternal): boolean {
 				}
 			});
 		}
+
 		// Now get all ended and cancelled sessions, call cleanAnimation and remove them from the controller
 		const removeSessions = extensionRec.extension.animation.getAll(['ended', 'cancelled']);
 		if (removeSessions.length > 0) {
 			extensionRec.extension.animation.remove(removeSessions.map((s) => s.id));
 		}
 
-		requestNextRenderAnimation =
-			requestNextRenderAnimation || extensionRec.extension.animation.getAll('active').length > 0;
+		requestRenderAnimation =
+			requestRenderAnimation || extensionRec.extension.animation.getAll('active').length > 0;
+		requestRender = requestRender || extensionRec.extension.invalidation.dirtyLayers !== 0;
 	}
 
-	return requestNextRenderAnimation;
+	return {
+		requestRenderAnimation,
+		requestRender
+	};
 }

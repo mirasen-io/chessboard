@@ -2,16 +2,22 @@ import { cloneDeep } from 'es-toolkit/object';
 import { setsEqual } from '../../helpers/util';
 import { toValidSquare } from '../board/coords';
 import type { Square, SquareInput } from '../board/types';
+import { selectedEqual } from './helpers';
 import { movabilitiesEqual } from './movability';
-import type { DragSessionSnapshot, InteractionStateInternal, MovabilitySnapshot } from './types';
+import type {
+	DragSessionSnapshot,
+	InteractionStateInternal,
+	InteractionStateSelected,
+	MovabilitySnapshot
+} from './types';
 
-export function interactionSetSelectedSquare(
+export function interactionSetSelected(
 	state: InteractionStateInternal,
-	sq: SquareInput | null
+	selected: InteractionStateSelected | null
 ): boolean {
-	const newSel: Square | null = sq === null ? null : toValidSquare(sq);
-	if (state.selectedSquare === newSel) return false;
-	state.selectedSquare = newSel;
+	const notChanged = selectedEqual(state.selected, selected);
+	if (notChanged) return false;
+	state.selected = selected ? { ...selected } : null;
 	return true;
 }
 
@@ -64,7 +70,7 @@ export function interactionSetReleaseTargetingActive(
 
 export function interactionClear(state: InteractionStateInternal): boolean {
 	const anySet =
-		state.selectedSquare !== null ||
+		state.selected !== null ||
 		state.activeDestinations.size > 0 ||
 		state.dragSession !== null ||
 		state.currentTarget !== null ||
@@ -72,7 +78,7 @@ export function interactionClear(state: InteractionStateInternal): boolean {
 
 	if (!anySet) return false;
 
-	state.selectedSquare = null;
+	state.selected = null;
 	state.activeDestinations = new Set();
 	state.dragSession = null;
 	state.currentTarget = null;

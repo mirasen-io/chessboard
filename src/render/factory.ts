@@ -51,7 +51,8 @@ function createRenderInternal(options: RenderSystemInitOptionsInternal): RenderS
 interface PerformRenderOptions {
 	stateRequest: RenderFrameSnapshot | null;
 	animationRequest: true | null;
-	requestNextRenderAnimation: () => void;
+	requestRenderAnimation: () => void;
+	requestRender: () => void;
 	visualsRequest: TransientVisualsSnapshot | null;
 }
 
@@ -64,8 +65,11 @@ function performRender(state: RenderSystemInternal, options: PerformRenderOption
 	// Then we check and run renderAnimation,
 	if (options.animationRequest) {
 		const nextRequest = performAnimationPass(state);
-		if (nextRequest) {
-			options.requestNextRenderAnimation();
+		if (nextRequest.requestRenderAnimation) {
+			options.requestRenderAnimation();
+		}
+		if (nextRequest.requestRender) {
+			options.requestRender();
 		}
 	}
 
@@ -90,11 +94,13 @@ export function createRender(options: RenderSystemInitOptions): RenderSystem {
 		performRender(internalState, {
 			stateRequest: stateRequest,
 			animationRequest: animationRequest,
-			requestNextRenderAnimation: () => {
-				if (animationRequest) {
-					pendingAnimationRequest = true;
-					internalState.scheduler.schedule();
-				}
+			requestRenderAnimation: () => {
+				pendingAnimationRequest = pendingAnimationRequest ?? true;
+				internalState.scheduler.schedule();
+			},
+			requestRender: () => {
+				pendingStateRequest = pendingStateRequest ?? internalState.currentFrame;
+				internalState.scheduler.schedule();
 			},
 			visualsRequest: visualsRequest
 		});

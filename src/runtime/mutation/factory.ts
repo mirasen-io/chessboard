@@ -1,5 +1,6 @@
 import { createMutationPipeline } from '../../mutation/pipeline';
 import { extensionSystemUpdatePipe } from './extensionUpdate';
+import { reconcileInteractionSelectionAfterBoardStateChange } from './interaction';
 import { layoutRefreshGeometryPipe } from './layout';
 import {
 	RuntimeMutationPipe,
@@ -25,6 +26,7 @@ export function createRuntimeMutationPipeline(): RuntimeMutationPipeline {
 	let previousContext: RuntimeMutationPipeContextPrevious | null = null;
 	// Construct the pipes
 	const pipes: RuntimeMutationPipe[] = [
+		reconcileInteractionSelectionAfterBoardStateChange,
 		layoutRefreshGeometryPipe,
 		extensionSystemUpdatePipe,
 		requestRenderPipe

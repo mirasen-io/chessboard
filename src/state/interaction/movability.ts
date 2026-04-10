@@ -1,6 +1,5 @@
 import { setsEqual } from '../../helpers/util';
 import type { Square } from '../board/types';
-import { interactionSetActiveDestinations } from './reducers';
 import type {
 	InteractionStateInternal,
 	MovabilityDestinations,
@@ -75,12 +74,4 @@ function getDestinationsForSource(
 		return destinations(source);
 	}
 	return destinations[source];
-}
-
-export function updateActiveDestinations(state: InteractionStateInternal): boolean {
-	if (!state.selectedSquare) {
-		return interactionSetActiveDestinations(state, new Set());
-	}
-	const activeDests = getActiveDestinations(state, state.selectedSquare);
-	return interactionSetActiveDestinations(state, activeDests);
 }

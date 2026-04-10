@@ -30,8 +30,13 @@ export type DisabledMovability = {
 export type Movability = StrictMovability | FreeMovability | DisabledMovability;
 export type MovabilitySnapshot = ReadonlyDeep<Movability>;
 
+export interface InteractionStateSelected {
+	square: Square;
+	pieceCode: number;
+}
+
 export interface InteractionStateInternal {
-	selectedSquare: Square | null;
+	selected: InteractionStateSelected | null;
 	movability: Movability;
 	activeDestinations: ReadonlySet<Square>;
 	dragSession: DragSession | null;
@@ -46,14 +51,18 @@ export interface InteractionStateInitOptions {
 }
 
 export interface InteractionState {
-	readonly selectedSquare: Square | null;
-	setSelectedSquare(sq: Square | null, mutationSession: InteractionStateMutationSession): boolean;
+	readonly selected: InteractionStateSelected | null;
+	setSelected(
+		selected: InteractionStateSelected | null,
+		mutationSession: InteractionStateMutationSession
+	): boolean;
 	readonly movability: MovabilitySnapshot;
 	setMovability(
 		movability: MovabilitySnapshot,
 		mutationSession: InteractionStateMutationSession
 	): boolean;
 	readonly activeDestinations: ReadonlySet<Square>;
+	updateActiveDestinations(mutationSession: InteractionStateMutationSession): boolean;
 	readonly dragSession: DragSessionSnapshot | null;
 	setDragSession(
 		session: DragSessionSnapshot | null,
