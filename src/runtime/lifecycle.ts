@@ -1,4 +1,6 @@
+import assert from '@ktarmyshov/assert';
 import { RenderSystem } from '../render/types';
+import { createInputAdapter } from './input/adapter/factory';
 import { runtimeRefreshGeometry } from './layout';
 import { RuntimeInternal } from './types';
 
@@ -31,10 +33,19 @@ export function runtimeMount(state: RuntimeInternal, container: HTMLElement): vo
 		runtimeRefreshGeometry(state);
 	});
 	state.resizeObserver.observe(container);
+	assert(state.inputAdapter === null, 'Input adapter should not be initialized before mounting');
+	state.inputAdapter = createInputAdapter({
+		container,
+		getGeometry: () => state.layout.geometry,
+		controller: state.interactionController
+	});
 }
 
 export function runtimeUnmount(state: RuntimeInternal): void {
 	runtimeValidateIsMounted(state);
+	assert(state.inputAdapter !== null, 'Input adapter should be initialized when mounted');
+	state.inputAdapter.destroy();
+	state.inputAdapter = null;
 	if (state.resizeObserver) {
 		state.resizeObserver.disconnect();
 		state.resizeObserver = null;

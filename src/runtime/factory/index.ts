@@ -1,17 +1,19 @@
-import { createExtensionSystem } from '../extensions/factory';
-import { ExtensionRuntimeSurfaceCommands } from '../extensions/types/surface/commands';
-import { createLayout } from '../layout/factory';
-import { createRenderSystem } from '../render/factory';
-import { createRuntimeState } from '../state/factory';
-import { runtimeDestroy, runtimeMount, runtimeUnmount } from './lifecycle';
-import { createRuntimeMutationPipeline } from './mutation/factory';
+import { createExtensionSystem } from '../../extensions/factory';
+import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
+import { createLayout } from '../../layout/factory';
+import { createRenderSystem } from '../../render/factory';
+import { createRuntimeState } from '../../state/factory';
+import { createInteractionController } from '../input/controller/factory';
+import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle';
+import { createRuntimeMutationPipeline } from '../mutation/factory';
 import type {
 	Runtime,
 	RuntimeInitOptions,
 	RuntimeInitOptionsInternal,
 	RuntimeInternal,
 	RuntimeStatus
-} from './types';
+} from '../types';
+import { createRuntimeInteractionSurface } from './input';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
 	const extensionSystem = createExtensionSystem(options);
@@ -25,16 +27,27 @@ function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInte
 		mutation: createRuntimeMutationPipeline(),
 		renderSystem: render,
 		extensionSystem: extensionSystem,
-		resizeObserver: null
+		resizeObserver: null,
+		inputAdapter: null,
+		interactionController: createInteractionController({
+			surface: createRuntimeInteractionSurface(options.getInternalState)
+		})
 	};
 }
 
 function createExtensionRuntimeSurfaceCommands(
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	getInternalState: () => RuntimeInternal
 ): ExtensionRuntimeSurfaceCommands {
 	// @ts-expect-error - For now we just return partial object. TODO: REMOVE!!!!
-	return {};
+	return {
+		getSnapshot() {
+			const state = getInternalState();
+			return {
+				state: state.state.getSnapshot(),
+				layout: state.layout.getSnapshot()
+			};
+		}
+	};
 }
 
 export function createRuntime(options: RuntimeInitOptions): Runtime {
@@ -56,7 +69,8 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 	// Now construct the internal state
 	const optionsInternal: RuntimeInitOptionsInternal = {
 		...options,
-		extensionRuntimeSurfaceCommands: extensionSurface
+		extensionRuntimeSurfaceCommands: extensionSurface,
+		getInternalState
 	};
 	internalState = createRuntimeInternal(optionsInternal);
 

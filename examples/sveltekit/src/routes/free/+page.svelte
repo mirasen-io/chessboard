@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/main-renderer/factory.js';
-	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory.js';
+	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/index.js';
 	import type { PositionMapShort } from '@mirasen/chessboard/unstable/state/board/types.js';
 	import { onDestroy, onMount } from 'svelte';
 

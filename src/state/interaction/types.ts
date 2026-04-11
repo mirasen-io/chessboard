@@ -3,7 +3,10 @@ import type { Square } from '../board/types';
 import type { InteractionStateMutationSession } from './mutation';
 
 export interface DragSession {
-	fromSquare: Square;
+	type: 'lifted-piece-drag' | 'release-targeting';
+	sourceSquare: Square;
+	sourcePieceCode: number;
+	targetSquare: Square | null;
 }
 export type DragSessionSnapshot = ReadonlyDeep<DragSession>;
 
@@ -40,8 +43,6 @@ export interface InteractionStateInternal {
 	movability: Movability;
 	activeDestinations: ReadonlySet<Square>;
 	dragSession: DragSession | null;
-	currentTarget: Square | null;
-	releaseTargetingActive: boolean;
 }
 
 export type InteractionStateSnapshot = ReadonlyDeep<InteractionStateInternal>;
@@ -68,11 +69,8 @@ export interface InteractionState {
 		session: DragSessionSnapshot | null,
 		mutationSession: InteractionStateMutationSession
 	): boolean;
-	readonly currentTarget: Square | null;
-	setCurrentTarget(sq: Square | null, mutationSession: InteractionStateMutationSession): boolean;
-	readonly releaseTargetingActive: boolean;
-	setReleaseTargetingActive(
-		active: boolean,
+	updateDragSessionCurrentTarget(
+		sq: Square | null,
 		mutationSession: InteractionStateMutationSession
 	): boolean;
 	clear(mutationSession: InteractionStateMutationSession): boolean;

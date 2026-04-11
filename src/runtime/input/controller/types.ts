@@ -1,18 +1,26 @@
 import { BoardEvent } from '../../../extensions/types/basic/events';
-import { BoardPoint, TransientInput } from '../../../extensions/types/basic/transient-visuals';
-import { BoardStateSnapshot, Move, Square } from '../../../state/board/types';
+import { TransientInput } from '../../../extensions/types/basic/transient-visuals';
+import { Move, Square } from '../../../state/board/types';
 import { InteractionStateSnapshot } from '../../../state/interaction/types';
 
-export interface InteractionRuntimeSurface {
-	getInteractionSnapshot(): InteractionStateSnapshot;
-	getBoardStateSnapshot(): BoardStateSnapshot;
-	startLiftedDrag(source: Square, point: BoardPoint): void;
+export interface RuntimeInteractionSurface {
+	getInteractionStateSnapshot(): InteractionStateSnapshot;
+	getPieceCodeAt(square: Square): number;
+	startLiftedDrag(source: Square, target: Square): void;
 	dropTo(target: Square): Move;
-	startReleaseTargeting(source: Square, point: BoardPoint): void;
+	startReleaseTargetingDrag(source: Square, target: Square): void;
 	releaseTo(target: Square): Move;
 	cancelActiveInteraction(): void;
 	cancelInteraction(): void;
 	transientInput(input: TransientInput): void;
+}
+
+export interface InteractionControllerInternal {
+	readonly surface: RuntimeInteractionSurface;
+}
+
+export interface InteractionControllerInitOptions {
+	surface: RuntimeInteractionSurface;
 }
 
 export interface InteractionController {

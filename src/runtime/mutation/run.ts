@@ -1,4 +1,4 @@
-import { RuntimeInternal } from './types';
+import { RuntimeInternal } from '../types';
 
 export function runtimeRunMutationPipeline(state: RuntimeInternal): void {
 	state.mutation.run(state);

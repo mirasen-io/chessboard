@@ -1,17 +1,20 @@
 import { AnyExtensionDefinition } from '../extensions/types/extension';
-import {
-	ExtensionRuntimeSurfaceCommands,
-	ExtensionRuntimeSurfaceCommandsSnapshot
-} from '../extensions/types/surface/commands';
+import { ExtensionRuntimeSurfaceCommands } from '../extensions/types/surface/commands';
 import { RuntimeStateInitOptions } from '../state/types';
+import { InputAdapter } from './input/adapter/types';
+import { InteractionController } from './input/controller/types';
 import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from './mutation/pipeline';
 
 export type RuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
 
 export interface RuntimeInternal extends RuntimeMutationPipelineContext {
 	readonly mutation: RuntimeMutationPipeline;
+	readonly interactionController: InteractionController;
+	inputAdapter: InputAdapter | null;
 	resizeObserver: ResizeObserver | null;
 }
+
+export type GetInternalState = () => RuntimeInternal;
 
 export interface RuntimeInitOptions {
 	doc: Document;
@@ -21,6 +24,7 @@ export interface RuntimeInitOptions {
 
 export interface RuntimeInitOptionsInternal extends RuntimeInitOptions {
 	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommands;
+	getInternalState: GetInternalState;
 }
 
 /**
@@ -35,5 +39,4 @@ export interface Runtime extends ExtensionRuntimeSurfaceCommands {
 	mount(container: HTMLElement): void;
 	unmount(): void; // just unmount, can be remounted
 	destroy(): void; // unmount + cleanup internal state, observers, etc. cannot be reused anymore
-	getSnapshot(): ExtensionRuntimeSurfaceCommandsSnapshot;
 }

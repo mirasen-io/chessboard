@@ -1,3 +1,4 @@
+import { BoardEvent } from './basic/events';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount';
 import {
 	ExtensionCleanAnimationContext,
@@ -8,7 +9,6 @@ import { ExtensionRenderContext } from './context/render';
 import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals';
 import { ExtensionUpdateContext } from './context/update';
 import { ExtensionRuntimeSurface } from './surface';
-import { BoardEvent } from './surface/events';
 
 export interface ExtensionInstance<
 	TId extends string,

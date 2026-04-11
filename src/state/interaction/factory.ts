@@ -1,13 +1,13 @@
+import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit';
 import { updateActiveDestinations } from './helpers';
 import {
 	interactionClear,
 	interactionClearActive,
-	interactionSetCurrentTarget,
 	interactionSetDragSession,
 	interactionSetMovability,
-	interactionSetReleaseTargetingActive,
-	interactionSetSelected
+	interactionSetSelected,
+	interactionUpdateDragSessionCurrentTarget
 } from './reducers';
 import type {
 	InteractionState,
@@ -27,9 +27,7 @@ function createInteractionStateInternal(
 		movability: cloneDeep(movability),
 		selected: null,
 		activeDestinations: new Set(),
-		dragSession: null,
-		currentTarget: null,
-		releaseTargetingActive: false
+		dragSession: null
 	};
 }
 
@@ -75,31 +73,39 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 		get dragSession() {
 			return internalState.dragSession ? { ...internalState.dragSession } : null;
 		},
+
 		setDragSession(session, mutationSession) {
+			// Assert that the selected is the same as the source of the drag session when setting a lifted-piece-drag session
+			if (session) {
+				assert(internalState.selected, 'There must be a selected piece to start a drag session');
+				if (session.type === 'lifted-piece-drag') {
+					assert(
+						internalState.selected,
+						'There must be a selected piece to start a lifted-piece-drag session'
+					);
+					assert(
+						session.sourceSquare === internalState.selected.square,
+						'The source square of the lifted-piece-drag session must match the selected square'
+					);
+					assert(
+						session.sourcePieceCode === internalState.selected.pieceCode,
+						'The source piece code of the lifted-piece-drag session must match the selected piece code'
+					);
+				}
+			}
 			return mutationSession.addMutation(
 				'state.interaction.setDragSession',
 				interactionSetDragSession(internalState, session)
 			);
 		},
 
-		get currentTarget() {
-			return internalState.currentTarget;
-		},
-		setCurrentTarget(sq, mutationSession) {
+		updateDragSessionCurrentTarget(sq, mutationSession) {
 			return mutationSession.addMutation(
-				'state.interaction.setCurrentTarget',
-				interactionSetCurrentTarget(internalState, sq)
+				'state.interaction.updateDragSessionCurrentTarget',
+				interactionUpdateDragSessionCurrentTarget(internalState, sq)
 			);
 		},
-		get releaseTargetingActive() {
-			return internalState.releaseTargetingActive;
-		},
-		setReleaseTargetingActive(active, mutationSession) {
-			return mutationSession.addMutation(
-				'state.interaction.setReleaseTargetingActive',
-				interactionSetReleaseTargetingActive(internalState, active)
-			);
-		},
+
 		clear(mutationSession) {
 			const changed = mutationSession.addMutation(
 				'state.interaction.clear',

@@ -1,10 +1,10 @@
 import { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types';
 import { ExtensionInvalidationState } from '../invalidation/types';
 import { ExtensionAnimationControllerInternalSurface } from './basic/animation';
+import { BoardEventType } from './basic/events';
 import { UpdateFrameSnapshot } from './basic/update';
 import { AnyExtensionDefinition, AnyExtensionInstance } from './extension';
 import { ExtensionRuntimeSurfaceCommands } from './surface/commands';
-import { BoardEventType } from './surface/events';
 
 export interface ExtensionSystemExtensionRecord {
 	readonly id: string;

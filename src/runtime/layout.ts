@@ -1,6 +1,6 @@
 import { LayoutMutationSession } from '../layout/mutation';
 import { runtimeValidateIsMounted } from './lifecycle';
-import { runtimeRunMutationPipeline } from './mutation';
+import { runtimeRunMutationPipeline } from './mutation/run';
 import { RuntimeInternal } from './types';
 
 export function runtimeRefreshGeometry(state: RuntimeInternal): void {
