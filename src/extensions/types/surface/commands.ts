@@ -17,7 +17,6 @@ export interface ExtensionRuntimeSurfaceCommandsSnapshot {
 export interface ExtensionRuntimeSurfaceCommandsRenderRequest {
 	state?: boolean;
 	animation?: boolean;
-	visuals?: boolean;
 }
 
 export interface ExtensionRuntimeSurfaceCommands {

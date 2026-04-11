@@ -54,6 +54,9 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 		const finishedSessions = activeSessions.filter(
 			(session) => session.startTime + session.duration <= currentTime
 		);
+		finishedSessions.forEach((session) => {
+			session.setStatus('ended');
+		});
 		// Also get cancelled sessions that need to be cleaned up
 		const cancelledSessions = extensionRec.extension.animation.getAll('cancelled');
 		finishedSessions.push(...cancelledSessions);
@@ -64,11 +67,6 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 				finishedSessions: finishedSessions as unknown as ExtensionFinishedAnimationSession[]
 			};
 			extensionRec.extension.instance.cleanAnimation?.(context);
-			finishedSessions.forEach((session) => {
-				if (session.status !== 'cancelled') {
-					session.setStatus('ended');
-				}
-			});
 		}
 
 		// Now get all ended and cancelled sessions, call cleanAnimation and remove them from the controller
