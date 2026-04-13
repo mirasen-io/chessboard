@@ -1,3 +1,4 @@
+import { assertNever } from '../../utils/assert-never';
 import type { Color, Role } from './types';
 
 /**
@@ -15,7 +16,7 @@ export function normalizeColor(input: string): Color {
 		case 'b':
 			return 'black';
 		default:
-			throw new RangeError(`Invalid color input: ${String(input)}`);
+			assertNever(RangeError, `Invalid color input`, input);
 	}
 }
 
@@ -43,7 +44,7 @@ export function normalizeRole(input: string): Role {
 		case 'K':
 			return 'king';
 		default:
-			throw new RangeError(`Invalid role input: ${String(input)}`);
+			assertNever(RangeError, `Invalid role input`, input);
 	}
 }
 

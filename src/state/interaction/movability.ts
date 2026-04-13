@@ -1,4 +1,5 @@
 import { setsEqual } from '../../helpers/util';
+import { assertNever } from '../../utils/assert-never';
 import type { Square } from '../board/types';
 import type {
 	InteractionStateInternal,
@@ -7,10 +8,6 @@ import type {
 	MovabilitySnapshot,
 	StrictMovability
 } from './types';
-
-function assertNever(x: never): never {
-	throw new Error(`Unhandled movability comparison case: ${String(x)}`);
-}
 
 export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot): boolean {
 	if (a === b) return true;
@@ -51,7 +48,7 @@ export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot):
 		}
 
 		default:
-			return assertNever(a);
+			return assertNever(RangeError, 'Unhandled movability comparison case', a);
 	}
 }
 

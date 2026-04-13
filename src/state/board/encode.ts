@@ -1,3 +1,4 @@
+import { assertNever } from '../../utils/assert-never';
 import type { Color, Piece, Role } from './types';
 
 /**
@@ -19,11 +20,25 @@ export const enum PieceCodeBase {
 
 const BLACK_SHIFT = 8;
 
-export type PieceCode = number;
+export const enum PieceCode {
+	Empty = PieceCodeBase.Empty,
+	WhitePawn = PieceCodeBase.Pawn,
+	WhiteKnight = PieceCodeBase.Knight,
+	WhiteBishop = PieceCodeBase.Bishop,
+	WhiteRook = PieceCodeBase.Rook,
+	WhiteQueen = PieceCodeBase.Queen,
+	WhiteKing = PieceCodeBase.King,
+	BlackPawn = PieceCodeBase.Pawn + BLACK_SHIFT,
+	BlackKnight = PieceCodeBase.Knight + BLACK_SHIFT,
+	BlackBishop = PieceCodeBase.Bishop + BLACK_SHIFT,
+	BlackRook = PieceCodeBase.Rook + BLACK_SHIFT,
+	BlackQueen = PieceCodeBase.Queen + BLACK_SHIFT,
+	BlackKing = PieceCodeBase.King + BLACK_SHIFT
+}
 
 export function encodePiece(piece: Piece): PieceCode {
 	const base = roleToBase(piece.role);
-	return piece.color === 'white' ? base : base + BLACK_SHIFT;
+	return piece.color === 'white' ? (base as unknown as PieceCode) : base + BLACK_SHIFT;
 }
 
 export function decodePiece(code: PieceCode): Piece | null {
@@ -34,11 +49,11 @@ export function decodePiece(code: PieceCode): Piece | null {
 }
 
 export function isEmpty(code: PieceCode): boolean {
-	return code === PieceCodeBase.Empty;
+	return code === PieceCode.Empty;
 }
 
 export function isWhiteCode(code: PieceCode): boolean {
-	return code > PieceCodeBase.Empty && code < BLACK_SHIFT;
+	return code > PieceCode.Empty && code < BLACK_SHIFT;
 }
 
 export function isBlackCode(code: PieceCode): boolean {
@@ -60,8 +75,7 @@ function roleToBase(role: Role): PieceCodeBase {
 		case 'king':
 			return PieceCodeBase.King;
 		default:
-			// Exhaustiveness guard
-			return PieceCodeBase.Empty;
+			assertNever(RangeError, 'Invalid role for encoding', role);
 	}
 }
 
@@ -80,6 +94,6 @@ function baseToRole(base: PieceCodeBase): Role {
 		case PieceCodeBase.King:
 			return 'king';
 		default:
-			throw new RangeError(`Invalid base role code: ${base}`);
+			assertNever(RangeError, 'Invalid base role code', base);
 	}
 }

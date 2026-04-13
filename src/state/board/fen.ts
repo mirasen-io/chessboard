@@ -7,6 +7,8 @@
  * - Uppercase letters are white pieces (PNBRQK), lowercase are black (pnbrqk).
  */
 
+import { assertNever } from '../../utils/assert-never';
+import { PieceCodeBase } from './encode';
 import type { Color, Role } from './types';
 
 export type FenActiveColor = 'w' | 'b';
@@ -199,7 +201,7 @@ function fenLetterToCode(ch: string): number {
 		case 'k':
 			return roleToCode('black', 'king');
 		default:
-			throw new Error(`Invalid FEN piece letter: "${ch}"`);
+			assertNever(RangeError, `Invalid FEN piece letter`, ch);
 	}
 }
 
@@ -232,8 +234,7 @@ function roleToFenLetter(color: Color, role: Role): string {
 		case 'king':
 			return color === 'white' ? 'K' : 'k';
 		default:
-			// exhaustive by Role type
-			throw new Error(`Unknown role: ${String(role)}`);
+			assertNever(RangeError, `Unknown role`, role);
 	}
 }
 
@@ -252,26 +253,26 @@ function roleToBase(role: Role): number {
 		case 'king':
 			return 6;
 		default:
-			throw new Error(`Unknown role: ${String(role)}`);
+			assertNever(RangeError, 'Unknown role', role);
 	}
 }
 
-function baseToRole(base: number): Role {
+function baseToRole(base: PieceCodeBase): Role {
 	switch (base) {
-		case 1:
+		case PieceCodeBase.Pawn:
 			return 'pawn';
-		case 2:
+		case PieceCodeBase.Knight:
 			return 'knight';
-		case 3:
+		case PieceCodeBase.Bishop:
 			return 'bishop';
-		case 4:
+		case PieceCodeBase.Rook:
 			return 'rook';
-		case 5:
+		case PieceCodeBase.Queen:
 			return 'queen';
-		case 6:
+		case PieceCodeBase.King:
 			return 'king';
 		default:
-			throw new Error(`Invalid base role code: ${base}`);
+			assertNever(RangeError, `Invalid base role code`, base);
 	}
 }
 
