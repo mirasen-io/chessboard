@@ -1,7 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { isEmpty } from '../../state/board/encode';
 import { BoardStateMutationSession } from '../../state/board/mutation';
-import { ChangeStateMutationSession } from '../../state/change/mutation';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { DragSession, InteractionStateSelected } from '../../state/interaction/types';
 import { RuntimeInteractionSurface } from '../input/controller/types';
@@ -76,7 +75,6 @@ export function createRuntimeInteractionSurface(
 				{ from: dragSession.sourceSquare, to: target },
 				mutationSession as unknown as BoardStateMutationSession
 			);
-			internalState.state.change.setLastMove(move, mutationSession as ChangeStateMutationSession);
 			mutationSession.addMutation('runtime.interaction.dropTo', true);
 
 			interaction.clear(mutationSession as InteractionStateMutationSession);
@@ -109,7 +107,6 @@ export function createRuntimeInteractionSurface(
 				{ from: dragSession.sourceSquare, to: target },
 				mutationSession as unknown as BoardStateMutationSession
 			);
-			internalState.state.change.setLastMove(move, mutationSession as ChangeStateMutationSession);
 			mutationSession.addMutation('runtime.interaction.releaseTo', true);
 
 			interaction.clear(mutationSession as InteractionStateMutationSession);

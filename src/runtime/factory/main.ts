@@ -49,6 +49,15 @@ function createExtensionRuntimeSurfaceCommands(
 				layout: state.layout.getSnapshot()
 			};
 		},
+		setPosition(input) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type
+			// but not recognized.
+			const changed = state.state.board.setPosition(input, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
 		setMovability(movability) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession() as InteractionStateMutationSession;

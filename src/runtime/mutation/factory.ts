@@ -1,6 +1,7 @@
 import { createMutationPipeline } from '../../mutation/pipeline';
-import { extensionSystemUpdatePipe } from './extensionUpdate';
+import { extensionSystemUpdatePipe } from './extension-update';
 import { reconcileInteractionSelectionAfterBoardStateChange } from './interaction';
+import { clearLastMoveOnBoardSetPosition, updateLastMoveOnBoardMove } from './last-move';
 import { layoutRefreshGeometryPipe } from './layout';
 import {
 	RuntimeMutationPipe,
@@ -9,7 +10,7 @@ import {
 	RuntimeMutationPipeline,
 	RuntimeMutationPipelineContext
 } from './pipeline';
-import { requestRenderPipe } from './requestRender';
+import { requestRenderPipe } from './request-render';
 import { RuntimeMutationPayloadByCause } from './types';
 
 function buildPreviousContext(
@@ -25,6 +26,8 @@ export function createRuntimeMutationPipeline(): RuntimeMutationPipeline {
 	let previousContext: RuntimeMutationPipeContextPrevious | null = null;
 	// Construct the pipes
 	const pipes: RuntimeMutationPipe[] = [
+		updateLastMoveOnBoardMove,
+		clearLastMoveOnBoardSetPosition,
 		reconcileInteractionSelectionAfterBoardStateChange,
 		layoutRefreshGeometryPipe,
 		extensionSystemUpdatePipe,

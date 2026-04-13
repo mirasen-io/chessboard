@@ -23,7 +23,7 @@ export function handlePointerDown(
 		return;
 	}
 
-	if (event.target) {
+	if (event.target !== null) {
 		/**
 		 * If piece is already selected, and we have a valid target square event.target
 		 * AND it's a different square AND (it's empty OR has an opponent piece)
