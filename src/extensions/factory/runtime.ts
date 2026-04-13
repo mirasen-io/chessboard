@@ -1,7 +1,7 @@
-import { GetInternalState } from '../types';
 import { AnyExtensionDefinition } from '../types/extension';
-import { ExtensionRuntimeSurface } from '../types/surface';
+import { GetInternalState } from '../types/main';
 import { ExtensionRuntimeSurfaceCommands } from '../types/surface/commands';
+import { ExtensionRuntimeSurface } from '../types/surface/main';
 import { ExtensionRuntimeSurfaceTransientVisuals } from '../types/surface/transient-visuals';
 
 function createExtensionRuntimeSurfaceTransientVisuals(

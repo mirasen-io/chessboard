@@ -1,14 +1,14 @@
 import {
-	ExtensionSystemExtensionRecord,
-	ExtensionSystemSharedDataForRenderSystem
-} from '../extensions/types';
-import {
 	ALL_EXTENSION_SLOTS,
 	ExtensionAllocatedSlotsInternal,
 	ExtensionSlotSvgRoots
 } from '../extensions/types/basic/mount';
 import { RenderFrameSnapshot } from '../extensions/types/basic/render';
 import { TransientInput } from '../extensions/types/basic/transient-visuals';
+import {
+	ExtensionSystemExtensionRecord,
+	ExtensionSystemSharedDataForRenderSystem
+} from '../extensions/types/main';
 import { Scheduler } from './scheduler/types';
 
 export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLOTS> {

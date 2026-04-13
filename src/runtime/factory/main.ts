@@ -1,4 +1,4 @@
-import { createExtensionSystem } from '../../extensions/factory';
+import { createExtensionSystem } from '../../extensions/factory/main';
 import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
 import { createLayout } from '../../layout/factory';
 import { createRenderSystem } from '../../render/factory';

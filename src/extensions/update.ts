@@ -1,10 +1,10 @@
-import { ExtensionSystemInternal, ExtensionSystemUpdateRequest } from './types';
 import {
 	ExtensionUpdateContext,
 	ExtensionUpdateContextCommon,
 	ExtensionUpdateContextCommonUnmounted,
 	isUpdateContextCommonMounted
 } from './types/context/update';
+import { ExtensionSystemInternal, ExtensionSystemUpdateRequest } from './types/main';
 
 export function extensionSystemUpdateState(
 	state: ExtensionSystemInternal,

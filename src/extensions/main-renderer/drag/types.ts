@@ -1,6 +1,6 @@
 import { ExtensionRenderTransientVisualsContext } from '../../types/context/transient-visuals';
 import { ExtensionUpdateContext } from '../../types/context/update';
-import { ExtensionRuntimeSurface } from '../../types/surface';
+import { ExtensionRuntimeSurface } from '../../types/surface/main';
 import { PieceUrls } from '../types/config';
 
 export interface MainRendererDragInternal {

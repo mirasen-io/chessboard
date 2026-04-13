@@ -1,4 +1,4 @@
-import { ExtensionSystem } from '../../extensions/types';
+import { ExtensionSystem } from '../../extensions/types/main';
 import { Layout, LayoutSnapshot } from '../../layout/types';
 import { MutationPipe, MutationPipeline } from '../../mutation/types';
 import { RenderSystem } from '../../render/types';

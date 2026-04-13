@@ -8,7 +8,7 @@ import {
 import { ExtensionRenderContext } from './context/render';
 import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals';
 import { ExtensionUpdateContext } from './context/update';
-import { ExtensionRuntimeSurface } from './surface';
+import { ExtensionRuntimeSurface } from './surface/main';
 
 export interface ExtensionInstance<
 	TId extends string,

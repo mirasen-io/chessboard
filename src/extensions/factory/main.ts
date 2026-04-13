@@ -5,7 +5,7 @@ import {
 	ExtensionSystemExtensionRecord,
 	ExtensionSystemInitOptions,
 	ExtensionSystemInternal
-} from '../types';
+} from '../types/main';
 import { extensionSystemUpdateState } from '../update';
 import { createExtensionRuntimeSurface } from './runtime';
 
