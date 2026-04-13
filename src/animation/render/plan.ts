@@ -39,19 +39,11 @@ export function prepareAnimationPlan(
 	return nodes;
 }
 
-/**
- * Render all tracks for the current animation frame.
- * `elapsed` is time in ms since animation start; `duration` is total plan duration.
- */
 export function renderAnimationPlan(
 	nodes: PreparedNodeMap,
 	geometry: RenderGeometry,
-	startTime: DOMHighResTimeStamp,
-	duration: number,
-	now: DOMHighResTimeStamp
+	progress: number
 ): void {
-	const elapsed = now - startTime;
-	const progress = duration > 0 ? Math.min(elapsed / duration, 1) : 1;
 	for (const node of nodes.values()) {
 		switch (node.effect) {
 			case 'move':
