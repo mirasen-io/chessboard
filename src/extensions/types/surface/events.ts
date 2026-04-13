@@ -1,6 +1,6 @@
-import { BoardEventType } from '../basic/events';
+import { SceneEventType } from '../basic/events';
 
 export interface ExtensionRuntimeSurfaceEvents {
-	subscribe(events: Iterable<BoardEventType>): void;
-	unsubscribe(events?: Iterable<BoardEventType>): void;
+	subscribe(events: Iterable<SceneEventType>): void;
+	unsubscribe(events?: Iterable<SceneEventType>): void;
 }

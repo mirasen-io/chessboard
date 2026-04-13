@@ -1,13 +1,13 @@
-import { BoardEvent, BoardPointerEvent } from '../../../extensions/types/basic/events';
+import { SceneEvent, ScenePointerEvent } from '../../../extensions/types/basic/events';
 import { InteractionControllerInternal } from './types';
 
-function isPointerEvent(event: BoardEvent): event is BoardPointerEvent {
+function isPointerEvent(event: SceneEvent): event is ScenePointerEvent {
 	return event.type.startsWith('pointer');
 }
 
 export function transmitTransientInput(
 	state: InteractionControllerInternal,
-	event: BoardEvent
+	event: SceneEvent
 ): void {
 	if (isPointerEvent(event) && event.rawPoint && event.clampedPoint) {
 		state.surface.transientInput({

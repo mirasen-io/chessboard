@@ -1,4 +1,4 @@
-import { BoardEvent } from './basic/events';
+import { SceneEvent } from './basic/events';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount';
 import {
 	ExtensionCleanAnimationContext,
@@ -29,7 +29,7 @@ export interface ExtensionInstance<
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events
-	onEvent?(event: BoardEvent): void;
+	onEvent?(event: SceneEvent): void;
 	// Public API promoted to board.extensions.<extensionId>.API
 	getPublic?(): TPublic;
 }

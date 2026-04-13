@@ -1,12 +1,12 @@
 import { Square } from '../../../state/board/types';
-import { BoardPoint } from '../basic/transient-visuals';
+import { ScenePoint } from '../basic/transient-visuals';
 
-interface BoardEventBase {
+interface SceneEventBase {
 	readonly defaultPrevented: boolean;
 	preventDefault(): void;
 }
 
-export interface BoardPointerEvent extends BoardEventBase {
+export interface ScenePointerEvent extends SceneEventBase {
 	// DOM part
 	readonly type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel' | 'pointerleave';
 	readonly pointerId: number;
@@ -17,14 +17,14 @@ export interface BoardPointerEvent extends BoardEventBase {
 	readonly altKey: boolean;
 	readonly shiftKey: boolean;
 	readonly metaKey: boolean;
-	// Board part
-	readonly rawPoint: BoardPoint | null; // null if geometry unavailable
-	readonly clampedPoint: BoardPoint | null; // null if geometry unavailable
+	// Scene part
+	readonly rawPoint: ScenePoint | null; // null if geometry unavailable
+	readonly clampedPoint: ScenePoint | null; // null if geometry unavailable
 	readonly target: Square | null;
 }
 
-export type BoardPointerEventType = BoardPointerEvent['type'];
-export const BOARD_POINTER_EVENT_TYPES: BoardPointerEventType[] = [
+export type ScenePointerEventType = ScenePointerEvent['type'];
+export const SCENE_POINTER_EVENT_TYPES: ScenePointerEventType[] = [
 	'pointerdown',
 	'pointermove',
 	'pointerup',
@@ -32,7 +32,7 @@ export const BOARD_POINTER_EVENT_TYPES: BoardPointerEventType[] = [
 	'pointerleave'
 ];
 
-export interface BoardKeyboardEvent extends BoardEventBase {
+export interface SceneKeyboardEvent extends SceneEventBase {
 	readonly type: 'keydown' | 'keyup';
 	// DOM part
 	readonly key: string;
@@ -43,6 +43,6 @@ export interface BoardKeyboardEvent extends BoardEventBase {
 	readonly metaKey: boolean;
 }
 
-export type BoardEvent = BoardPointerEvent | BoardKeyboardEvent;
+export type SceneEvent = ScenePointerEvent | SceneKeyboardEvent;
 
-export type BoardEventType = BoardEvent['type'];
+export type SceneEventType = SceneEvent['type'];

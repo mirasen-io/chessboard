@@ -1,17 +1,17 @@
 import assert from '@ktarmyshov/assert';
 import {
-	BOARD_POINTER_EVENT_TYPES,
-	BoardPointerEvent,
-	BoardPointerEventType
+	SCENE_POINTER_EVENT_TYPES,
+	ScenePointerEvent,
+	ScenePointerEventType
 } from '../../../extensions/types/basic/events';
-import { BoardPoint } from '../../../extensions/types/basic/transient-visuals';
+import { ScenePoint } from '../../../extensions/types/basic/transient-visuals';
 import { Square } from '../../../state/board/types';
 import { clampBoardPoint, mapBoardPointToSquare } from './helpers';
 import { InputAdapterInternal } from './types';
 
-const validPointerEventTypes = new Set<string>(BOARD_POINTER_EVENT_TYPES);
+const validPointerEventTypes = new Set<string>(SCENE_POINTER_EVENT_TYPES);
 
-export type PointerRelevantEvent = PointerEvent & { type: BoardPointerEventType };
+export type PointerRelevantEvent = PointerEvent & { type: ScenePointerEventType };
 
 export function isPointerRelevantEvent(e: PointerEvent): e is PointerRelevantEvent {
 	return e instanceof PointerEvent && validPointerEventTypes.has(e.type);
@@ -28,8 +28,8 @@ export function releaseCapture(state: InputAdapterInternal): void {
 
 interface PointerTarget {
 	target: Square | null;
-	rawPoint: BoardPoint | null;
-	clampedPoint: BoardPoint | null;
+	rawPoint: ScenePoint | null;
+	clampedPoint: ScenePoint | null;
 }
 
 function resolvePointerTarget(state: InputAdapterInternal, e: PointerEvent): PointerTarget {
@@ -39,14 +39,14 @@ function resolvePointerTarget(state: InputAdapterInternal, e: PointerEvent): Poi
 	const x = e.clientX - rect.left;
 	const y = e.clientY - rect.top;
 	const target = mapBoardPointToSquare(x, y, geometry);
-	const point: BoardPoint = { x, y };
+	const point: ScenePoint = { x, y };
 	return { target, rawPoint: point, clampedPoint: clampBoardPoint(point, geometry) };
 }
 
 function makeBoardPointerEvent(
 	e: PointerRelevantEvent,
 	pointerTarget: PointerTarget
-): BoardPointerEvent {
+): ScenePointerEvent {
 	assert(
 		e.defaultPrevented === false,
 		'Expected event to be unhandled before making BoardPointerEvent'

@@ -1,11 +1,11 @@
 import assert from '@ktarmyshov/assert';
-import { BoardPointerEvent } from '../../../extensions/types/basic/events';
+import { ScenePointerEvent } from '../../../extensions/types/basic/events';
 import { decodePiece, isEmpty } from '../../../state/board/encode';
 import { InteractionControllerInternal } from './types';
 
 export function handlePointerDown(
 	state: InteractionControllerInternal,
-	event: BoardPointerEvent
+	event: ScenePointerEvent
 ): void {
 	assert(
 		event.type === 'pointerdown',
@@ -56,7 +56,7 @@ export function handlePointerDown(
 
 export function handlePointerMove(
 	state: InteractionControllerInternal,
-	event: BoardPointerEvent
+	event: ScenePointerEvent
 ): void {
 	assert(
 		event.type === 'pointermove',
