@@ -1,20 +1,29 @@
 import { ReadonlyDeep } from 'type-fest';
-import type { Square } from '../state/board/types';
+import type { Piece, Square } from '../state/board/types';
 
 export interface AnimationTrackMove {
-	pieceCode: number;
+	id: number;
+	piece: Piece;
 	fromSq: Square;
 	toSq: Square;
 	effect: 'move';
 }
 
 export interface AnimationTrackFade {
-	pieceCode: number;
+	id: number;
+	piece: Piece;
 	sq: Square;
-	effect: 'fade-in' | 'fade-out' | 'snap-out';
+	effect: 'fade-in' | 'fade-out';
 }
 
-export type AnimationTrack = AnimationTrackMove | AnimationTrackFade; // Extendable for other effects in the future
+export interface AnimationTrackStatic {
+	id: number;
+	piece: Piece;
+	sq: Square;
+	effect: 'static';
+}
+
+export type AnimationTrack = AnimationTrackMove | AnimationTrackFade | AnimationTrackStatic; // Extendable for other effects in the future
 
 export interface AnimationPlan {
 	tracks: AnimationTrack[];
