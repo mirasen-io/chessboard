@@ -1,3 +1,4 @@
+import { isEmpty } from '../../state/board/encode';
 import { selectedEqual } from '../../state/interaction/helpers';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { InteractionStateSelected } from '../../state/interaction/types';
@@ -8,7 +9,16 @@ export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutation
 	mutationSession
 ) => {
 	const { current } = context;
-	if (!mutationSession.hasMutation({ prefixes: ['state.board.'] })) {
+	if (
+		!mutationSession.hasMutation({ prefixes: ['state.board.'] }) ||
+		mutationSession.hasMutation({
+			causes: [
+				'state.interaction.clear',
+				'runtime.interaction.dropTo',
+				'runtime.interaction.releaseTo'
+			]
+		})
+	) {
 		return;
 	}
 	const currentSelected = current.state.interaction.selected ?? null;
@@ -19,7 +29,9 @@ export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutation
 			: null;
 
 	const wouldBeCurrentSelected: InteractionStateSelected | null =
-		currentSelectedSquare !== null && wouldBeCurrentSelectedPieceCode !== null
+		currentSelectedSquare !== null &&
+		wouldBeCurrentSelectedPieceCode !== null &&
+		!isEmpty(wouldBeCurrentSelectedPieceCode)
 			? {
 					square: currentSelectedSquare,
 					pieceCode: wouldBeCurrentSelectedPieceCode

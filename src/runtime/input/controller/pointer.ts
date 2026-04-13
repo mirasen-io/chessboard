@@ -1,6 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { ScenePointerEvent } from '../../../extensions/types/basic/events';
 import { decodePiece, isEmpty } from '../../../state/board/encode';
+import { canMoveTo } from './helpers';
 import { InteractionControllerInternal } from './types';
 
 export function handlePointerDown(
@@ -48,7 +49,7 @@ export function handlePointerDown(
 		 * So it's either a new lift or re-lift of the same piece. In either case, we can just start a lifted drag session if the target is valid.
 		 */
 		const pieceCode = state.surface.getPieceCodeAt(event.target);
-		if (isEmpty(pieceCode)) {
+		if (!isEmpty(pieceCode)) {
 			state.surface.startLiftedDrag(event.target, event.target);
 		}
 	}
@@ -65,5 +66,43 @@ export function handlePointerMove(
 	const interaction = state.surface.getInteractionStateSnapshot();
 	if (interaction.dragSession) {
 		state.surface.updateDragSessionCurrentTarget(event.target);
+	}
+}
+
+export function handlePointerUp(
+	state: InteractionControllerInternal,
+	event: ScenePointerEvent
+): void {
+	assert(event.type === 'pointerup', 'handlePointerUp should only be called for pointerup events');
+	const interaction = state.surface.getInteractionStateSnapshot();
+
+	if (!interaction.dragSession) {
+		// No active drag session, so nothing to do on pointer up
+		return;
+	}
+
+	// Check if the square is the same as the source square of the drag session.
+	// If it is, then we can end the drag session without making a move.
+	if (event.target === interaction.dragSession.sourceSquare) {
+		state.surface.cancelActiveInteraction();
+		return;
+	}
+
+	// Check if the target square is a valid destination for the selected piece.
+	if (event.target !== null && canMoveTo(interaction, event.target)) {
+		if (interaction.dragSession.type === 'lifted-piece-drag') {
+			state.surface.dropTo(event.target);
+		} else {
+			state.surface.releaseTo(event.target);
+		}
+		return;
+	}
+
+	// Invalid target: piece returns to source for lifted drag (selection preserved),
+	// or selection is cleared for release targeting.
+	if (interaction.dragSession.type === 'lifted-piece-drag') {
+		state.surface.cancelActiveInteraction();
+	} else {
+		state.surface.cancelInteraction();
 	}
 }

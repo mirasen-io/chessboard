@@ -1,5 +1,5 @@
 import { RuntimeInternal } from '../types';
 
-export function runtimeRunMutationPipeline(state: RuntimeInternal): void {
-	state.mutation.run(state);
+export function runtimeRunMutationPipeline(state: RuntimeInternal): boolean {
+	return state.mutation.run(state);
 }

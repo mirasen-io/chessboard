@@ -9,7 +9,7 @@ export interface ChangeStateInternal {
 export type ChangeStateSnapshot = ReadonlyDeep<ChangeStateInternal>;
 
 export interface ChangeState {
-	getLastMove(): ReadonlyDeep<Move> | null;
+	readonly lastMove: ReadonlyDeep<Move> | null;
 	setLastMove(
 		move: ReadonlyDeep<Move> | null,
 		mutationSession: ChangeStateMutationSession

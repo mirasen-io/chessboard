@@ -11,7 +11,7 @@ function createChangeStateInternal(): ChangeStateInternal {
 export function createChangeState(): ChangeState {
 	const internalState = createChangeStateInternal();
 	return {
-		getLastMove() {
+		get lastMove() {
 			return cloneDeep(internalState.lastMove);
 		},
 		setLastMove(move, mutationSession) {

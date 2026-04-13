@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/main-renderer/factory.js';
-	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/index.js';
+	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
 	import type { PositionMapShort } from '@mirasen/chessboard/unstable/state/board/types.js';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -80,6 +80,7 @@
 			doc: document,
 			extensions: [createMainRenderer()]
 		});
+		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);
 		refreshSnapshot();
 

@@ -3,9 +3,11 @@ import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/
 import { createLayout } from '../../layout/factory';
 import { createRenderSystem } from '../../render/factory';
 import { createRuntimeState } from '../../state/factory';
+import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { createInteractionController } from '../input/controller/factory';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle';
 import { createRuntimeMutationPipeline } from '../mutation/factory';
+import { runtimeRunMutationPipeline } from '../mutation/run';
 import type {
 	Runtime,
 	RuntimeInitOptions,
@@ -46,6 +48,13 @@ function createExtensionRuntimeSurfaceCommands(
 				state: state.state.getSnapshot(),
 				layout: state.layout.getSnapshot()
 			};
+		},
+		setMovability(movability) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession() as InteractionStateMutationSession;
+			const changed = state.state.interaction.setMovability(movability, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
 		}
 	};
 }
