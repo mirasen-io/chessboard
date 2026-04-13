@@ -1,6 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { isEmpty } from '../../state/board/encode';
 import { BoardStateMutationSession } from '../../state/board/mutation';
+import { MoveInput } from '../../state/board/types';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { DragSession, InteractionStateSelected } from '../../state/interaction/types';
 import { RuntimeInteractionSurface } from '../input/controller/types';
@@ -71,8 +72,12 @@ export function createRuntimeInteractionSurface(
 				'drag session source must match selected square'
 			);
 
+			const destination = interaction.activeDestinations.get(target);
+			const moveInput: MoveInput = destination
+				? { from: dragSession.sourceSquare, ...destination }
+				: { from: dragSession.sourceSquare, to: target };
 			const move = internalState.state.board.move(
-				{ from: dragSession.sourceSquare, to: target },
+				moveInput,
 				mutationSession as unknown as BoardStateMutationSession
 			);
 			mutationSession.addMutation('runtime.interaction.dropTo', true);
@@ -103,8 +108,12 @@ export function createRuntimeInteractionSurface(
 				'drag session source must match selected square'
 			);
 
+			const destination = interaction.activeDestinations.get(target);
+			const moveInput: MoveInput = destination
+				? { from: dragSession.sourceSquare, ...destination }
+				: { from: dragSession.sourceSquare, to: target };
 			const move = internalState.state.board.move(
-				{ from: dragSession.sourceSquare, to: target },
+				moveInput,
 				mutationSession as unknown as BoardStateMutationSession
 			);
 			mutationSession.addMutation('runtime.interaction.releaseTo', true);

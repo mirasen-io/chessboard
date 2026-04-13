@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { Square } from '../board/types';
+import type { MoveDestination, MoveDestinationInput, Square, SquareInput } from '../board/types';
 import type { InteractionStateMutationSession } from './mutation';
 
 export interface DragSession {
@@ -11,9 +11,13 @@ export interface DragSession {
 export type DragSessionSnapshot = ReadonlyDeep<DragSession>;
 
 // Maps source square to array of destination squares
-export type MovabilityDestinationsRecord = Partial<Record<Square, readonly Square[]>>;
+export type MovabilityDestinationsRecord = Partial<
+	Record<SquareInput, readonly MoveDestinationInput[]>
+>;
 // Returns undefined if source is not movable, otherwise array of destinations
-export type MovabilityResolver = (source: Square) => readonly Square[] | undefined;
+export type MovabilityResolver = (
+	source: SquareInput
+) => readonly MoveDestinationInput[] | undefined;
 export type MovabilityDestinations = MovabilityDestinationsRecord | MovabilityResolver;
 
 export type StrictMovability = {
@@ -41,7 +45,7 @@ export interface InteractionStateSelected {
 export interface InteractionStateInternal {
 	selected: InteractionStateSelected | null;
 	movability: Movability;
-	activeDestinations: ReadonlySet<Square>;
+	activeDestinations: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>;
 	dragSession: DragSession | null;
 }
 
@@ -62,7 +66,7 @@ export interface InteractionState {
 		movability: MovabilitySnapshot,
 		mutationSession: InteractionStateMutationSession
 	): boolean;
-	readonly activeDestinations: ReadonlySet<Square>;
+	readonly activeDestinations: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>;
 	updateActiveDestinations(mutationSession: InteractionStateMutationSession): boolean;
 	readonly dragSession: DragSessionSnapshot | null;
 	setDragSession(

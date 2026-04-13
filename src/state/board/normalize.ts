@@ -1,5 +1,13 @@
 import { assertNever } from '../../utils/assert-never';
-import type { Color, Role } from './types';
+import { toValidSquare } from './coords';
+import type {
+	Color,
+	MoveDestination,
+	MoveDestinationInput,
+	MoveInput,
+	NormalizedMoveInput,
+	Role
+} from './types';
 
 /**
  * Normalize color inputs to canonical long names.
@@ -57,4 +65,26 @@ function isRole(r: unknown): r is Role {
 		r === 'queen' ||
 		r === 'king'
 	);
+}
+
+export function normalizeMoveInput(move: MoveInput): NormalizedMoveInput {
+	return {
+		from: toValidSquare(move.from),
+		...normalizeMoveDestinationInput(move)
+	};
+}
+
+export function normalizeMoveDestinationInput(destination: MoveDestinationInput): MoveDestination {
+	return {
+		to: toValidSquare(destination.to),
+		...(destination.capturedSquare && {
+			capturedSquare: toValidSquare(destination.capturedSquare)
+		}),
+		...(destination.secondary && {
+			secondary: {
+				from: toValidSquare(destination.secondary.from),
+				to: toValidSquare(destination.secondary.to)
+			}
+		})
+	};
 }

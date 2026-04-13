@@ -19,7 +19,7 @@ export function updateActiveDestinations(
 	if (!state.selected) {
 		return mutationSession.addMutation(
 			'state.interaction.updateActiveDestinations',
-			interactionSetActiveDestinations(state, new Set())
+			interactionSetActiveDestinations(state, new Map())
 		);
 	}
 	const activeDests = getActiveDestinations(state, state.selected.square);

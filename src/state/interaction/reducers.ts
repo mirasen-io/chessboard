@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
-import { setsEqual } from '../../helpers/util';
-import type { Square } from '../board/types';
+import type { ReadonlyDeep } from 'type-fest';
+import type { MoveDestination, Square } from '../board/types';
 import { selectedEqual } from './helpers';
 import { movabilitiesEqual } from './movability';
 import type {
@@ -30,12 +30,31 @@ export function interactionSetMovability(
 	return true;
 }
 
+function activeDestinationsEqual(
+	a: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>,
+	b: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>
+): boolean {
+	if (a.size !== b.size) return false;
+	for (const [sq, aDest] of a) {
+		const bDest = b.get(sq);
+		if (!bDest) return false;
+		if (
+			aDest.to !== bDest.to ||
+			aDest.capturedSquare !== bDest.capturedSquare ||
+			aDest.secondary?.from !== bDest.secondary?.from ||
+			aDest.secondary?.to !== bDest.secondary?.to
+		)
+			return false;
+	}
+	return true;
+}
+
 export function interactionSetActiveDestinations(
 	state: InteractionStateInternal,
-	dests: ReadonlySet<Square>
+	dests: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>
 ): boolean {
-	if (setsEqual(state.activeDestinations, dests)) return false;
-	state.activeDestinations = new Set(dests);
+	if (activeDestinationsEqual(state.activeDestinations, dests)) return false;
+	state.activeDestinations = new Map(dests);
 	return true;
 }
 
@@ -71,7 +90,7 @@ export function interactionClear(state: InteractionStateInternal): boolean {
 	if (!anySet) return false;
 
 	state.selected = null;
-	state.activeDestinations = new Set();
+	state.activeDestinations = new Map();
 	state.dragSession = null;
 	return true;
 }

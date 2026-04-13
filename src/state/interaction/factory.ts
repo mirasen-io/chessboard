@@ -26,7 +26,7 @@ function createInteractionStateInternal(
 	return {
 		movability: cloneDeep(movability),
 		selected: null,
-		activeDestinations: new Set(),
+		activeDestinations: new Map(),
 		dragSession: null
 	};
 }
@@ -65,7 +65,7 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 			return changed;
 		},
 		get activeDestinations() {
-			return new Set(internalState.activeDestinations);
+			return cloneDeep(internalState.activeDestinations);
 		},
 		updateActiveDestinations(mutationSession) {
 			return updateActiveDestinations(internalState, mutationSession);

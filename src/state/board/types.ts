@@ -117,6 +117,9 @@ export interface TMoveInput<TSquare extends Square | SquareString> extends TMove
 }
 
 export type MoveInput = TMoveInput<Square> | TMoveInput<SquareString>;
+export type NormalizedMoveInput = TMoveInput<Square>;
+export type MoveDestinationInput = Omit<MoveInput, 'from' | 'promotedTo'>;
+export type MoveDestination = Omit<NormalizedMoveInput, 'from' | 'promotedTo'>;
 
 export interface TMoveCaptured<TSquare extends Square | SquareString> {
 	piece: Piece;
