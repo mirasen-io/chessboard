@@ -1,4 +1,5 @@
 import { ExtensionRuntimeSurface } from '../../types/surface/main';
+import { MainRendererAnimation } from '../animation/types';
 import { MainRendererBoard } from '../board/types';
 import { MainRendererCoordinates } from '../coordinates/types';
 import { MainRendererDrag } from '../drag/types';
@@ -10,6 +11,7 @@ export interface MainRendererInstanceInternal {
 	readonly coordinates: MainRendererCoordinates;
 	readonly pieces: MainRendererPieces;
 	readonly drag: MainRendererDrag;
+	readonly animation: MainRendererAnimation;
 	readonly runtimeSurface: ExtensionRuntimeSurface;
 	slotRoots: MainRendererSlotRoots | null;
 }

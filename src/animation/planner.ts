@@ -14,9 +14,27 @@ for (let a = 0; a < 64; a++) {
 	}
 }
 
+export interface CalculateAnimationTracksOptions {
+	excludeMove?: { fromSq: Square; toSq: Square };
+}
+
+export function collectSuppressedSquares(tracks: AnimationTrack[]): ReadonlySet<Square> {
+	const result = new Set<Square>();
+	for (const track of tracks) {
+		if (track.effect === 'move') {
+			result.add(track.fromSq);
+			result.add(track.toSq);
+		} else {
+			result.add(track.sq);
+		}
+	}
+	return result;
+}
+
 export function calculateAnimationTracks(
 	pos1: BoardStateSnapshot,
-	pos2: BoardStateSnapshot
+	pos2: BoardStateSnapshot,
+	options?: CalculateAnimationTracksOptions
 ): AnimationTrack[] {
 	const tracks: AnimationTrack[] = [];
 	let nextId = 0;
@@ -49,11 +67,16 @@ export function calculateAnimationTracks(
 	}
 	candidates.sort((a, b) => a.dist - b.dist);
 
+	const excl = options?.excludeMove;
 	for (const { ri, ai } of candidates) {
 		if (removedMatched[ri] || addedMatched[ai]) continue;
 		removedMatched[ri] = 1;
 		addedMatched[ai] = 1;
 		movedToSqCode.set(added[ai].sq, removed[ri].code);
+		if (excl && removed[ri].sq === excl.fromSq && added[ai].sq === excl.toSq) {
+			// Suppress this move track but keep both squares matched so they don't become fades.
+			continue;
+		}
 		tracks.push({
 			id: nextId++,
 			piece: decodePiece(removed[ri].code)!,
@@ -95,7 +118,8 @@ export function calculateAnimationTracks(
 export function calculateAnimationPlan(
 	pos1: BoardStateSnapshot,
 	pos2: BoardStateSnapshot,
-	sessionId: number
+	sessionId: number,
+	options?: CalculateAnimationTracksOptions
 ): AnimationPlan {
-	return { sessionId, tracks: calculateAnimationTracks(pos1, pos2) };
+	return { sessionId, tracks: calculateAnimationTracks(pos1, pos2, options) };
 }

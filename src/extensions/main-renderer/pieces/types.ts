@@ -14,7 +14,7 @@ export interface MainRendererPiecesInternal {
 }
 
 export interface MainRendererPieces {
-	onUpdate(context: ExtensionUpdateContext): void;
+	onUpdate(context: ExtensionUpdateContext, animationSuppressedSquares: ReadonlySet<Square>): void;
 	render(context: ExtensionRenderContext, layer: SVGElement): void;
 	unmount(): void;
 }

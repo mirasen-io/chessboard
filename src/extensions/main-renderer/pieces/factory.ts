@@ -10,8 +10,8 @@ export function createMainRendererPieces(config: PieceUrls): MainRendererPieces 
 		suppressedSquares: new Set()
 	};
 	return {
-		onUpdate(context) {
-			rendererPiecesOnUpdate(state, context);
+		onUpdate(context, animationSuppressedSquares) {
+			rendererPiecesOnUpdate(state, context, animationSuppressedSquares);
 		},
 		render(context, layer) {
 			rendererPiecesRender(state, context, layer);
@@ -21,6 +21,7 @@ export function createMainRendererPieces(config: PieceUrls): MainRendererPieces 
 				nodeRecord.root.remove();
 			}
 			state.pieceNodes.clear();
+			state.suppressedSquares = new Set();
 		}
 	};
 }

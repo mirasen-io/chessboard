@@ -1,5 +1,6 @@
 import { toMerged } from 'es-toolkit';
 import { ExtensionCreateInstanceOptions } from '../types/extension';
+import { createMainRendererAnimation } from './animation/factory';
 import { createMainRendererBoard } from './board/factory';
 import { createMainRendererCoordinates } from './coordinates/factory';
 import { createMainRendererDrag } from './drag/factory';
@@ -33,11 +34,13 @@ function createMainRendererInternal(
 	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
 	const pieces = createMainRendererPieces(config.pieceUrls);
 	const drag = createMainRendererDrag(config.pieceUrls, options.runtimeSurface);
+	const animation = createMainRendererAnimation(config.pieceUrls, options.runtimeSurface);
 	return {
 		board,
 		coordinates,
 		pieces,
 		drag,
+		animation,
 		slotRoots: null,
 		runtimeSurface: options.runtimeSurface
 	};
@@ -64,7 +67,8 @@ function createMainRendererInstance(
 		},
 		onUpdate(context) {
 			internalState.board.onUpdate(context);
-			internalState.pieces.onUpdate(context);
+			internalState.animation.onUpdate(context);
+			internalState.pieces.onUpdate(context, internalState.animation.getSuppressedSquares());
 			internalState.drag.onUpdate(context);
 		},
 		render(context) {
@@ -77,11 +81,23 @@ function createMainRendererInstance(
 			validateIsMounted(internalState);
 			internalState.drag.renderTransientVisuals(context, internalState.slotRoots.drag);
 		},
+		prepareAnimation(context) {
+			validateIsMounted(internalState);
+			internalState.animation.prepareAnimation(context, internalState.slotRoots.animation);
+		},
+		renderAnimation(context) {
+			validateIsMounted(internalState);
+			internalState.animation.renderAnimation(context);
+		},
+		cleanAnimation(context) {
+			internalState.animation.cleanAnimation(context);
+		},
 		unmount() {
 			// internalState.board.unmount();
 			// internalState.coordinates.unmount();
 			internalState.pieces.unmount();
 			internalState.drag.unmount();
+			internalState.animation.unmount();
 		}
 	};
 }

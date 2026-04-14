@@ -1,5 +1,6 @@
 import { setsEqual } from '../../../helpers/util';
 import { positionsEqual } from '../../../state/board/helpers';
+import { Square } from '../../../state/board/types';
 import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
 import { DirtyLayer } from '../types/extension';
 import { calculateSuppressedSquares } from './suppress';
@@ -7,7 +8,8 @@ import { MainRendererPiecesInternal } from './types';
 
 export function rendererPiecesOnUpdate(
 	state: MainRendererPiecesInternal,
-	context: ExtensionUpdateContext
+	context: ExtensionUpdateContext,
+	animationSuppressedSquares: ReadonlySet<Square>
 ): void {
 	if (
 		!isUpdateContextRenderable(context) ||
@@ -20,7 +22,7 @@ export function rendererPiecesOnUpdate(
 	}
 
 	const previousSuppressedSquares = state.suppressedSquares;
-	state.suppressedSquares = calculateSuppressedSquares(state, context);
+	state.suppressedSquares = calculateSuppressedSquares(state, context, animationSuppressedSquares);
 	const needsRender =
 		context.mutation.hasMutation({ causes: ['layout.refreshGeometry'] }) ||
 		!context.previousFrame ||
