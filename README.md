@@ -17,19 +17,19 @@ Mirasen Chessboard is built for modern web chess applications and serves as a fo
 
 In active development.
 
-# Artwork
+## Artwork
 
-## Chess Pieces Sprite.svg
+### Chessnut piece set
 
-- Title: “Chess Pieces Sprite.svg”
-- Author: jurgenwesterhof (adapted from work of Cburnett)
-- Source: https://commons.wikimedia.org/wiki/File:Chess_Pieces_Sprite.svg (via Wikimedia Commons)
-- Original file: https://upload.wikimedia.org/wikipedia/commons/b/b2/Chess_Pieces_Sprite.svg
-- License: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/, library code: MIT
+This project uses the Chessnut chess piece set.
 
-See for details:
+This is the current default piece set used by the library.
 
-- [./assets/pieces/cburnett/ATTRIBUTION.md](./assets/pieces/cburnett/ATTRIBUTION.md)
-- [./assets/pieces/cburnett/LICENSE-CC-BY-SA-3.0.txt](./assets/pieces/cburnett/LICENSE-CC-BY-SA-3.0.txt)
+- Author: Alexis Luengas — https://github.com/LexLuengas
+- Source: https://github.com/LexLuengas/chessnut-pieces
+- License: Apache License 2.0 — https://github.com/LexLuengas/chessnut-pieces/blob/master/LICENSE.txt
 
-jurgenwesterhof (adapted from work of Cburnett), [CC BY‑SA 3.0](https://creativecommons.org/licenses/by-sa/3.0), via Wikimedia Commons
+For details, see:
+
+- [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
+- [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)
