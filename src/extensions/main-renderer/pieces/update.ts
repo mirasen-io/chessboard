@@ -1,6 +1,7 @@
 import { setsEqual } from '../../../helpers/util';
 import { positionsEqual } from '../../../state/board/helpers';
 import { Square } from '../../../state/board/types';
+import { ExtensionCleanAnimationContext } from '../../types/context/animation';
 import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
 import { DirtyLayer } from '../types/extension';
 import { calculateSuppressedSquares } from './suppress';
@@ -31,4 +32,21 @@ export function rendererPiecesOnUpdate(
 
 	if (!needsRender) return;
 	context.invalidation.markDirty(DirtyLayer.Pieces);
+}
+
+export function rendererPiecesRefreshSuppressedSquares(
+	state: MainRendererPiecesInternal,
+	context: ExtensionCleanAnimationContext,
+	animationSuppressedSquares: ReadonlySet<Square>
+): void {
+	const newSuppressedSquares = calculateSuppressedSquares(
+		state,
+		context,
+		animationSuppressedSquares
+	);
+	const needsRender = !setsEqual(state.suppressedSquares, newSuppressedSquares);
+	state.suppressedSquares = newSuppressedSquares;
+	if (needsRender) {
+		context.invalidation.markDirty(DirtyLayer.Pieces);
+	}
 }

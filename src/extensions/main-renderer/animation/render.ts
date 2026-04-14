@@ -62,9 +62,13 @@ export function rendererAnimationClean(
 export function getAnimationSuppressedSquares(
 	state: MainRendererAnimationInternal
 ): ReadonlySet<Square> {
-	if (state.entries.size === 0) return EMPTY_SQUARES;
+	// get submitted and active animation sessions
+	const sessions = state.runtimeSurface.animation.getAll(['submitted', 'active']);
+	if (sessions.length === 0) return EMPTY_SQUARES;
 	const result = new Set<Square>();
-	for (const entry of state.entries.values()) {
+	for (const session of sessions) {
+		const entry = state.entries.get(session.id);
+		if (!entry) continue;
 		for (const sq of collectSuppressedSquares(entry.plan.tracks)) {
 			result.add(sq);
 		}

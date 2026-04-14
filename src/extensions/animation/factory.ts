@@ -71,13 +71,17 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 		getAll(status) {
 			const stati: Set<ExtensionAnimationSessionStatus> = status
 				? // If iterable
-					Symbol.iterator in Object(status)
-					? (new Set([...status]) as Set<ExtensionAnimationSessionStatus>)
-					: (new Set([status]) as Set<ExtensionAnimationSessionStatus>)
+					typeof status === 'string'
+					? (new Set([status]) as Set<ExtensionAnimationSessionStatus>)
+					: (new Set([...status]) as Set<ExtensionAnimationSessionStatus>)
 				: ANIMATION_SESSION_STATUS_ALL;
-			return Array.from(internalState.sessions.values()).filter((session) =>
-				stati.has(session.status)
-			);
+			const result: ExtensionAnimationSessionInternalSurface[] = [];
+			for (const session of internalState.sessions.values()) {
+				if (stati.has(session.status)) {
+					result.push(session);
+				}
+			}
+			return result;
 		},
 		remove(sessionId) {
 			if (typeof sessionId === 'number') {

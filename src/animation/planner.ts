@@ -106,7 +106,7 @@ export function calculateAnimationTracks(
 			movedCode !== undefined && decodePiece(code)!.color !== decodePiece(movedCode)!.color;
 		const piece = decodePiece(code)!;
 		if (isCapture) {
-			tracks.push({ id: nextId++, piece, sq: sq as Square, effect: 'static' });
+			tracks.push({ id: nextId++, piece, sq: sq as Square, effect: 'fade-out' });
 		} else {
 			tracks.push({ id: nextId++, piece, sq: sq as Square, effect: 'fade-out' });
 		}

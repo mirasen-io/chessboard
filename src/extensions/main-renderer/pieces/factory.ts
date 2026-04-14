@@ -1,7 +1,7 @@
 import { PieceUrls } from '../types/config';
 import { rendererPiecesRender } from './render';
 import { MainRendererPieces, MainRendererPiecesInternal } from './types';
-import { rendererPiecesOnUpdate } from './update';
+import { rendererPiecesOnUpdate, rendererPiecesRefreshSuppressedSquares } from './update';
 
 export function createMainRendererPieces(config: PieceUrls): MainRendererPieces {
 	const state: MainRendererPiecesInternal = {
@@ -12,6 +12,9 @@ export function createMainRendererPieces(config: PieceUrls): MainRendererPieces 
 	return {
 		onUpdate(context, animationSuppressedSquares) {
 			rendererPiecesOnUpdate(state, context, animationSuppressedSquares);
+		},
+		refreshSuppressedSquares(context, animationSuppressedSquares) {
+			rendererPiecesRefreshSuppressedSquares(state, context, animationSuppressedSquares);
 		},
 		render(context, layer) {
 			rendererPiecesRender(state, context, layer);

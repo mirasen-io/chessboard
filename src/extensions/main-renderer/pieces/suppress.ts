@@ -1,10 +1,11 @@
 import { Square } from '../../../state/board/types';
+import { ExtensionCleanAnimationContext } from '../../types/context/animation';
 import { ExtensionUpdateContext } from '../../types/context/update';
 import { MainRendererPiecesInternal } from './types';
 
 export function calculateSuppressedSquares(
 	_state: MainRendererPiecesInternal,
-	context: ExtensionUpdateContext,
+	context: ExtensionUpdateContext | ExtensionCleanAnimationContext,
 	animationSuppressedSquares: ReadonlySet<Square>
 ): ReadonlySet<Square> {
 	const dragSession = context.currentFrame.state.interaction.dragSession;

@@ -38,6 +38,7 @@ export interface ExtensionSystemSharedDataForRenderSystem {
 
 export interface ExtensionSystem {
 	readonly currentFrame: UpdateFrameSnapshot | null;
+	readonly hasSubmittedAnimations: boolean;
 	getSharedDataForRenderSystem(): ExtensionSystemSharedDataForRenderSystem;
 	onUpdate(request: ExtensionSystemUpdateRequest): void;
 	onUnmount(): void;

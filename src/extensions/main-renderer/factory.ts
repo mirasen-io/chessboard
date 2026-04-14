@@ -91,6 +91,10 @@ function createMainRendererInstance(
 		},
 		cleanAnimation(context) {
 			internalState.animation.cleanAnimation(context);
+			internalState.pieces.refreshSuppressedSquares(
+				context,
+				internalState.animation.getSuppressedSquares()
+			);
 		},
 		unmount() {
 			// internalState.board.unmount();

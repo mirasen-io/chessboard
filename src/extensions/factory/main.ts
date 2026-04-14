@@ -60,6 +60,14 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 				transientVisualsSubscribers: internalState.transientVisualsSubscribers
 			};
 		},
+		get hasSubmittedAnimations() {
+			for (const ext of internalState.extensions.values()) {
+				if (ext.animation.getAll('submitted').length > 0) {
+					return true;
+				}
+			}
+			return false;
+		},
 		get currentFrame() {
 			return internalState.currentFrame;
 		},

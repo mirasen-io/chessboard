@@ -20,5 +20,9 @@ export const extensionSystemUpdatePipe: RuntimeMutationPipe = (context, mutation
 					},
 			mutation: mutationSession
 		});
+		// check if extension system has submitted animations and we need to request an animation pass
+		if (current.extensionSystem.hasSubmittedAnimations) {
+			current.renderSystem.requestRenderAnimation();
+		}
 	}
 };

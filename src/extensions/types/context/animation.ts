@@ -1,3 +1,4 @@
+import { ExtensionInvalidationState } from '../../invalidation/types';
 import { ExtensionAnimationSession } from '../basic/animation';
 import { ExtensionRenderContext } from './render';
 
@@ -24,6 +25,7 @@ export interface ExtensionRenderAnimationContext extends ExtensionRenderContext 
 }
 
 export interface ExtensionCleanAnimationContext extends ExtensionRenderContext {
+	readonly invalidation: ExtensionInvalidationState;
 	readonly finishedSessions: readonly ExtensionFinishedAnimationSession[];
 }
 
