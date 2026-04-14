@@ -1,7 +1,15 @@
+import { WritableDeep } from 'type-fest';
 import { fileOf, rankOf } from '../state/board/coords';
-import { decodePiece } from '../state/board/encode';
+import { decodePiece, PieceCode } from '../state/board/encode';
 import { BoardStateSnapshot, Square } from '../state/board/types';
-import { AnimationPlan, AnimationTrack } from './types';
+import {
+	AnimationPlan,
+	AnimationTrack,
+	AnimationTrackExclude,
+	CalculateAnimationTracksOptions,
+	isMoveExclude,
+	isSquareExclude
+} from './types';
 
 // Precomputed squared distance: (dFile² + dRank²) for all square pairs.
 // Max value = 7² + 7² = 98, fits in Uint8. Index: a * 64 + b.
@@ -12,10 +20,6 @@ for (let a = 0; a < 64; a++) {
 		const dr = rankOf(a as Square) - rankOf(b as Square);
 		SQUARE_DIST[a * 64 + b] = df * df + dr * dr;
 	}
-}
-
-export interface CalculateAnimationTracksOptions {
-	excludeMove?: { fromSq: Square; toSq: Square };
 }
 
 export function collectSuppressedSquares(tracks: AnimationTrack[]): ReadonlySet<Square> {
@@ -40,7 +44,7 @@ export function calculateAnimationTracks(
 	let nextId = 0;
 
 	// Step 1: collect changed squares into removed/added lists
-	type Entry = { code: number; sq: number };
+	type Entry = { code: PieceCode; sq: Square };
 	const removed: Entry[] = [];
 	const added: Entry[] = [];
 
@@ -48,8 +52,8 @@ export function calculateAnimationTracks(
 		const c1 = pos1.pieces[sq];
 		const c2 = pos2.pieces[sq];
 		if (c1 === c2) continue;
-		if (c1 !== 0) removed.push({ code: c1, sq });
-		if (c2 !== 0) added.push({ code: c2, sq });
+		if (c1 !== 0) removed.push({ code: c1, sq: sq as Square });
+		if (c2 !== 0) added.push({ code: c2, sq: sq as Square });
 	}
 
 	// Step 2: greedy min-distance matching of same-code pairs → move tracks
@@ -67,13 +71,18 @@ export function calculateAnimationTracks(
 	}
 	candidates.sort((a, b) => a.dist - b.dist);
 
-	const excl = options?.excludeMove;
+	const excl = options?.exclude;
+	const preparedExcl = prepareExclude(excl);
 	for (const { ri, ai } of candidates) {
 		if (removedMatched[ri] || addedMatched[ai]) continue;
 		removedMatched[ri] = 1;
 		addedMatched[ai] = 1;
 		movedToSqCode.set(added[ai].sq, removed[ri].code);
-		if (excl && removed[ri].sq === excl.fromSq && added[ai].sq === excl.toSq) {
+		if (
+			excl &&
+			preparedExcl.move.has(removed[ri].sq) &&
+			preparedExcl.move.get(removed[ri].sq)!.has(added[ai].sq)
+		) {
 			// Suppress this move track but keep both squares matched so they don't become fades.
 			continue;
 		}
@@ -89,6 +98,9 @@ export function calculateAnimationTracks(
 	// Step 3: unmatched added → fade-in
 	for (let ai = 0; ai < added.length; ai++) {
 		if (addedMatched[ai]) continue;
+		if (preparedExcl.square.has(added[ai].sq)) {
+			continue;
+		}
 		tracks.push({
 			id: nextId++,
 			piece: decodePiece(added[ai].code)!,
@@ -100,6 +112,9 @@ export function calculateAnimationTracks(
 	// Step 4: unmatched removed → fade-out or static
 	for (let ri = 0; ri < removed.length; ri++) {
 		if (removedMatched[ri]) continue;
+		if (preparedExcl.square.has(removed[ri].sq)) {
+			continue;
+		}
 		const { code, sq } = removed[ri];
 		const movedCode = movedToSqCode.get(sq);
 		const isCapture =
@@ -122,4 +137,25 @@ export function calculateAnimationPlan(
 	options?: CalculateAnimationTracksOptions
 ): AnimationPlan {
 	return { sessionId, tracks: calculateAnimationTracks(pos1, pos2, options) };
+}
+
+interface PrepAnimationTrackExclude {
+	move: ReadonlyMap<Square, ReadonlySet<Square>>;
+	square: Set<Square>;
+}
+
+function prepareExclude(exclude?: AnimationTrackExclude[]): PrepAnimationTrackExclude {
+	const result: WritableDeep<PrepAnimationTrackExclude> = { move: new Map(), square: new Set() };
+	if (!exclude) return result;
+	for (const e of exclude) {
+		if (isMoveExclude(e)) {
+			if (!result.move.has(e.fromSq)) {
+				result.move.set(e.fromSq, new Set());
+			}
+			result.move.get(e.fromSq)!.add(e.toSq);
+		} else if (isSquareExclude(e)) {
+			result.square.add(e.sq);
+		}
+	}
+	return result;
 }

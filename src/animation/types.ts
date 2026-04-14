@@ -38,3 +38,26 @@ export interface AnimationSession {
 }
 
 export type AnimationSessionSnapshot = ReadonlyDeep<AnimationSession>;
+
+export interface AnimationTrackMoveExclude {
+	fromSq: Square;
+	toSq: Square;
+}
+
+export interface AnimationTrackSquareExclude {
+	sq: Square;
+}
+
+export type AnimationTrackExclude = AnimationTrackMoveExclude | AnimationTrackSquareExclude;
+
+export function isMoveExclude(e: AnimationTrackExclude): e is AnimationTrackMoveExclude {
+	return 'fromSq' in e && 'toSq' in e;
+}
+
+export function isSquareExclude(e: AnimationTrackExclude): e is AnimationTrackSquareExclude {
+	return 'sq' in e && !('fromSq' in e) && !('toSq' in e);
+}
+
+export interface CalculateAnimationTracksOptions {
+	exclude?: AnimationTrackExclude[];
+}

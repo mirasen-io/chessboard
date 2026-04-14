@@ -1,7 +1,5 @@
-import {
-	calculateAnimationPlan,
-	CalculateAnimationTracksOptions
-} from '../../../animation/planner';
+import { calculateAnimationPlan } from '../../../animation/planner';
+import { AnimationTrackExclude } from '../../../animation/types';
 import { positionsEqual } from '../../../state/board/helpers';
 import type { ExtensionUpdateContext } from '../../types/context/update';
 import { isUpdateContextRenderable } from '../../types/context/update';
@@ -30,16 +28,21 @@ export function rendererAnimationOnUpdate(
 		duration: DEFAULT_ANIMATION_DURATION_MS
 	});
 	// On DropTo exclude the move that user did from the animation plan
-	const excludeMove: CalculateAnimationTracksOptions['excludeMove'] =
+	const exclude: AnimationTrackExclude[] = [];
+	if (
 		context.mutation.hasMutation({ causes: ['runtime.interaction.dropTo'] }) &&
 		context.currentFrame.state.change.lastMove
-			? {
-					fromSq: context.currentFrame.state.change.lastMove.from,
-					toSq: context.currentFrame.state.change.lastMove.to
-				}
-			: undefined;
+	) {
+		exclude.push({
+			fromSq: context.currentFrame.state.change.lastMove.from,
+			toSq: context.currentFrame.state.change.lastMove.to
+		});
+		exclude.push({
+			sq: context.currentFrame.state.change.lastMove.to
+		});
+	}
 	const plan = calculateAnimationPlan(previousBoard, currentBoard, session.id, {
-		excludeMove
+		exclude
 	});
 	state.entries.set(session.id, { plan, nodes: null });
 }
