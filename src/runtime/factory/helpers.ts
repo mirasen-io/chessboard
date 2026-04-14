@@ -5,7 +5,7 @@ export function convertDestinationToMoveInput(
 	from: Square,
 	destination: MoveDestinationSnapshot
 ): NormalizedMoveInput {
-	let promotedTo: RolePromotion;
+	let promotedTo: RolePromotion | undefined;
 	if (destination.promotedTo && destination.promotedTo.length === 1) {
 		promotedTo = destination.promotedTo[0];
 	} else if (destination.promotedTo && destination.promotedTo.length > 1) {
