@@ -55,6 +55,8 @@ export function runtimeUnmount(state: RuntimeInternal): void {
 }
 
 export function runtimeDestroy(state: RuntimeInternal): void {
-	runtimeUnmount(state);
+	if (runtimeIsMounted(state)) {
+		runtimeUnmount(state);
+	}
 	state.extensionSystem.onDestroy();
 }

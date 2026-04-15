@@ -1,4 +1,10 @@
-import { handlePointerDown, handlePointerMove, handlePointerUp } from './pointer';
+import {
+	handlePointerCancel,
+	handlePointerDown,
+	handlePointerLeave,
+	handlePointerMove,
+	handlePointerUp
+} from './pointer';
 import { transmitTransientInput } from './transient-visuals';
 import {
 	InteractionController,
@@ -29,6 +35,12 @@ export function createInteractionController(
 					break;
 				case 'pointerup':
 					handlePointerUp(internalState, event);
+					break;
+				case 'pointercancel':
+					handlePointerCancel(internalState, event);
+					break;
+				case 'pointerleave':
+					handlePointerLeave(internalState, event);
 					break;
 			}
 			transmitTransientInput(internalState, event);

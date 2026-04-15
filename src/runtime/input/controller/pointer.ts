@@ -2,6 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { ScenePointerEvent } from '../../../extensions/types/basic/events';
 import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check';
 import { fromPieceCode } from '../../../state/board/piece';
+import { MovabilityModeCode } from '../../../state/interaction/types/internal';
 import { canMoveTo } from './helpers';
 import { InteractionControllerInternal } from './types';
 
@@ -27,22 +28,33 @@ export function handlePointerDown(
 	if (event.target !== null) {
 		/**
 		 * If piece is already selected, and we have a valid target square event.target
-		 * AND it's a different square AND (it's empty OR has an opponent piece)
+		 * AND it's a different square AND (it's empty OR (has an opponent piece AND is a legal move target))
 		 * THEN start a release-targeting drag session
 		 */
 		if (interaction.selected && event.target !== interaction.selected.square) {
 			const selectedPieceCode = interaction.selected.pieceCode;
 			assert(isNonEmptyPieceCode(selectedPieceCode), 'Selected piece code must be non-zero');
+
 			const targetPieceCode = state.surface.getPieceCodeAt(event.target);
+
+			if (isEmptyPieceCode(targetPieceCode)) {
+				state.surface.startReleaseTargetingDrag(interaction.selected.square, event.target);
+				return;
+			}
+
+			const isLegalMoveTarget =
+				interaction.movability.mode === MovabilityModeCode.Free ||
+				(interaction.movability.mode === MovabilityModeCode.Strict &&
+					interaction.activeDestinations.has(event.target));
+
 			if (
-				isEmptyPieceCode(targetPieceCode) || // empty square
-				fromPieceCode(targetPieceCode).color !== fromPieceCode(selectedPieceCode).color // opponent piece
+				fromPieceCode(targetPieceCode).color !== fromPieceCode(selectedPieceCode).color &&
+				isLegalMoveTarget
 			) {
 				state.surface.startReleaseTargetingDrag(interaction.selected.square, event.target);
 				return;
 			}
 		}
-
 		/**
 		 * If we are here, then it's not release-targeting.
 		 * So it's either a new lift or re-lift of the same piece. In either case, we can just start a lifted drag session if the target is valid.
@@ -103,5 +115,38 @@ export function handlePointerUp(
 		state.surface.cancelActiveInteraction();
 	} else {
 		state.surface.cancelInteraction();
+	}
+}
+
+export function handlePointerCancel(
+	state: InteractionControllerInternal,
+	event: ScenePointerEvent
+): void {
+	assert(
+		event.type === 'pointercancel',
+		'handlePointerCancel should only be called for pointercancel events'
+	);
+	const interaction = state.surface.getInteractionStateSnapshot();
+
+	if (!interaction.dragSession) {
+		// No active drag session, so nothing to do on pointer cancel
+		return;
+	}
+
+	// Cancel the active interaction on pointer cancel
+	state.surface.cancelActiveInteraction();
+}
+
+export function handlePointerLeave(
+	state: InteractionControllerInternal,
+	event: ScenePointerEvent
+): void {
+	assert(
+		event.type === 'pointerleave',
+		'handlePointerLeave should only be called for pointerleave events'
+	);
+	const interaction = state.surface.getInteractionStateSnapshot();
+	if (interaction.dragSession) {
+		state.surface.updateDragSessionCurrentTarget(event.target);
 	}
 }
