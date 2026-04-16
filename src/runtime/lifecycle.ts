@@ -32,6 +32,7 @@ export function runtimeMount(state: RuntimeInternal, container: HTMLElement): vo
 	state.resizeObserver = new ResizeObserver(() => {
 		runtimeRefreshGeometry(state);
 	});
+	// Observe will cause immediate first callback!
 	state.resizeObserver.observe(container);
 	assert(state.inputAdapter === null, 'Input adapter should not be initialized before mounting');
 	state.inputAdapter = createInputAdapter({

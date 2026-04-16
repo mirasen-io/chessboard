@@ -1,8 +1,15 @@
+import assert from '@ktarmyshov/assert';
 import { createExtensionSystem } from '../../extensions/factory/main';
 import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
 import { createLayout } from '../../layout/factory';
 import { createRenderSystem } from '../../render/factory';
+import { isNonEmptyPieceCode } from '../../state/board/check';
+import { BoardStateMutationSession } from '../../state/board/mutation';
+import { normalizeSquare } from '../../state/board/normalize';
 import { createRuntimeState } from '../../state/factory';
+import { InteractionStateMutationSession } from '../../state/interaction/mutation';
+import { InteractionStateSelected } from '../../state/interaction/types/main';
+import { ViewStateMutationSession } from '../../state/view/mutation';
 import { createInteractionController } from '../input/controller/factory';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle';
 import { createRuntimeMutationPipeline } from '../mutation/factory';
@@ -44,64 +51,85 @@ function createExtensionRuntimeSurfaceCommands(
 		setPosition(input) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.board.setPosition(input, mutationSession);
+			const changed = state.state.board.setPosition(
+				input,
+				mutationSession as BoardStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setPiecePosition(input) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.board.setPiecePosition(input, mutationSession);
+			const changed = state.state.board.setPiecePosition(
+				input,
+				mutationSession as BoardStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setTurn(turn) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.board.setTurn(turn, mutationSession);
+			const changed = state.state.board.setTurn(turn, mutationSession as BoardStateMutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setOrientation(orientation) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.view.setOrientation(orientation, mutationSession);
+			const changed = state.state.view.setOrientation(
+				orientation,
+				mutationSession as ViewStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setMovability(movability) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.interaction.setMovability(movability, mutationSession);
+			const changed = state.state.interaction.setMovability(
+				movability,
+				mutationSession as InteractionStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		select(square) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.interaction.setSelected(square, mutationSession);
+			let interactionStateSelected: InteractionStateSelected | null = null;
+			if (square !== null) {
+				const normalizedSquare = normalizeSquare(square);
+				const piece = state.state.board.getPieceCodeAt(normalizedSquare);
+				assert(isNonEmptyPieceCode(piece), 'Selected square is expected to have a piece');
+				interactionStateSelected = {
+					square: normalizedSquare,
+					pieceCode: piece
+				};
+			}
+			const changed = state.state.interaction.setSelected(
+				interactionStateSelected,
+				mutationSession as InteractionStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		clearActiveInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.interaction.clearActive(mutationSession);
+			const changed = state.state.interaction.clearActive(
+				mutationSession as InteractionStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
-		cancelInteraction() {
+		clearInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type but not recognized.
-			const changed = state.state.interaction.cancel(mutationSession);
+			const changed = state.state.interaction.clear(
+				mutationSession as InteractionStateMutationSession
+			);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},

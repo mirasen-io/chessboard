@@ -32,7 +32,7 @@ export interface ExtensionRuntimeSurfaceCommands {
 	// Interaction state
 	select(square: SquareString | null): boolean;
 	clearActiveInteraction(): boolean;
-	cancelInteraction(): boolean;
+	clearInteraction(): boolean;
 	// Render
 	requestRender(request: ExtensionRuntimeSurfaceCommandsRenderRequest): void;
 	// Snapshot
