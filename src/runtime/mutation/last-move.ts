@@ -15,12 +15,6 @@ export const updateLastMoveOnBoardMove: RuntimeMutationPipe = (context, mutation
 
 export const clearLastMoveOnBoardSetPosition: RuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;
-	console.log(
-		'clearLastMoveOnBoardSetPosition called with mutationSession:',
-		mutationSession.hasMutation({
-			causes: ['state.board.setPosition', 'state.board.setPiecePosition']
-		})
-	);
 	if (
 		!mutationSession.hasMutation({
 			causes: ['state.board.setPosition', 'state.board.setPiecePosition']
