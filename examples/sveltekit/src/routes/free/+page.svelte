@@ -87,7 +87,6 @@
 		refreshSnapshot();
 
 		const intervalId = window.setInterval(refreshSnapshot, 100);
-		const z = createLastMove();
 
 		return () => {
 			window.clearInterval(intervalId);
