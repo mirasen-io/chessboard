@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
 
-# npm ci # For now no npm ci, cause there are some manual fixes in npm_modules
+npm ci # For now no npm ci, cause there are some manual fixes in npm_modules
 npm run check
 npm run lint

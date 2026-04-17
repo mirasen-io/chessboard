@@ -69,7 +69,7 @@
 
 	function resetPosition() {
 		if (!runtime) return;
-		runtime.setPiecePosition('start');
+		runtime.setPosition('start');
 		refreshSnapshot();
 	}
 
@@ -84,7 +84,7 @@
 			doc: document,
 			state: {
 				board: {
-					turn: 'w',
+					turn: 'b',
 					pieces: START_POSITION
 				}
 			},
