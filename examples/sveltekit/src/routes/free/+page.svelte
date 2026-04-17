@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createActiveTarget } from '@mirasen/chessboard/unstable/extensions/first-party/active-target/factory.js';
 	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
+	import { createLegalMoves } from '@mirasen/chessboard/unstable/extensions/first-party/legal-moves/factory.js';
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
 	import { createSelectedSquare } from '@mirasen/chessboard/unstable/extensions/first-party/selected-square/factory.js';
 	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
@@ -68,7 +69,7 @@
 
 	function resetPosition() {
 		if (!runtime) return;
-		runtime.setPiecePosition(START_POSITION);
+		runtime.setPiecePosition('start');
 		refreshSnapshot();
 	}
 
@@ -85,7 +86,8 @@
 				createMainRenderer({}),
 				createSelectedSquare(),
 				createLastMove(),
-				createActiveTarget()
+				createActiveTarget(),
+				createLegalMoves()
 			]
 		});
 		runtime.setMovability({ mode: 'free' });

@@ -1,0 +1,134 @@
+import assert from '@ktarmyshov/assert';
+import { toMerged } from 'es-toolkit';
+import { clearElementChildren, createSvgElement } from '../../../render/svg/helpers';
+import { assertValidSquare, isNonEmptyPieceCode } from '../../../state/board/check';
+import { fromPieceCode } from '../../../state/board/piece';
+import { Square } from '../../../state/board/types/internal';
+import { MovabilityModeCode, MoveDestination } from '../../../state/interaction/types/internal';
+import { isUpdateContextRenderable } from '../../types/context/update';
+import {
+	DEFAULT_CONFIG,
+	DirtyLayer,
+	EXTENSION_ID,
+	EXTENSION_SLOTS,
+	LegalMovesConfig,
+	LegalMovesDefinition,
+	LegalMovesInitConfig,
+	LegalMovesInstance,
+	LegalMovesInstanceInternal
+} from './types';
+
+export function createLegalMoves(config: LegalMovesInitConfig = {}): LegalMovesDefinition {
+	const mergedConfig = toMerged(DEFAULT_CONFIG, config) as LegalMovesConfig;
+	return {
+		id: EXTENSION_ID,
+		slots: EXTENSION_SLOTS,
+		createInstance() {
+			return createLegalMovesInstance(mergedConfig);
+		}
+	};
+}
+
+function createLegalMovesInternal(config: LegalMovesConfig): LegalMovesInstanceInternal {
+	return {
+		slotRoots: null,
+		svgCircles: [],
+		config
+	};
+}
+
+function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance {
+	const internalState = createLegalMovesInternal(config);
+	return {
+		id: EXTENSION_ID,
+		mount(env) {
+			internalState.slotRoots = env.slotRoots;
+		},
+		onUpdate(context) {
+			const needsRender =
+				context.mutation.hasMutation({
+					causes: ['layout.refreshGeometry'],
+					// we really need almost all: setDrag, updateTarget, clear, clearActive, setMovability, so just take all interaction mutations
+					prefixes: ['state.interaction.']
+				}) && isUpdateContextRenderable(context);
+			if (!needsRender) {
+				return; // no-op
+			}
+			context.invalidation.markDirty(DirtyLayer.Highlight);
+		},
+		render(context) {
+			assert(
+				context.invalidation.dirtyLayers !== 0,
+				'Render should only be called when there are dirty layers'
+			);
+
+			assert(internalState.slotRoots, 'Slot roots should be available when render is called');
+			clearElementChildren(internalState.slotRoots.overPieces);
+			internalState.svgCircles = [];
+
+			const interaction = context.currentFrame.state.interaction;
+			const needsRender =
+				(interaction.movability.mode === MovabilityModeCode.Strict &&
+					interaction.activeDestinations.size > 0 &&
+					interaction.selected !== null) ||
+				// TODO: Remove, this is just for visual test
+				(interaction.movability.mode === MovabilityModeCode.Free && interaction.selected !== null);
+
+			if (!needsRender) {
+				return; // no-op
+			}
+
+			const geometry = context.currentFrame.layout.geometry;
+			const commonAttributesEmpty = {
+				r: (geometry.squareSize * internalState.config.emptySquare.radiusRatio).toString(),
+				fill: internalState.config.emptySquare.color.color,
+				'fill-opacity': internalState.config.emptySquare.color.opacity.toString()
+			};
+			const commonAttributesCapture = {
+				r: (geometry.squareSize * internalState.config.captureTarget.radiusRatio).toString(),
+				stroke: internalState.config.captureTarget.color.color,
+				'stroke-opacity': internalState.config.captureTarget.color.opacity.toString(),
+				'stroke-width': (
+					geometry.squareSize * internalState.config.captureTarget.strokeWidthRatio
+				).toString(),
+				fill: 'none'
+			}; // TODO: Remove, this is just for visual test
+			const testDests = new Map<Square, MoveDestination>();
+			for (let square = 0; square < 64; square++) {
+				if (interaction.selected?.square === square) {
+					continue; // skip selected square
+				}
+				assertValidSquare(square);
+				testDests.set(square, { to: square });
+			}
+			for (const [square, destination] of testDests) {
+				const rect = geometry.squareRect(square);
+				const circleX = rect.x + geometry.squareSize / 2;
+				const circleY = rect.y + geometry.squareSize / 2;
+				const selectedPieceCode =
+					context.currentFrame.state.board.pieces[interaction.selected.square];
+				const targetPieceCode = context.currentFrame.state.board.pieces[destination.to];
+				const isCapture =
+					isNonEmptyPieceCode(targetPieceCode) &&
+					fromPieceCode(targetPieceCode).color !== fromPieceCode(selectedPieceCode).color;
+				const attributes = {
+					cx: circleX.toString(),
+					cy: circleY.toString(),
+					...(!isCapture ? commonAttributesEmpty : commonAttributesCapture)
+				};
+				const circle = createSvgElement(internalState.slotRoots.overPieces, 'circle', {
+					'data-chessboard-id': `legal-move-from-${square}-to-${destination.to}`,
+					...attributes
+				});
+				internalState.svgCircles.push(circle);
+			}
+		},
+		unmount() {
+			for (const circle of internalState.svgCircles) {
+				circle.remove();
+			}
+			internalState.svgCircles = [];
+			internalState.slotRoots = null;
+		}
+	};
+}

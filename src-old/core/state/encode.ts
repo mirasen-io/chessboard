@@ -1,3 +1,4 @@
+import { ColorCode } from '../../../src/state/board/types/internal';
 import type { Color, Piece, Role } from './boardTypes';
 
 /**
@@ -17,30 +18,16 @@ const enum Base {
 	King = 6
 }
 
-const BLACK_SHIFT = 8;
-
 export function encodePiece(piece: Piece): number {
 	const base = roleToBase(piece.role);
-	return piece.color === 'white' ? base : base + BLACK_SHIFT;
+	return piece.color === 'white' ? base : base + ColorCode.Black;
 }
 
 export function decodePiece(code: number): Piece | null {
 	if (code <= 0) return null;
-	const color: Color = code >= BLACK_SHIFT ? 'black' : 'white';
-	const base = color === 'black' ? code - BLACK_SHIFT : code;
+	const color: Color = code >= ColorCode.Black ? 'black' : 'white';
+	const base = color === 'black' ? code - ColorCode.Black : code;
 	return { color, role: baseToRole(base) };
-}
-
-export function isEmpty(code: number): boolean {
-	return code === Base.Empty;
-}
-
-export function isWhiteCode(code: number): boolean {
-	return code > 0 && code < BLACK_SHIFT;
-}
-
-export function isBlackCode(code: number): boolean {
-	return code >= BLACK_SHIFT;
 }
 
 function roleToBase(role: Role): Base {

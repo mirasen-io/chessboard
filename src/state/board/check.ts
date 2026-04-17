@@ -28,11 +28,11 @@ import {
 } from './types/internal';
 import { BoardStateSnapshot } from './types/main';
 
-export function isWhiteCode(code: PieceCode): boolean {
+export function isWhitePieceCode(code: NonEmptyPieceCode): boolean {
 	return code > PieceCode.Empty && code < ColorCode.Black;
 }
 
-export function isBlackCode(code: PieceCode): boolean {
+export function isBlackPieceCode(code: NonEmptyPieceCode): boolean {
 	return code >= ColorCode.Black;
 }
 
