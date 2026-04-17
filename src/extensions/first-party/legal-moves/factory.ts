@@ -1,10 +1,9 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
 import { clearElementChildren, createSvgElement } from '../../../render/svg/helpers';
-import { assertValidSquare, isNonEmptyPieceCode } from '../../../state/board/check';
+import { isNonEmptyPieceCode } from '../../../state/board/check';
 import { fromPieceCode } from '../../../state/board/piece';
-import { Square } from '../../../state/board/types/internal';
-import { MovabilityModeCode, MoveDestination } from '../../../state/interaction/types/internal';
+import { MovabilityModeCode } from '../../../state/interaction/types/internal';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
 	DEFAULT_CONFIG,
@@ -68,11 +67,9 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 
 			const interaction = context.currentFrame.state.interaction;
 			const needsRender =
-				(interaction.movability.mode === MovabilityModeCode.Strict &&
-					interaction.activeDestinations.size > 0 &&
-					interaction.selected !== null) ||
-				// TODO: Remove, this is just for visual test
-				(interaction.movability.mode === MovabilityModeCode.Free && interaction.selected !== null);
+				interaction.movability.mode === MovabilityModeCode.Strict &&
+				interaction.activeDestinations.size > 0 &&
+				interaction.selected !== null;
 
 			if (!needsRender) {
 				return; // no-op
@@ -93,15 +90,7 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 				).toString(),
 				fill: 'none'
 			}; // TODO: Remove, this is just for visual test
-			const testDests = new Map<Square, MoveDestination>();
-			for (let square = 0; square < 64; square++) {
-				if (interaction.selected?.square === square) {
-					continue; // skip selected square
-				}
-				assertValidSquare(square);
-				testDests.set(square, { to: square });
-			}
-			for (const [square, destination] of testDests) {
+			for (const [square, destination] of interaction.activeDestinations) {
 				const rect = geometry.squareRect(square);
 				const circleX = rect.x + geometry.squareSize / 2;
 				const circleY = rect.y + geometry.squareSize / 2;

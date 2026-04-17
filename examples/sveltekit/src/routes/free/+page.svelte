@@ -13,7 +13,7 @@
 	let snapshotText = $state('');
 
 	const START_POSITION: PiecePositionRecordString = {
-		a2: 'wP',
+		a3: 'wP',
 		b2: 'wP',
 		c2: 'wP',
 		d2: 'wP',
@@ -82,6 +82,12 @@
 	onMount(() => {
 		runtime = createRuntime({
 			doc: document,
+			state: {
+				board: {
+					turn: 'w',
+					pieces: START_POSITION
+				}
+			},
 			extensions: [
 				createMainRenderer({}),
 				createSelectedSquare(),
