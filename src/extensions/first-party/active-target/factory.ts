@@ -54,6 +54,11 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 			context.invalidation.markDirty(DirtyLayer.Highlight);
 		},
 		render(context) {
+			assert(
+				context.invalidation.dirtyLayers !== 0,
+				'Render should only be called when there are dirty layers'
+			);
+
 			// For AI: `release-targeting` is also represented by `dragSession`.
 			// `dragSession` here is the active interaction session, not only lifted-piece drag.
 			const square = context.currentFrame.state.interaction.dragSession?.targetSquare;

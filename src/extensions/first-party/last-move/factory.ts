@@ -52,6 +52,11 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 			context.invalidation.markDirty(DirtyLayer.Highlight);
 		},
 		render(context) {
+			assert(
+				context.invalidation.dirtyLayers !== 0,
+				'Render should only be called when there are dirty layers'
+			);
+
 			const fromSq = context.currentFrame.state.change.lastMove?.from;
 			const toSq = context.currentFrame.state.change.lastMove?.to;
 			if (fromSq === undefined || fromSq === null || toSq === undefined || toSq === null) {

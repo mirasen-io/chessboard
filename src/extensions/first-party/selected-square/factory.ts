@@ -59,6 +59,11 @@ function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSqu
 			context.invalidation.markDirty(DirtyLayer.Highlight);
 		},
 		render(context) {
+			assert(
+				context.invalidation.dirtyLayers !== 0,
+				'Render should only be called when there are dirty layers'
+			);
+
 			const selectedSquare = context.currentFrame.state.interaction.selected?.square;
 			if (selectedSquare === undefined || selectedSquare === null) {
 				if (internalState.svgRect !== null) {
