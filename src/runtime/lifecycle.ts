@@ -1,0 +1,63 @@
+import assert from '@ktarmyshov/assert';
+import { RenderSystem } from '../render/types';
+import { createInputAdapter } from './input/adapter/factory';
+import { runtimeRefreshGeometry } from './layout';
+import { RuntimeInternal } from './types/main';
+
+export function runtimeIsMounted(state: RuntimeInternal): boolean {
+	return state.renderSystem.isMounted;
+}
+
+export function runtimeValidateIsMounted(
+	state: RuntimeInternal
+): asserts state is RuntimeInternal & {
+	readonly renderSystem: RuntimeInternal['renderSystem'] & {
+		readonly container: NonNullable<RenderSystem['container']>;
+	};
+} {
+	if (!runtimeIsMounted(state)) {
+		throw new Error('Runtime is not mounted. Please call mount() before performing this action.');
+	}
+}
+
+export function runtimeValidateIsNotMounted(state: RuntimeInternal): void {
+	if (runtimeIsMounted(state)) {
+		throw new Error('Runtime is already mounted. This action cannot be performed after mounting.');
+	}
+}
+
+export function runtimeMount(state: RuntimeInternal, container: HTMLElement): void {
+	runtimeValidateIsNotMounted(state);
+	state.renderSystem.mount(container);
+	state.resizeObserver = new ResizeObserver(() => {
+		runtimeRefreshGeometry(state);
+	});
+	// Observe will cause immediate first callback!
+	state.resizeObserver.observe(container);
+	assert(state.inputAdapter === null, 'Input adapter should not be initialized before mounting');
+	state.inputAdapter = createInputAdapter({
+		container,
+		getGeometry: () => state.layout.geometry,
+		controller: state.interactionController
+	});
+}
+
+export function runtimeUnmount(state: RuntimeInternal): void {
+	runtimeValidateIsMounted(state);
+	assert(state.inputAdapter !== null, 'Input adapter should be initialized when mounted');
+	state.inputAdapter.destroy();
+	state.inputAdapter = null;
+	if (state.resizeObserver) {
+		state.resizeObserver.disconnect();
+		state.resizeObserver = null;
+	}
+	state.renderSystem.unmount();
+	state.extensionSystem.onUnmount();
+}
+
+export function runtimeDestroy(state: RuntimeInternal): void {
+	if (runtimeIsMounted(state)) {
+		runtimeUnmount(state);
+	}
+	state.extensionSystem.onDestroy();
+}

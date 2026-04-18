@@ -1,0 +1,89 @@
+name: CONTRIBUTION-UPDATE
+# Update the 'contribution' branch with the state of the 'main' branch
+# The branch 'contribution' is used for accepting contributions from the community
+# This is neccessary, because some of the actions workflows that need organization secrets are not available from external PRs
+# So we first accept the PRs to the 'contribution' branch and then we merge them via PRs to the 'main' branch, so all secrets are available and all jobs can run
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-pr-source:
+    # prevents this action from running on forks
+    if: github.repository == 'mirasen-io/chessboard'
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.decide.outputs.skip }}
+
+    steps:
+      - id: pr
+        uses: kt-workflows/actions/get-associated-pr@main
+        with:
+          github-token: ${{ github.token }}
+          sha: ${{ github.sha }}
+          echo: 'true'
+
+      - id: decide
+        shell: bash
+        run: |
+          SKIP=false
+
+          echo "PR found: ${{ steps.pr.outputs.pr-found }}"
+          echo "PR number: ${{ steps.pr.outputs.pr-number }}"
+          echo "PR base: ${{ steps.pr.outputs.pr-base-ref }}"
+          echo "PR head: ${{ steps.pr.outputs.pr-head-ref }}"
+          echo "PR merged: ${{ steps.pr.outputs.pr-merged }}"
+
+          if [[ "${{ steps.pr.outputs.pr-found }}" == "true" && \
+                "${{ steps.pr.outputs.pr-merged }}" == "true" && \
+                "${{ steps.pr.outputs.pr-base-ref }}" == "main" && \
+                "${{ steps.pr.outputs.pr-head-ref }}" == "contribution" ]]; then
+            echo "Push came from merged PR contribution -> main. Skipping."
+            SKIP=true
+          fi
+
+          echo "skip=${SKIP}" >> "$GITHUB_OUTPUT"
+
+  update-pull:
+    needs: detect-pr-source
+    # prevents this action from running on forks
+    if: |
+      github.repository == 'mirasen-io/chessboard' &&
+      needs.detect-pr-source.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - id: app-token
+        uses: kt-workflows/actions/create-github-app-token@main
+        with:
+          app-id: ${{ secrets.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          configure-git: true
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Merge 'main' into 'contribution' branch
+        run: |
+          git fetch origin contribution || true
+
+          if git show-ref --verify --quiet refs/remotes/origin/contribution; then
+            git checkout contribution
+            git reset --hard origin/contribution
+            git merge --no-edit origin/main
+          else
+            git checkout -b contribution origin/main
+          fi
+
+          git push origin contribution

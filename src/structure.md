@@ -1,0 +1,123 @@
+BoardRuntime
+
+- state = DONE
+  - board
+    - boardState
+    - board mutations / reducers
+      - setBoardPosition
+      - setTurn
+      - move
+  - view
+    - viewState
+    - view mutations / reducers
+      - setOrientation
+      - setMovability
+  - interaction
+    - interactionState
+    - interaction mutations / reducers
+      - select
+      - beginSourceInteraction
+      - startReleaseTargeting
+      - commitTo-side interaction cleanup
+      - cancelInteraction
+      - notifyDragMove
+      - notifyReleaseTargetingMove
+  - change
+    - lastMove
+  - visuals
+    - transientVisuals
+      - dragPointer
+    - visual transient operations
+      - drag pointer updates
+      - drag pointer clear on interaction reset / commit / cancel
+
+- layout = DONE
+  - boardSize
+  - geometry
+  - layoutVersion
+  - layout operations
+    - measureBoardSize
+    - refreshGeometry
+    - orientation-triggered geometry rebuild
+
+- render = IN PROGRESS
+  - invalidation = DONE
+    - invalidationState
+      - invalidatioStateExtension
+  - renderer = DONE
+  - scheduler
+  - render operations
+    - scheduleIfAnythingDirty
+    - scheduler.render callback
+    - renderBoard
+    - renderAnimations
+    - renderDrag
+    - clearDirty
+    - getBoardSnapshot
+    - getInvalidationSnapshot
+
+- mount
+  - host
+  - mounted
+  - destroyed
+  - resizeObserver
+  - mount lifecycle operations
+    - mount(container)
+    - destroy()
+    - resize observation attach/detach
+
+- animation
+  - animator
+    - computeAnimationPlan
+  - animation operations
+    - animator.start(plan)
+    - animator.stop()
+    - active animation session read during render
+    - suppressed piece id collection during render
+
+- input
+  - controller
+  - inputAdapter
+  - input/runtime-facing operations
+    - getInteractionSnapshot
+    - canStartMoveFrom
+    - isMoveAttemptAllowed
+
+- extensions
+  - definitions
+    - extensions
+  - mounted
+    - mountedExtensions
+  - invalidation
+    - perExtensionStates
+      - invalidationState.extensions[extId]
+    - writers
+      - extensionWriters
+  - extension lifecycle operations
+    - definition validation / duplicate id check
+    - initializeExtensionInvalidation
+    - allocateExtensionSlots
+    - ext.mount(...)
+    - mounted.update(...)
+    - mounted.renderBoard(...)
+    - mounted.unmount()
+    - renderer.removeExtensionSlots(...)
+  - extension update/render support
+    - updateExtensions
+    - extension render pass inside scheduler.render callback
+
+- changeExecution
+  - mutationSession / mutation causes
+    - shared integration mechanism across runtime execution
+  - phased execution entry
+    - stateChangePipeline today
+    - future explicit runtime phased run order
+      - derived
+      - extensions
+      - render
+      - animation
+
+- BoardRuntime operations
+  - move
+- BoardRuntime input controller surface
+  - commitTo

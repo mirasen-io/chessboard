@@ -5,6 +5,8 @@ on:
     workflows: ['CI']
     types:
       - completed
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -22,11 +24,11 @@ jobs:
   #   steps:
   #     - run: ${{ tojson(github) }}
   #       shell: cat {0}
+
   release:
     # prevents this action from running on forks
     if: >-
-      github.repository == 'kt-npm-modules/chessboard' && 
-      github.ref == 'refs/heads/main' && 
+      github.repository == 'mirasen-io/chessboard' && 
       github.event.workflow_run.event == 'push' && 
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
@@ -39,17 +41,5 @@ jobs:
           app-id: ${{ secrets.WORKFLOW_APP_ID }}
           private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
           matrix-node-version: ${{ vars.MATRIX_NODE_VERSION }}
-          cache-additional-path: ${{ vars.CACHE_ADDITIONAL_PATH }}
           # cache-reset: true
-          npm-token: ${{ secrets.NPM_TOKEN }}
-
-  update-pkg-lock:
-    needs: release
-    if: needs.release.outputs.release-branch != ''
-    runs-on: ubuntu-latest
-    steps:
-      - uses: kt-workflows/actions/npm-release-upd-pkg-lock@main
-        with:
-          app-id: ${{ secrets.WORKFLOW_APP_ID }}
-          private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
-          release-branch: ${{ needs.release.outputs.release-branch }}
+          npm-token: ${{ secrets.NPM_TOKEN }} # uncomment if not trusted publishing

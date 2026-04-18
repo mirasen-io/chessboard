@@ -2,9 +2,10 @@ name: Dependabot auto-release
 
 on:
   schedule:
-    - cron: '09 5 1 * *' # At 05:XX on day-of-month 1 (UTC)
+    - cron: '28 5 1 * *' # At 05:XX on day-of-month 1 (UTC)
     # Just for testing purposes - run every 5 minutes
     # - cron: '*/5 * * * *' # Every 5 minutes
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,10 +17,14 @@ jobs:
   #   steps:
   #     - run: ${{ tojson(github) }}
   #       shell: cat {0}
+  # prevents this action from running on forks
   auto-release:
+    if: github.repository == 'mirasen-io/chessboard'
     runs-on: ubuntu-latest
     steps:
       - uses: kt-workflows/actions/dependabot-auto-release@main
         with:
           app-id: ${{ secrets.WORKFLOW_APP_ID }}
           private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          approve-app-id: ${{ secrets.APPROVE_APP_ID }}
+          approve-private-key: ${{ secrets.APPROVE_APP_PRIVATE_KEY }}

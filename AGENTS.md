@@ -1,0 +1,1 @@
+./docs/ai/chessboard-AGENTS.md

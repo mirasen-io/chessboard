@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Chessboard Slate Theme Preview</title>
+		<style>
+			:root {
+				--bg: #0f172a;
+				--panel: #111827;
+				--panel-2: #1f2937;
+				--text: #e5e7eb;
+				--muted: #94a3b8;
+				--border: #334155;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				font-family:
+					Inter,
+					ui-sans-serif,
+					system-ui,
+					-apple-system,
+					BlinkMacSystemFont,
+					'Segoe UI',
+					sans-serif;
+				background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+				color: var(--text);
+				padding: 32px;
+			}
+
+			h1 {
+				margin: 0 0 10px;
+				font-size: 28px;
+			}
+
+			p.lead {
+				margin: 0 0 28px;
+				color: var(--muted);
+				line-height: 1.5;
+				max-width: 900px;
+			}
+
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 20px;
+				align-items: start;
+			}
+
+			.card {
+				background: rgba(17, 24, 39, 0.88);
+				border: 1px solid var(--border);
+				border-radius: 18px;
+				padding: 18px;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+				backdrop-filter: blur(8px);
+			}
+
+			.card h2 {
+				margin: 0 0 8px;
+				font-size: 18px;
+			}
+
+			.sub {
+				color: var(--muted);
+				font-size: 14px;
+				margin-bottom: 14px;
+				min-height: 38px;
+			}
+
+			.board-wrap {
+				display: flex;
+				justify-content: center;
+				margin-bottom: 14px;
+			}
+
+			.board {
+				width: 240px;
+				height: 240px;
+				display: grid;
+				grid-template-columns: repeat(8, 1fr);
+				grid-template-rows: repeat(8, 1fr);
+				border-radius: 12px;
+				overflow: hidden;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+				position: relative;
+			}
+
+			.sq {
+				position: relative;
+				display: flex;
+				align-items: flex-end;
+				justify-content: flex-start;
+				padding: 4px;
+				font-size: 10px;
+				font-weight: 600;
+				user-select: none;
+			}
+
+			.piece {
+				position: absolute;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 24px;
+				line-height: 1;
+				pointer-events: none;
+				text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+			}
+
+			.meta {
+				display: grid;
+				grid-template-columns: 1fr;
+				gap: 6px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 12px;
+				color: #cbd5e1;
+				background: rgba(255, 255, 255, 0.03);
+				border: 1px solid rgba(255, 255, 255, 0.05);
+				border-radius: 12px;
+				padding: 10px 12px;
+			}
+
+			.swatch-row {
+				display: flex;
+				gap: 8px;
+				margin-top: 10px;
+			}
+
+			.swatch {
+				flex: 1;
+				border-radius: 10px;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				overflow: hidden;
+				background: #0b1220;
+			}
+
+			.swatch-color {
+				height: 28px;
+			}
+
+			.swatch-label {
+				padding: 6px 8px;
+				font-size: 11px;
+				color: #cbd5e1;
+				text-align: center;
+				background: rgba(255, 255, 255, 0.03);
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Slate board theme preview</h1>
+		<p class="lead">
+			Сравнение четырёх вариантов рядом. Во всех карточках координаты сделаны контрастными к клетке,
+			чтобы лучше оценить реальную читаемость дефолта. Если какой-то вариант нравится, его можно
+			сразу взять как <code>DEFAULT_RENDER_CONFIG</code>.
+		</p>
+
+		<div class="grid" id="grid"></div>
+
+		<script>
+			const themes = [
+				{
+					name: 'Conservative Slate',
+					note: 'Самый безопасный: холодный, спокойный, без сильного характера.',
+					light: '#d7dde5',
+					dark: '#707a8a',
+					coordLight: '#707a8a',
+					coordDark: '#eef2f7'
+				},
+				{
+					name: 'Balanced Slate',
+					note: 'Хороший middle ground между brand feel и нейтральностью.',
+					light: '#d0d7de',
+					dark: '#596273',
+					coordLight: '#596273',
+					coordDark: '#f3f4f6'
+				},
+				{
+					name: 'Soft Tailwind Slate',
+					note: 'Чуть более familiar web-tooling vibe, мягче и светлее.',
+					light: '#c9d1d9',
+					dark: '#6b7280',
+					coordLight: '#6b7280',
+					coordDark: '#e5e7eb'
+				},
+				{
+					name: 'Branded Deep Slate',
+					note: 'Самый характерный и identity-first, но уже немного тяжелее.',
+					light: '#cfd6df',
+					dark: '#4f5b6b',
+					coordLight: '#4f5b6b',
+					coordDark: '#f8fafc'
+				}
+			];
+
+			const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+			const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+			const pieces = {
+				e8: '♚',
+				d8: '♛',
+				a8: '♜',
+				h8: '♜',
+				c8: '♝',
+				f8: '♝',
+				b8: '♞',
+				g8: '♞',
+				a7: '♟',
+				c7: '♟',
+				d7: '♟',
+				f7: '♟',
+				g7: '♟',
+				h7: '♟',
+				e5: '♟',
+				c6: '♞',
+				e4: '♙',
+				d3: '♘',
+				a2: '♙',
+				b2: '♙',
+				c2: '♙',
+				d2: '♙',
+				f2: '♙',
+				g2: '♙',
+				h2: '♙',
+				a1: '♖',
+				h1: '♖',
+				c1: '♗',
+				f1: '♗',
+				d1: '♕',
+				e1: '♔',
+				g1: '♘'
+			};
+
+			function isLightSquare(fileIndex, rankIndex) {
+				return (fileIndex + rankIndex) % 2 === 0;
+			}
+
+			function createBoard(theme) {
+				const board = document.createElement('div');
+				board.className = 'board';
+
+				ranks.forEach((rank, rankIndex) => {
+					files.forEach((file, fileIndex) => {
+						const sq = document.createElement('div');
+						const coord = file + rank;
+						const light = isLightSquare(fileIndex, rankIndex);
+						sq.className = 'sq';
+						sq.style.background = light ? theme.light : theme.dark;
+						sq.style.color = light ? theme.coordLight : theme.coordDark;
+
+						if (file === 'a' || rank === '1') {
+							const show = [];
+							if (file === 'a') show.push(rank);
+							if (rank === '1') show.push(file);
+							sq.textContent = show.join('');
+						}
+
+						if (pieces[coord]) {
+							const piece = document.createElement('div');
+							piece.className = 'piece';
+							piece.textContent = pieces[coord];
+							sq.appendChild(piece);
+						}
+
+						board.appendChild(sq);
+					});
+				});
+
+				return board;
+			}
+
+			const grid = document.getElementById('grid');
+
+			themes.forEach((theme) => {
+				const card = document.createElement('section');
+				card.className = 'card';
+
+				const h2 = document.createElement('h2');
+				h2.textContent = theme.name;
+
+				const sub = document.createElement('div');
+				sub.className = 'sub';
+				sub.textContent = theme.note;
+
+				const wrap = document.createElement('div');
+				wrap.className = 'board-wrap';
+				wrap.appendChild(createBoard(theme));
+
+				const meta = document.createElement('div');
+				meta.className = 'meta';
+				meta.innerHTML = [
+					`<div>light: ${theme.light}</div>`,
+					`<div>dark: ${theme.dark}</div>`,
+					`<div>coords.light: ${theme.coordLight}</div>`,
+					`<div>coords.dark: ${theme.coordDark}</div>`
+				].join('');
+
+				const swatches = document.createElement('div');
+				swatches.className = 'swatch-row';
+				[
+					['light', theme.light],
+					['dark', theme.dark],
+					['coords L', theme.coordLight],
+					['coords D', theme.coordDark]
+				].forEach(([label, color]) => {
+					const sw = document.createElement('div');
+					sw.className = 'swatch';
+					sw.innerHTML = `<div class="swatch-color" style="background:${color}"></div><div class="swatch-label">${label}</div>`;
+					swatches.appendChild(sw);
+				});
+
+				card.append(h2, sub, wrap, meta, swatches);
+				grid.appendChild(card);
+			});
+		</script>
+	</body>
+</html>
