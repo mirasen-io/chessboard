@@ -17,6 +17,7 @@
 		"test:e2e": "playwright test"
 	},
 	"dependencies": {
+		"@ktarmyshov/assert": "^0.1.9",
 		"@mirasen/chessboard": "file:../.."
 	},
 	"devDependencies": {

@@ -1,5 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { createExtensionSystem } from '../../extensions/factory/main';
+import { assertFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update';
 import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
 import { createLayout } from '../../layout/factory';
 import { createRenderSystem } from '../../render/factory';
@@ -43,7 +44,6 @@ function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInte
 function createExtensionRuntimeSurfaceCommands(
 	getInternalState: () => RuntimeInternal
 ): ExtensionRuntimeSurfaceCommands {
-	// @ts-expect-error - For now we just return partial object. TODO: REMOVE!!!!
 	return {
 		setPosition(input) {
 			const state = getInternalState();
@@ -65,6 +65,25 @@ function createExtensionRuntimeSurfaceCommands(
 			const changed = state.state.board.setTurn(turn, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
+		},
+		move(request) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			const move = state.state.board.move(request, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return move;
+		},
+		requestRender(request) {
+			const state = getInternalState();
+			if (request.state) {
+				const renderRequest: UpdateFrameSnapshot = {
+					isMounted: state.renderSystem.isMounted,
+					state: state.state.getSnapshot(),
+					layout: state.layout.getSnapshot()
+				};
+				assertFrameRenderable(renderRequest);
+				state.renderSystem.requestRender(renderRequest);
+			}
 		},
 		setOrientation(orientation) {
 			const state = getInternalState();

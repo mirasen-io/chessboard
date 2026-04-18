@@ -80,6 +80,39 @@
 		refreshSnapshot();
 	}
 
+	function fileOf(square: number) {
+		return 'abcdefgh'[square % 8];
+	}
+
+	function rankOf(square: number) {
+		return Math.floor(square / 8) + 1;
+	}
+
+	function algebraic(square: number): string {
+		return `${fileOf(square)}${rankOf(square)}`;
+	}
+
+	function randomMove() {
+		if (!runtime) return;
+		const snapshot = runtime.getSnapshot();
+		// find random piece on random square
+		let pieceCode = 0;
+		let fromSquare = '';
+		while (pieceCode <= 0) {
+			const square = Math.floor(Math.random() * 64);
+			pieceCode = snapshot.state.board.pieces[square];
+			fromSquare = algebraic(square);
+		}
+		const toSquare = algebraic(Math.floor(Math.random() * 64));
+		runtime.move({
+			from: fromSquare,
+			to: toSquare
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} as any);
+
+		refreshSnapshot();
+	}
+
 	onMount(() => {
 		runtime = createRuntime({
 			doc: document,
@@ -137,6 +170,7 @@
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={refreshSnapshot}>Refresh snapshot</button>
+			<button onclick={randomMove}>Random move</button>
 		</div>
 
 		<div class="board-wrap">

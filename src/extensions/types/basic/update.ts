@@ -26,3 +26,11 @@ export function isFrameRenderable<T extends UpdateFrameSnapshot>(
 ): frame is T & RenderFrameSnapshot {
 	return frame.isMounted && frame.layout.geometry !== null;
 }
+
+export function assertFrameRenderable<T extends UpdateFrameSnapshot>(
+	frame: T
+): asserts frame is T & RenderFrameSnapshot {
+	if (!isFrameRenderable(frame)) {
+		throw new Error('Frame is not renderable. It must be mounted and have valid geometry.');
+	}
+}
