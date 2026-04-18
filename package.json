@@ -1,7 +1,7 @@
 {
 	"name": "@mirasen/chessboard",
 	"description": "Mirasen Chessboard — open-source chessboard UI library.",
-	"version": "0.1.0",
+	"version": "0.0.1",
 	"license": "MIT",
 	"author": {
 		"name": "Mirasen",
