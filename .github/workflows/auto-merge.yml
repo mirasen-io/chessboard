@@ -19,3 +19,5 @@ jobs:
         with:
           app-id: ${{ secrets.WORKFLOW_APP_ID }}
           private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          approve-app-id: ${{ secrets.APPROVE_APP_ID }}
+          approve-private-key: ${{ secrets.APPROVE_APP_PRIVATE_KEY }}

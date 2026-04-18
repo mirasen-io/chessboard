@@ -4,39 +4,125 @@ on:
   push:
     branches:
       - main
+      - contribution
   pull_request:
 
 # cancel in-progress runs on new commits to same PR (gitub.event.number)
 concurrency:
-  # group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
   group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read # to fetch code (actions/checkout)
   actions: write # to delete cache (actions/cache)
+  pull-requests: read # to check for open PRs (gh pr list)
 
 env:
   # set the default node version to use in the matrix
-  DEFAULT_MATRIX_NODE_VERSION: '[20, 22]'
-  # DEFAULT_CACHE_ADDITIONAL_PATH: 'node_modules/.cache'
+  DEFAULT_MATRIX_NODE_VERSION: '["22", "24"]'
+  DEFAULT_CACHE_RESET: false
 
 jobs:
-  echo:
-    runs-on: ubuntu-latest
-    steps:
-      - run: ${{ tojson(github) }}
-        shell: cat {0}
+  # echo:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: ${{ tojson(github) }}
+  #       shell: cat {0}
 
-  config:
+  check-execution:
     runs-on: ubuntu-latest
     outputs:
-      sonar: ${{ steps.sonar.outputs.sonar }}
-      matrix-node-version: ${{ steps.matrix-node-version.outputs.matrix-node-version }}
-      cache-additional-path: ${{ steps.cache-additional-path.outputs.cache-additional-path }}
+      should-run: ${{ steps.finalize.outputs.should-run }}
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - id: check-event
+        name: Check if there are no open PRs for contribution -> main on push to contribution
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "Checking if the workflow should execute for this event"
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/contribution" ]]; then
+            echo "This is a push event to contribution branch, checking for open PRs..."
+            pr_count=$(gh pr list --head contribution --base main --state open --limit 1 --json number --jq 'length')
+            if [[ "$pr_count" -gt 0 ]]; then
+              echo "There is an open PR for contribution -> main, skipping this workflow to avoid duplicate runs."
+              echo "should-run=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "No open PRs for contribution -> main, proceeding with this workflow."
+              echo "should-run=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "This is not a push event to contribution branch, proceeding with this workflow."
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: check-sync
+        name: Check that push to contribution does not produce content identical to main
+        if: steps.check-event.outputs.should-run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" != "push" || "${{ github.ref }}" != "refs/heads/contribution" ]]; then
+            echo "This is not a push event to contribution branch, proceeding with this workflow."
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Checking whether contribution content is identical to main..."
+
+          git fetch origin main
+
+          main_tree="$(git rev-parse origin/main^{tree})"
+          head_tree="$(git rev-parse HEAD^{tree})"
+
+          echo "origin/main tree: $main_tree"
+          echo "HEAD tree:        $head_tree"
+
+          if [[ "$main_tree" == "$head_tree" ]]; then
+            echo "Contribution content is identical to main, skipping duplicate run."
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Contribution content differs from main, proceeding with this workflow."
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: finalize
+        name: Finalize whether the workflow should run based on previous checks
+        shell: bash
+        run: |
+          if [[ "${{ steps.check-event.outputs.should-run }}" != "true" ]]; then
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ steps.check-sync.outputs.should-run }}" != "true" ]]; then
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  config:
+    needs: check-execution
+    if: needs.check-execution.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix-node-version: ${{ steps.matrix-node-version.outputs.matrix-node-version }}
+      sonar: ${{ steps.sonar.outputs.sonar }}
+      cache-reset: ${{ steps.cache-reset.outputs.cache-reset }}
+    steps:
+      - id: matrix-node-version
+        shell: bash
+        run: |
+          # Set the node version to use in the matrix
+          value='${{ vars.MATRIX_NODE_VERSION || env.DEFAULT_MATRIX_NODE_VERSION || '' }}'
+          printf 'matrix-node-version=%s\n' "$value" >> "$GITHUB_OUTPUT"
+
       - id: sonar
         run: |
+          # Check if the SONAR_TOKEN secret is set, if not skip the sonar job
           if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
             echo "SONAR_TOKEN is not set, skipping sonar job"
             echo "sonar=false" >> "$GITHUB_OUTPUT"
@@ -45,31 +131,10 @@ jobs:
             echo "sonar=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - id: matrix-node-version
+      - id: cache-reset
         run: |
-          # set the node version to use in the matrix
-          if [ -z "${{ vars.MATRIX_NODE_VERSION }}" ]; then
-            echo "MATRIX_NODE_VERSION is not set, using default"
-            # use the default node version
-            echo "matrix-node-version=${{ env.DEFAULT_MATRIX_NODE_VERSION }}" >> "$GITHUB_OUTPUT"
-          else
-            # use the matrix node version
-            echo "MATRIX_NODE_VERSION is set, using matrix node version"
-            echo "matrix-node-version=${{ vars.MATRIX_NODE_VERSION }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - id: cache-additional-path
-        run: |
-          # set the cache additional path to use
-          if [ -z "${{ vars.CACHE_ADDITIONAL_PATH }}" ]; then
-            echo "CACHE_ADDITIONAL_PATH is not set, using default"
-            # use the default cache additional path
-            echo "cache-additional-path=${{ env.DEFAULT_CACHE_ADDITIONAL_PATH }}" >> "$GITHUB_OUTPUT"
-          else
-            # use the cache additional path
-            echo "CACHE_ADDITIONAL_PATH is set, using cache additional path"
-            echo "cache-additional-path=${{ vars.CACHE_ADDITIONAL_PATH }}" >> "$GITHUB_OUTPUT"
-          fi
+          # Set the cache reset to use
+          echo "cache-reset=${{ vars.CACHE_RESET || env.DEFAULT_CACHE_RESET }}" >> "$GITHUB_OUTPUT"
 
   check:
     needs: config
@@ -77,9 +142,8 @@ jobs:
     steps:
       - uses: kt-workflows/actions/npm-ci-check@main
         with:
-          matrix-node-version: needs.config.outputs.matrix-node-version
-          cache-additional-path: needs.config.outputs.cache-additional-path
-          # cache-reset: true
+          matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
 
   test:
     needs: config
@@ -87,23 +151,82 @@ jobs:
     strategy:
       matrix:
         node-version: ${{ fromJson(needs.config.outputs.matrix-node-version) }}
+    env:
+      COVERAGE_DIR: coverage-test-node${{ matrix.node-version }}
     steps:
       - uses: kt-workflows/actions/npm-ci-test@main
         with:
-          # pass the matrix node version to the called workflow
+          # run tests with coverage for SonarCloud
+          run-script: |
+            npm run build
+            npm run coverage
+            mv coverage-test "${COVERAGE_DIR}"
           node-version: ${{ matrix.node-version }}
-          cache-additional-path: ${{ vars.CACHE_ADDITIONAL_PATH }}
-          # cache-reset: true
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.COVERAGE_DIR }}
+          path: ${{ env.COVERAGE_DIR }}
+          if-no-files-found: error
 
   sonar:
+    needs:
+      - config
+      - test
     if: needs.config.outputs.sonar == 'true'
-    needs: config
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # fetch all history for accurate SonarCloud analysis
+
+      - name: Download all coverage artifacts to repo root
+        uses: actions/download-artifact@v5
+        with:
+          pattern: 'coverage-*'
+          path: .
+
       - uses: kt-workflows/actions/npm-ci-sonar@main
         with:
-          matrix-node-version: needs.config.outputs.matrix-node-version
+          checkout: false # already checked out in previous step
+          matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           fail-on-empty-token: true
-          cache-additional-path: ${{ vars.CACHE_ADDITIONAL_PATH }}
-          # cache-reset: true
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
+          install-script: exit 0
+          run-script: |
+            echo 'Workspace root:'
+            ls -la
+            echo
+            echo 'Coverage reports:'
+            find . -maxdepth 2 -name lcov.info | sort
+
+  # Stable aggregate required-* checks for branch protection rules.
+  # This avoids depending directly on individual matrix job statuses.
+  required-main:
+    name: required-main (${{ github.event_name }})
+    needs:
+      - check
+      - test
+      - sonar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs for main
+        shell: bash
+        run: |
+          echo "Required jobs for main are fulfilled"
+
+  required-contribution:
+    name: required-contribution (${{ github.event_name }})
+    needs:
+      - check
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs for contribution
+        shell: bash
+        run: |
+          echo "Required jobs for contribution are fulfilled"

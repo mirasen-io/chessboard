@@ -1,0 +1,58 @@
+name: CONTRIBUTION-RESET
+
+# Resets 'contribution' to match 'main' exactly after a merged PR
+# from contribution -> main. This is needed because contribution -> main
+# uses squash merge, so the branch histories diverge and a normal merge-back
+# would leave contribution ahead with stale commits.
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  reset-contribution:
+    # prevents this action from running on forks
+    if: |
+      github.repository == 'mirasen-io/chessboard' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.ref == 'contribution' &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - id: log-reset-context
+        run: |
+          echo "Merged PR detected:"
+          echo "number: ${{ github.event.pull_request.number }}"
+          echo "head: ${{ github.event.pull_request.head.ref }}"
+          echo "base: ${{ github.event.pull_request.base.ref }}"
+          echo "merge_commit_sha: ${{ github.event.pull_request.merge_commit_sha }}"
+
+      - id: app-token
+        uses: kt-workflows/actions/create-github-app-token@main
+        with:
+          app-id: ${{ secrets.WORKFLOW_APP_ID }}
+          private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
+          configure-git: true
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Reset contribution to main
+        run: |
+          git fetch origin main contribution
+
+          git checkout contribution || git checkout -b contribution origin/contribution
+          git reset --hard origin/main
+          git push origin contribution --force-with-lease

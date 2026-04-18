@@ -5,19 +5,32 @@
 
 version: 2
 updates:
-  - package-ecosystem: 'npm' # See documentation for possible values
-    directory: '/' # Location of package manifests
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
       interval: 'weekly'
-      time: '03:47'
+      time: '03:18'
       timezone: 'Europe/Berlin'
+
     ignore:
       - dependency-name: 'npm'
         versions: ['<10.0.0', '>=11.0.0']
+
     groups:
-      all:
+      minor-and-patch:
         patterns:
           - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      major:
+        patterns:
+          - '*'
+        update-types:
+          - 'major'
+        group-by: dependency-name
+
     commit-message:
       prefix: 'dependabot'
       prefix-development: 'dependabot'
