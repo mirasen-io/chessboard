@@ -1,7 +1,6 @@
 import { WritableDeep } from 'type-fest';
 import { isNonEmptyPieceCode } from '../state/board/check';
 import { fileOf, rankOf } from '../state/board/coords';
-import { fromPieceCode } from '../state/board/piece';
 import { NonEmptyPieceCode, PieceCode, Square, SQUARE_COUNT } from '../state/board/types/internal';
 import { BoardStateSnapshot } from '../state/board/types/main';
 import {
@@ -118,15 +117,11 @@ export function calculateAnimationTracks(
 			continue;
 		}
 		const { pieceCode: code, sq } = removed[ri];
-		const movedCode = movedToSqCode.get(sq);
+		/*const movedCode = movedToSqCode.get(sq);
 		const isCapture =
-			movedCode !== undefined && fromPieceCode(code).color !== fromPieceCode(movedCode).color;
+			movedCode !== undefined && fromPieceCode(code).color !== fromPieceCode(movedCode).color;*/
 		const pieceCode = code;
-		if (isCapture) {
-			tracks.push({ id: nextId++, pieceCode, sq, effect: 'fade-out' });
-		} else {
-			tracks.push({ id: nextId++, pieceCode, sq, effect: 'fade-out' });
-		}
+		tracks.push({ id: nextId++, pieceCode, sq, effect: 'fade-out' });
 	}
 
 	return tracks;
