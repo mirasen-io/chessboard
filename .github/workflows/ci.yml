@@ -167,7 +167,8 @@ jobs:
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
       - name: Upload coverage artifact
-        if: never()
+        # if: always()
+        if: ${{ env.COVERAGE_DIR != '' }}
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.COVERAGE_DIR }}
