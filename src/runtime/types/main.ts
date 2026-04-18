@@ -1,9 +1,9 @@
-import { AnyExtensionDefinition } from '../extensions/types/extension';
-import { ExtensionRuntimeSurfaceCommands } from '../extensions/types/surface/commands';
-import { RuntimeStateInitOptions } from '../state/types';
-import { InputAdapter } from './input/adapter/types';
-import { InteractionController } from './input/controller/types';
-import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from './mutation/pipeline';
+import { AnyExtensionDefinition } from '../../extensions/types/extension';
+import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
+import { RuntimeStateInitOptions } from '../../state/types';
+import { InputAdapter } from '../input/adapter/types';
+import { InteractionController } from '../input/controller/types';
+import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from '../mutation/pipeline';
 
 export type RuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
 

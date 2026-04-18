@@ -6,7 +6,7 @@ import {
 	ExtensionSystemInitOptions,
 	ExtensionSystemInternal
 } from '../types/main';
-import { extensionSystemUpdateState } from '../update';
+import { extensionSystemUpdateState, extensionSystemUpdateUIMoveRequest } from '../update';
 import { createExtensionRuntimeSurface } from './runtime';
 
 function createExtensionSystemInternal(
@@ -84,6 +84,9 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		},
 		onUpdate(request) {
 			extensionSystemUpdateState(internalState, request);
+		},
+		onUIMoveRequest(context) {
+			extensionSystemUpdateUIMoveRequest(internalState, context);
 		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();

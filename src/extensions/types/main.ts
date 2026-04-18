@@ -3,6 +3,7 @@ import { ExtensionInvalidationState } from '../invalidation/types';
 import { ExtensionAnimationControllerInternalSurface } from './basic/animation';
 import { SceneEventType } from './basic/events';
 import { UpdateFrameSnapshot } from './basic/update';
+import { ExtensionUIMoveRequestContext } from './context/ui-move';
 import { AnyExtensionDefinition, AnyExtensionInstance } from './extension';
 import { ExtensionRuntimeSurfaceCommands } from './surface/commands';
 
@@ -42,6 +43,7 @@ export interface ExtensionSystem {
 	getPublicRecord(): Readonly<Record<string, unknown>>;
 	getSharedDataForRenderSystem(): ExtensionSystemSharedDataForRenderSystem;
 	onUpdate(request: ExtensionSystemUpdateRequest): void;
+	onUIMoveRequest(context: ExtensionUIMoveRequestContext): void;
 	onUnmount(): void;
 	onDestroy(): void;
 }

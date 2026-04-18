@@ -17,7 +17,7 @@ import type {
 	RuntimeInitOptionsInternal,
 	RuntimeInternal,
 	RuntimeStatus
-} from '../types';
+} from '../types/main';
 import { createRuntimeInteractionSurface } from './input';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {

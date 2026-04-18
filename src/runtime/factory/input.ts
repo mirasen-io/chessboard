@@ -1,12 +1,11 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check';
-import { MoveRequest } from '../../state/board/types/internal';
 import { DragSession } from '../../state/interaction/types/internal';
 import { InteractionStateSelected } from '../../state/interaction/types/main';
 import { RuntimeInteractionSurface } from '../input/controller/types';
 import { runtimeRunMutationPipeline } from '../mutation/run';
-import { GetInternalState } from '../types';
-import { convertDestinationToMoveInput } from './helpers';
+import { GetInternalState } from '../types/main';
+import { uiMoveCompleteTo } from './helpers';
 
 export function createRuntimeInteractionSurface(
 	state: GetInternalState
@@ -60,29 +59,10 @@ export function createRuntimeInteractionSurface(
 				dragSession.type === 'lifted-piece-drag',
 				'dropTo requires a lifted-piece-drag session'
 			);
-			assert(
-				dragSession.targetSquare === target,
-				'dropTo target must match drag session current target'
-			);
-			assert(interaction.selected !== null, 'dropTo requires a selected piece');
-			assert(!isEmptyPieceCode(interaction.selected.pieceCode), 'Selected piece must be valid');
-			assert(
-				dragSession.sourceSquare === interaction.selected.square,
-				'drag session source must match selected square'
-			);
 
-			const destination = interaction.activeDestinations.get(target);
-			const moveRequest: MoveRequest = destination
-				? convertDestinationToMoveInput(dragSession.sourceSquare, destination)
-				: { from: dragSession.sourceSquare, to: target };
-			// TODO: Deferred Move Input flow: Notify extensions, move.isDeferred
-			// TODO: Also dropTo and releaseTo have very similar logic, can we extract a common function/logic?
-			const move = internalState.state.board.move(moveRequest, mutationSession);
+			uiMoveCompleteTo(internalState, target);
 			mutationSession.addMutation('runtime.interaction.dropTo', true);
-
-			interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(internalState);
-			return move;
 		},
 		releaseTo(target) {
 			const internalState = state();
@@ -95,27 +75,9 @@ export function createRuntimeInteractionSurface(
 				dragSession.type === 'release-targeting',
 				'releaseTo requires a release-targeting session'
 			);
-			assert(
-				dragSession.targetSquare === target,
-				'releaseTo target must match drag session current target'
-			);
-			assert(interaction.selected !== null, 'releaseTo requires a selected piece');
-			assert(!isEmptyPieceCode(interaction.selected.pieceCode), 'Selected piece must be valid');
-			assert(
-				dragSession.sourceSquare === interaction.selected.square,
-				'drag session source must match selected square'
-			);
-
-			const destination = interaction.activeDestinations.get(target);
-			const moveRequest: MoveRequest = destination
-				? convertDestinationToMoveInput(dragSession.sourceSquare, destination)
-				: { from: dragSession.sourceSquare, to: target };
-			const move = internalState.state.board.move(moveRequest, mutationSession);
+			uiMoveCompleteTo(internalState, target);
 			mutationSession.addMutation('runtime.interaction.releaseTo', true);
-
-			interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(internalState);
-			return move;
 		},
 		startReleaseTargetingDrag(source, target): void {
 			const internalState = state();

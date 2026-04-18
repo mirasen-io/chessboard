@@ -1,3 +1,4 @@
+import { ExtensionUIMoveRequestContext } from './types/context/ui-move';
 import {
 	ExtensionUpdateContext,
 	ExtensionUpdateContextCommon,
@@ -30,4 +31,15 @@ export function extensionSystemUpdateState(
 		extension.instance.onUpdate(context);
 	}
 	state.currentFrame = request.state;
+}
+
+export function extensionSystemUpdateUIMoveRequest(
+	state: ExtensionSystemInternal,
+	context: ExtensionUIMoveRequestContext
+): void {
+	for (const extension of state.extensions.values()) {
+		if (extension.instance.onUIMoveRequest) {
+			extension.instance.onUIMoveRequest(context);
+		}
+	}
 }

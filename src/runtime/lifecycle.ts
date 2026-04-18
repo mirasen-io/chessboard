@@ -2,7 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { RenderSystem } from '../render/types';
 import { createInputAdapter } from './input/adapter/factory';
 import { runtimeRefreshGeometry } from './layout';
-import { RuntimeInternal } from './types';
+import { RuntimeInternal } from './types/main';
 
 export function runtimeIsMounted(state: RuntimeInternal): boolean {
 	return state.renderSystem.isMounted;

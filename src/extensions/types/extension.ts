@@ -8,6 +8,7 @@ import {
 } from './context/animation';
 import { ExtensionRenderContext } from './context/render';
 import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals';
+import { ExtensionUIMoveRequestContext } from './context/ui-move';
 import { ExtensionUpdateContext } from './context/update';
 import { ExtensionRuntimeSurface } from './surface/main';
 
@@ -19,6 +20,7 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	destroy(): void;
 	// Render state cycle
 	onUpdate(context: ExtensionUpdateContext): void;
+	onUIMoveRequest?(context: ExtensionUIMoveRequestContext): void;
 	render?(context: ExtensionRenderContext): void;
 	// Animation
 	prepareAnimation?(context: ExtensionPrepareAnimationContext): void;
