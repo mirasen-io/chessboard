@@ -429,6 +429,58 @@ Notes:
   - verify extension input/output behavior
   - do not turn them into broad renderer snapshot suites unless needed
 
+### 4.6 Promotion flow + minimal deferred-input subscription surface
+
+**Status: PLANNED**
+
+Goal:
+
+- complete the first promotion flow for UI-originated moves
+- validate deferred UI move handling through a real first-party extension
+- add only the minimal subscription/runtime surfaces required for the promotion chooser lifecycle
+
+Why:
+
+- the current early public package is already usable for `0.1.x`, but promotion remains the main missing functional interaction step
+- promotion is the first real proof point for deferred UI move handling, extension-owned temporary UI state, and extension-managed pointer-event capture during a pending choice flow
+- this step should validate the smallest viable subscription model before any broader event-platform expansion
+
+Scope:
+
+- detect promotion ambiguity through the existing UI move request path
+- allow the promotion extension to defer the UI move request
+- let the extension enter a pending promotion mode with internal data-only pending state
+- keep `onUiMoveRequest` narrow: identify the case, store pending state, call `defer()`
+- use `onUpdate` as the lifecycle owner for:
+  - subscribing to pointer input needed by the chooser
+  - unsubscribing during cleanup
+  - enabling transient-visual participation for chooser hover/press feedback
+  - setting invalidation as needed for chooser lifecycle changes
+- render the stable chooser structure in the normal extension render path
+- render hover / pressed / preview feedback in transient visuals
+- allow chooser pointer handling to consume board input while the pending promotion UI is active
+- provide a narrow deferred-resolution path for:
+  - committing the deferred promotion choice
+  - cancelling the deferred promotion choice
+
+Constraints:
+
+- do not broaden this step into a general event-platform redesign
+- do not add keyboard, accessibility, or generalized modal-management scope here
+- do not redesign programmatic `move(...)`; promotion ambiguity remains a UI move interpretation concern
+- do not store live deferred request objects in public snapshots
+- keep the new subscription/runtime surface minimal and justified by the promotion use case
+
+Done when:
+
+- a UI move that requires promotion can be deferred and completed through a first-party promotion chooser
+- the promotion extension can subscribe/unsubscribe to the required pointer events through the runtime surface
+- chooser interactions can consume relevant pointer events while active
+- chooser structure renders through the normal render path
+- chooser hover/press feedback renders through transient visuals
+- deferred commit and deferred cancel both clean up correctly
+- the step is validated manually in the runtime/manual environment and through the package-level usage path where practical
+
 ---
 
 ## Phase 5 — Public API shaping
