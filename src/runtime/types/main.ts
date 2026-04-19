@@ -1,5 +1,6 @@
 import { AnyExtensionDefinition } from '../../extensions/types/extension.js';
 import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands.js';
+import { ExtensionRuntimeSurfaceEvents } from '../../extensions/types/surface/events.js';
 import { RuntimeStateInitOptions } from '../../state/types.js';
 import { InputAdapter } from '../input/adapter/types.js';
 import { InteractionController } from '../input/controller/types.js';
@@ -24,6 +25,7 @@ export interface RuntimeInitOptions {
 
 export interface RuntimeInitOptionsInternal extends RuntimeInitOptions {
 	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommands;
+	extensionRuntimeSurfaceEvents: ExtensionRuntimeSurfaceEvents;
 	getInternalState: GetInternalState;
 }
 

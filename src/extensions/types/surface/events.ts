@@ -1,6 +1,4 @@
-import { SceneEventType } from '../basic/events.js';
-
 export interface ExtensionRuntimeSurfaceEvents {
-	subscribe(events: Iterable<SceneEventType>): void;
-	unsubscribe(events?: Iterable<SceneEventType>): void;
+	subscribeEvent<K extends keyof HTMLElementEventMap>(type: K): void;
+	unsubscribeEvent<K extends keyof HTMLElementEventMap>(type: K): void;
 }

@@ -66,11 +66,19 @@ function mapScenePointToSquare(point: ScenePoint, geometry: SceneRenderGeometry)
 	const boardSize = boardRect.width;
 	const squareSize = geometry.squareSize;
 
-	if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) return null;
+	if (
+		x < boardRect.x ||
+		x >= boardRect.x + boardSize ||
+		y < boardRect.y ||
+		y >= boardRect.y + boardSize
+	)
+		return null;
 
 	// Grid cell indices, each in [0, 7].
 	const xIndex = Math.floor((x - boardRect.x) / squareSize);
 	const yIndex = Math.floor((y - boardRect.y) / squareSize);
+
+	if (xIndex < 0 || xIndex > 7 || yIndex < 0 || yIndex > 7) return null;
 
 	// Invert the orientation mapping used by geometry.squareRect:
 	//   white: xIndex = file,     yIndex = 7 - rank  →  file = xIndex,     rank = 7 - yIndex

@@ -23,6 +23,7 @@ function createExtensionSystemInternal(
 			runtimeSurface: createExtensionRuntimeSurface(
 				getInternalState,
 				options.extensionRuntimeSurfaceCommands,
+				options.extensionRuntimeSurfaceEvents,
 				extensionDef
 			)
 		});
@@ -89,8 +90,15 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			extensionSystemUpdateUIMoveRequest(internalState, context);
 		},
 		onEvent(context) {
-			// TODO: Implement
-			console.log('Received event in extension system:', context);
+			const subscribers = internalState.eventSubscribers.get(context.rawEvent.type);
+			if (subscribers) {
+				for (const extensionId of subscribers) {
+					const extensionRec = internalState.extensions.get(extensionId);
+					if (extensionRec) {
+						extensionRec.instance.onEvent?.(context);
+					}
+				}
+			}
 		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();

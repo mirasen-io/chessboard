@@ -3,6 +3,7 @@ import type { ExtensionAnimationController } from '../types/basic/animation.js';
 import type { AnyExtensionDefinition } from '../types/extension.js';
 import type { GetInternalState } from '../types/main.js';
 import type { ExtensionRuntimeSurfaceCommands } from '../types/surface/commands.js';
+import { ExtensionRuntimeSurfaceEvents } from '../types/surface/events.js';
 import type { ExtensionRuntimeSurface } from '../types/surface/main.js';
 import type { ExtensionRuntimeSurfaceTransientVisuals } from '../types/surface/transient-visuals.js';
 
@@ -49,15 +50,52 @@ function createExtensionRuntimeSurfaceAnimation(
 	};
 }
 
+function createExtensionRuntimeSurfaceEvents(
+	getInternalState: GetInternalState,
+	runtimeSurfaceEvents: ExtensionRuntimeSurfaceEvents,
+	extensionDef: AnyExtensionDefinition
+): ExtensionRuntimeSurfaceEvents {
+	return {
+		subscribeEvent(type) {
+			const internalState = getInternalState();
+			const extensionRec = internalState.extensions.get(extensionDef.id);
+			assert(extensionRec, 'Extension record not found for subscribing to events');
+			assert(
+				extensionRec.instance.onEvent,
+				'Extension instance does not have an onEvent handler for subscribing to events'
+			);
+			let subscribers = internalState.eventSubscribers.get(type);
+			if (!subscribers) {
+				subscribers = new Set<string>();
+				internalState.eventSubscribers.set(type, subscribers);
+			}
+			subscribers.add(extensionDef.id);
+			runtimeSurfaceEvents.subscribeEvent(type);
+		},
+		unsubscribeEvent(type) {
+			const internalState = getInternalState();
+			const subscribers = internalState.eventSubscribers.get(type);
+			if (subscribers) {
+				subscribers.delete(extensionDef.id);
+				if (subscribers.size === 0) {
+					internalState.eventSubscribers.delete(type);
+					runtimeSurfaceEvents.unsubscribeEvent(type);
+				}
+			}
+		}
+	};
+}
+
 export function createExtensionRuntimeSurface(
 	getInternalState: GetInternalState,
 	commands: ExtensionRuntimeSurfaceCommands,
+	events: ExtensionRuntimeSurfaceEvents,
 	extensionDef: AnyExtensionDefinition
 ): ExtensionRuntimeSurface {
-	// @ts-expect-error We will implement events later, for now we just return empty object for it to satisfy the interface
 	return {
 		commands,
 		animation: createExtensionRuntimeSurfaceAnimation(getInternalState, extensionDef),
-		transientVisuals: createExtensionRuntimeSurfaceTransientVisuals(getInternalState, extensionDef)
+		transientVisuals: createExtensionRuntimeSurfaceTransientVisuals(getInternalState, extensionDef),
+		events: createExtensionRuntimeSurfaceEvents(getInternalState, events, extensionDef)
 	};
 }

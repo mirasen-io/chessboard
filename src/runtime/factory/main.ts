@@ -19,6 +19,7 @@ import type {
 	RuntimeInternal,
 	RuntimeStatus
 } from '../types/main.js';
+import { createExtensionRuntimeSurfaceEvents } from './events.js';
 import { createRuntimeInteractionSurface } from './input.js';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
@@ -157,12 +158,14 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 	}
 
 	// Create RuntimeExtensionSurface to pass to the extension system for initialization of extension instances
-	const extensionSurface = createExtensionRuntimeSurfaceCommands(getInternalState);
+	const extensionSurfaceCommands = createExtensionRuntimeSurfaceCommands(getInternalState);
+	const extensionSurfaceEvents = createExtensionRuntimeSurfaceEvents(getInternalState);
 
 	// Now construct the internal state
 	const optionsInternal: RuntimeInitOptionsInternal = {
 		...options,
-		extensionRuntimeSurfaceCommands: extensionSurface,
+		extensionRuntimeSurfaceCommands: extensionSurfaceCommands,
+		extensionRuntimeSurfaceEvents: extensionSurfaceEvents,
 		getInternalState
 	};
 	internalState = createRuntimeInternal(optionsInternal);
@@ -196,7 +199,7 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 			internalStatus = 'destroyed';
 			internalState = null;
 		},
-		...extensionSurface,
+		...extensionSurfaceCommands,
 		getExtensionsPublicRecord() {
 			return getInternalState().extensionSystem.getPublicRecord();
 		}

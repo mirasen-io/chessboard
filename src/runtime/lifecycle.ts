@@ -28,18 +28,18 @@ export function runtimeValidateIsNotMounted(state: RuntimeInternal): void {
 
 export function runtimeMount(state: RuntimeInternal, container: HTMLElement): void {
 	runtimeValidateIsNotMounted(state);
-	state.renderSystem.mount(container);
-	state.resizeObserver = new ResizeObserver(() => {
-		runtimeRefreshGeometry(state);
-	});
-	// Observe will cause immediate first callback!
-	state.resizeObserver.observe(container);
 	assert(state.inputAdapter === null, 'Input adapter should not be initialized before mounting');
 	state.inputAdapter = createInputAdapter({
 		container,
 		getRenderGeometry: () => state.layout.geometry,
 		controller: state.interactionController
 	});
+	state.renderSystem.mount(container);
+	state.resizeObserver = new ResizeObserver(() => {
+		runtimeRefreshGeometry(state);
+	});
+	// Observe will cause immediate first callback!
+	state.resizeObserver.observe(container);
 }
 
 export function runtimeUnmount(state: RuntimeInternal): void {
