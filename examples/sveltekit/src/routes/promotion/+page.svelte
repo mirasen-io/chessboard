@@ -7,7 +7,7 @@
 	let snapshotText = $state('');
 
 	const START_POSITION: PiecePositionRecordString = {
-		a7: 'wP'
+		e7: 'wP'
 	} as const;
 
 	function refreshSnapshot() {
@@ -51,7 +51,12 @@
 					pieces: START_POSITION
 				},
 				interaction: {
-					movability: { mode: 'free' }
+					movability: {
+						mode: 'strict',
+						destinations: (source) => {
+							if (source === 'e7') return [{ to: 'e8', promotedTo: ['B', 'R', 'N', 'Q'] }];
+						}
+					}
 				}
 			}
 		});
