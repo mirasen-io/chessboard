@@ -1,20 +1,37 @@
 import assert from '@ktarmyshov/assert';
-import {
-	SCENE_POINTER_EVENT_TYPES,
-	ScenePointerEvent,
-	ScenePointerEventType
-} from '../../../extensions/types/basic/events.js';
-import { ScenePoint } from '../../../extensions/types/basic/transient-visuals.js';
-import { Square } from '../../../state/board/types/internal.js';
-import { clampBoardPoint, mapBoardPointToSquare } from './helpers.js';
+import { ALL_SCENE_POINTER_EVENT_TYPES } from '../../../extensions/types/basic/events.js';
+import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
+import { makeScenePointerEvent } from './helpers.js';
 import { InputAdapterInternal } from './types.js';
 
-const validPointerEventTypes = new Set<string>(SCENE_POINTER_EVENT_TYPES);
+export function pointerEventHandler(
+	state: InputAdapterInternal,
+	e: PointerEvent
+): ExtensionOnEventContext {
+	assert(ALL_SCENE_POINTER_EVENT_TYPES.has(e.type), `Unexpected pointer event type: ${e.type}`);
+	// First convert to scene event for controller
+	const sceneEvent = makeScenePointerEvent(state, e);
+	// Then handle pointer event within the adapter logic (e.g. tracking active pointer, capturing, etc.)
+	pointerEventAdapterHandler(state, e);
+	// Then create context and pass to controller for extension handling
+	return {
+		rawEvent: e,
+		sceneEvent
+	};
+}
 
-export type PointerRelevantEvent = PointerEvent & { type: ScenePointerEventType };
-
-export function isPointerRelevantEvent(e: PointerEvent): e is PointerRelevantEvent {
-	return e instanceof PointerEvent && validPointerEventTypes.has(e.type);
+function pointerEventAdapterHandler(state: InputAdapterInternal, e: PointerEvent): void {
+	switch (e.type) {
+		case 'pointerdown':
+			adapterOnPointerDown(state, e);
+			break;
+		case 'pointerup':
+			adapterOnPointerUp(state, e);
+			break;
+		case 'pointercancel':
+			adapterOnPointerCancel(state, e);
+			break;
+	}
 }
 
 /** Release capture for the currently tracked pointer and clear tracking state. */
@@ -26,95 +43,29 @@ export function releaseCapture(state: InputAdapterInternal): void {
 	state.activePointerId = null;
 }
 
-interface PointerTarget {
-	target: Square | null;
-	rawPoint: ScenePoint | null;
-	clampedPoint: ScenePoint | null;
-}
-
-function resolvePointerTarget(state: InputAdapterInternal, e: PointerEvent): PointerTarget {
-	const geometry = state.getGeometry();
-	if (!geometry) return { target: null, rawPoint: null, clampedPoint: null };
-	const rect = state.container.getBoundingClientRect();
-	const x = e.clientX - rect.left;
-	const y = e.clientY - rect.top;
-	const target = mapBoardPointToSquare(x, y, geometry);
-	const point: ScenePoint = { x, y };
-	return { target, rawPoint: point, clampedPoint: clampBoardPoint(point, geometry) };
-}
-
-function makeBoardPointerEvent(
-	e: PointerRelevantEvent,
-	pointerTarget: PointerTarget
-): ScenePointerEvent {
-	assert(
-		e.defaultPrevented === false,
-		'Expected event to be unhandled before making BoardPointerEvent'
-	);
-	let defaultPrevented = false;
-	return {
-		type: e.type,
-		// DOM part
-		pointerId: e.pointerId,
-		isPrimary: e.isPrimary,
-		button: e.button,
-		buttons: e.buttons,
-		ctrlKey: e.ctrlKey,
-		altKey: e.altKey,
-		shiftKey: e.shiftKey,
-		metaKey: e.metaKey,
-		// Board part
-		rawPoint: pointerTarget.rawPoint,
-		clampedPoint: pointerTarget.clampedPoint,
-		target: pointerTarget.target,
-		// Mechanics
-		get defaultPrevented() {
-			return defaultPrevented;
-		},
-		preventDefault() {
-			defaultPrevented = true;
-		}
-	};
-}
-
-export function onPointerDown(state: InputAdapterInternal, e: PointerRelevantEvent): void {
+export function adapterOnPointerDown(state: InputAdapterInternal, e: PointerEvent): void {
+	assert(e.type === 'pointerdown', `Expected pointerdown event, got ${e.type}`);
 	if (!e.isPrimary) return; // ignore non-primary pointers
 	if (state.activePointerId !== null) return; // already tracking
 	state.activePointerId = e.pointerId;
 	state.container.setPointerCapture(e.pointerId);
-	const pointerTarget = resolvePointerTarget(state, e);
-	const boardEvent = makeBoardPointerEvent(e, pointerTarget);
-	e.preventDefault(); // prevent native text selection during drag
-	state.controller.onEvent(boardEvent);
 }
 
-export function onPointerMove(state: InputAdapterInternal, e: PointerRelevantEvent): void {
+export function adapterOnPointerUp(state: InputAdapterInternal, e: PointerEvent): void {
+	assert(e.type === 'pointerup', `Expected pointerup event, got ${e.type}`);
 	if (e.pointerId !== state.activePointerId) return;
-	const pointerTarget = resolvePointerTarget(state, e);
-	const boardEvent = makeBoardPointerEvent(e, pointerTarget);
-	e.preventDefault(); // prevent native text selection during drag
-	state.controller.onEvent(boardEvent);
-}
-
-export function onPointerUp(state: InputAdapterInternal, e: PointerRelevantEvent): void {
-	if (e.pointerId !== state.activePointerId) return;
-	const pointerTarget = resolvePointerTarget(state, e); // resolve before releasing capture
 	releaseCapture(state);
-	const boardEvent = makeBoardPointerEvent(e, pointerTarget);
-	state.controller.onEvent(boardEvent);
 }
 
-export function onPointerCancel(state: InputAdapterInternal, e: PointerRelevantEvent): void {
+export function adapterOnPointerCancel(state: InputAdapterInternal, e: PointerEvent): void {
+	assert(e.type === 'pointercancel', `Expected pointercancel event, got ${e.type}`);
 	if (e.pointerId !== state.activePointerId) return;
-	const pointerTarget = resolvePointerTarget(state, e); // resolve before releasing capture
 	releaseCapture(state);
-	const boardEvent = makeBoardPointerEvent(e, pointerTarget);
-	state.controller.onEvent(boardEvent);
 }
 
-export function onPointerLeave(state: InputAdapterInternal, e: PointerRelevantEvent): void {
-	if (e.pointerId !== state.activePointerId) return;
-	const pointerTarget = resolvePointerTarget(state, e);
-	const boardEvent = makeBoardPointerEvent(e, pointerTarget);
-	state.controller.onEvent(boardEvent);
+export function pointerEventDestroy(state: InputAdapterInternal): void {
+	if (state.activePointerId !== null) {
+		releaseCapture(state);
+	}
+	state.activePointerId = null;
 }

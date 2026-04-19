@@ -1,48 +1,38 @@
 import { Square } from '../../../state/board/types/internal.js';
 import { ScenePoint } from '../basic/transient-visuals.js';
 
-interface SceneEventBase {
-	readonly defaultPrevented: boolean;
-	preventDefault(): void;
-}
-
-export interface ScenePointerEvent extends SceneEventBase {
+export interface ScenePointerEvent {
 	// DOM part
-	readonly type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel' | 'pointerleave';
-	readonly pointerId: number;
-	readonly isPrimary: boolean;
-	readonly button: number;
-	readonly buttons: number;
-	readonly ctrlKey: boolean;
-	readonly altKey: boolean;
-	readonly shiftKey: boolean;
-	readonly metaKey: boolean;
-	// Scene part
-	readonly rawPoint: ScenePoint | null; // null if geometry unavailable
-	readonly clampedPoint: ScenePoint | null; // null if geometry unavailable
-	readonly target: Square | null;
+	readonly type:
+		| 'pointercancel'
+		| 'pointerdown'
+		| 'pointerenter'
+		| 'pointerleave'
+		| 'pointermove'
+		| 'pointerout'
+		| 'pointerover'
+		| 'pointerrawupdate'
+		| 'pointerup';
+	// Points in scene coordinates
+	readonly point: ScenePoint;
+	readonly clampedPoint: ScenePoint;
+	// Clamped to board rect in scene coordinates if geometry is available
+	readonly boardClampedPoint: ScenePoint | null;
+	readonly targetSquare: Square | null;
 }
 
-export type ScenePointerEventType = ScenePointerEvent['type'];
-export const SCENE_POINTER_EVENT_TYPES: ScenePointerEventType[] = [
-	'pointerdown',
-	'pointermove',
-	'pointerup',
+export const ALL_SCENE_POINTER_EVENT_TYPES: ReadonlySet<string> = new Set([
 	'pointercancel',
-	'pointerleave'
-];
+	'pointerdown',
+	'pointerenter',
+	'pointerleave',
+	'pointermove',
+	'pointerout',
+	'pointerover',
+	'pointerrawupdate',
+	'pointerup'
+]);
 
-export interface SceneKeyboardEvent extends SceneEventBase {
-	readonly type: 'keydown' | 'keyup';
-	// DOM part
-	readonly key: string;
-	readonly repeat: boolean;
-	readonly ctrlKey: boolean;
-	readonly altKey: boolean;
-	readonly shiftKey: boolean;
-	readonly metaKey: boolean;
-}
-
-export type SceneEvent = ScenePointerEvent | SceneKeyboardEvent;
+export type SceneEvent = ScenePointerEvent;
 
 export type SceneEventType = SceneEvent['type'];

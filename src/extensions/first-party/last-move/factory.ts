@@ -85,13 +85,13 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 				return;
 			}
 			const geometry = context.currentFrame.layout.geometry;
-			const rFrom = geometry.squareRect(fromSq);
-			const rTo = geometry.squareRect(toSq);
+			const rFrom = geometry.getSquareRect(fromSq);
+			const rTo = geometry.getSquareRect(toSq);
 			const rectFromAttributes = {
 				x: rFrom.x.toString(),
 				y: rFrom.y.toString(),
-				width: rFrom.size.toString(),
-				height: rFrom.size.toString(),
+				width: rFrom.width.toString(),
+				height: rFrom.height.toString(),
 				fill: internalState.config.color,
 				'fill-opacity': internalState.config.opacity.toString(),
 				'shape-rendering': 'crispEdges'
@@ -99,8 +99,8 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 			const rectToAttributes = {
 				x: rTo.x.toString(),
 				y: rTo.y.toString(),
-				width: rTo.size.toString(),
-				height: rTo.size.toString(),
+				width: rTo.width.toString(),
+				height: rTo.height.toString(),
 				fill: internalState.config.color,
 				'fill-opacity': internalState.config.opacity.toString(),
 				'shape-rendering': 'crispEdges'

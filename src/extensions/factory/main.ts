@@ -88,6 +88,10 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		onUIMoveRequest(context) {
 			extensionSystemUpdateUIMoveRequest(internalState, context);
 		},
+		onEvent(context) {
+			// TODO: Implement
+			console.log('Received event in extension system:', context);
+		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();
 			internalState.eventSubscribers.clear();

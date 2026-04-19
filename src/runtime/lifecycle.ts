@@ -37,7 +37,7 @@ export function runtimeMount(state: RuntimeInternal, container: HTMLElement): vo
 	assert(state.inputAdapter === null, 'Input adapter should not be initialized before mounting');
 	state.inputAdapter = createInputAdapter({
 		container,
-		getGeometry: () => state.layout.geometry,
+		getRenderGeometry: () => state.layout.geometry,
 		controller: state.interactionController
 	});
 }

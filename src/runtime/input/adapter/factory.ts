@@ -1,18 +1,16 @@
+import assert from '@ktarmyshov/assert';
+import { eventDestroy, eventHandler } from './event.js';
 import {
-	isPointerRelevantEvent,
-	onPointerCancel,
-	onPointerDown,
-	onPointerLeave,
-	onPointerMove,
-	onPointerUp,
-	releaseCapture
-} from './pointer.js';
-import { InputAdapter, InputAdapterInitOptions, InputAdapterInternal } from './types.js';
+	InputAdapter,
+	InputAdapterInitOptions,
+	InputAdapterInternal,
+	NEED_EVENT_TYPES
+} from './types.js';
 
 function createInputAdapterInternal(options: InputAdapterInitOptions): InputAdapterInternal {
 	return {
 		container: options.container,
-		getGeometry: options.getGeometry,
+		getRenderGeometry: options.getRenderGeometry,
 		controller: options.controller,
 		activePointerId: null
 	};
@@ -20,42 +18,29 @@ function createInputAdapterInternal(options: InputAdapterInitOptions): InputAdap
 
 export function createInputAdapter(options: InputAdapterInitOptions): InputAdapter {
 	const internalState = createInputAdapterInternal(options);
-	const onPointerDownHandler = (e: PointerEvent) => {
-		if (!isPointerRelevantEvent(e)) return;
-		onPointerDown(internalState, e);
-	};
-	const onPointerMoveHandler = (e: PointerEvent) => {
-		if (!isPointerRelevantEvent(e)) return;
-		onPointerMove(internalState, e);
-	};
-	const onPointerUpHandler = (e: PointerEvent) => {
-		if (!isPointerRelevantEvent(e)) return;
-		onPointerUp(internalState, e);
-	};
-	const onPointerCancelHandler = (e: PointerEvent) => {
-		if (!isPointerRelevantEvent(e)) return;
-		onPointerCancel(internalState, e);
-	};
-	const onPointerLeaveHandler = (e: PointerEvent) => {
-		if (!isPointerRelevantEvent(e)) return;
-		onPointerLeave(internalState, e);
+	const onEventHander = (e: Event) => {
+		eventHandler(internalState, e);
 	};
 	const inputAdapter: InputAdapter = {
+		subscribeEvent(type) {
+			internalState.container.addEventListener(type, onEventHander);
+		},
+		unsubscribeEvent(type) {
+			assert(
+				NEED_EVENT_TYPES.has(type),
+				`Unsubscribe for event type ${type} is not supported. This is required event type for the board to function properly.`
+			);
+			internalState.container.removeEventListener(type, onEventHander);
+		},
 		destroy() {
-			if (internalState.activePointerId !== null) {
-				releaseCapture(internalState);
+			for (const type of NEED_EVENT_TYPES) {
+				internalState.container.removeEventListener(type, onEventHander);
 			}
-			internalState.container.removeEventListener('pointerdown', onPointerDownHandler);
-			internalState.container.removeEventListener('pointermove', onPointerMoveHandler);
-			internalState.container.removeEventListener('pointerup', onPointerUpHandler);
-			internalState.container.removeEventListener('pointercancel', onPointerCancelHandler);
-			internalState.container.removeEventListener('pointerleave', onPointerLeaveHandler);
+			eventDestroy(internalState);
 		}
 	};
-	internalState.container.addEventListener('pointerdown', onPointerDownHandler);
-	internalState.container.addEventListener('pointermove', onPointerMoveHandler);
-	internalState.container.addEventListener('pointerup', onPointerUpHandler);
-	internalState.container.addEventListener('pointercancel', onPointerCancelHandler);
-	internalState.container.addEventListener('pointerleave', onPointerLeaveHandler);
+	for (const type of NEED_EVENT_TYPES) {
+		internalState.container.addEventListener(type, onEventHander);
+	}
 	return inputAdapter;
 }

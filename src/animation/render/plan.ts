@@ -1,5 +1,5 @@
 import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
-import type { RenderGeometry } from '../../layout/geometry/types.js';
+import type { SceneRenderGeometry } from '../../layout/geometry/types.js';
 import type { AnimationPlan } from '../types.js';
 import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade.js';
 import { cleanMoveTrack, prepareMoveTrack, renderMoveTrack } from './move.js';
@@ -12,7 +12,7 @@ import type { PreparedNodeMap, PreparedTrackNode } from './types.js';
  */
 export function prepareAnimationPlan(
 	plan: AnimationPlan,
-	geometry: RenderGeometry,
+	geometry: SceneRenderGeometry,
 	pieceUrls: PieceUrls,
 	layer: SVGElement
 ): PreparedNodeMap {
@@ -40,7 +40,7 @@ export function prepareAnimationPlan(
 
 export function renderAnimationPlan(
 	nodes: PreparedNodeMap,
-	geometry: RenderGeometry,
+	geometry: SceneRenderGeometry,
 	progress: number
 ): void {
 	for (const node of nodes.values()) {

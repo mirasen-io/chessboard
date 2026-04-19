@@ -122,6 +122,10 @@ export function createRuntimeInteractionSurface(
 				interactionMutationSession
 			);
 			runtimeRunMutationPipeline(internalState);
+		},
+		onEvent(context) {
+			const internalState = state();
+			internalState.extensionSystem.onEvent(context);
 		}
 	};
 }

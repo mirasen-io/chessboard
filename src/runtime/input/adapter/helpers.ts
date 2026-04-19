@@ -1,21 +1,76 @@
+import { ScenePointerEvent } from '../../../extensions/types/basic/events.js';
 import { ScenePoint } from '../../../extensions/types/basic/transient-visuals.js';
-import { RenderGeometry } from '../../../layout/geometry/types.js';
+import { Rect, SceneRenderGeometry } from '../../../layout/geometry/types.js';
 import { ColorCode, Square } from '../../../state/board/types/internal.js';
+import { InputAdapterInternal } from './types.js';
 
-export function mapBoardPointToSquare(
-	x: number,
-	y: number,
-	geometry: RenderGeometry
-): Square | null {
+export function makeScenePointerEvent(
+	state: InputAdapterInternal,
+	e: PointerEvent
+): ScenePointerEvent {
+	const containerRect = state.container.getBoundingClientRect();
+	const sceneRect = makeSceneRectFromDOMRect(containerRect);
+	const point = toScenePoint(e, containerRect);
+	const clampedPoint = clampToSceneRect(point, sceneRect);
+	let clampedToBoardPoint: ScenePoint | null = null;
+	let targetSquare: Square | null = null;
+	const geometry = state.getRenderGeometry();
+	if (geometry) {
+		const sceneBoardRect = geometry.boardRect;
+		clampedToBoardPoint = clampToSceneRect(point, sceneBoardRect);
+		targetSquare = mapScenePointToSquare(point, geometry);
+	}
+	return {
+		// DOM part
+		type: e.type as ScenePointerEvent['type'],
+		// scene part
+		point,
+		clampedPoint,
+		boardClampedPoint: clampedToBoardPoint,
+		// board part
+		targetSquare
+	};
+}
+
+function toScenePoint(e: PointerEvent, inRect: DOMRect): ScenePoint {
+	return {
+		x: e.clientX - inRect.x,
+		y: e.clientY - inRect.y
+	};
+}
+
+function makeSceneRectFromDOMRect(domRect: DOMRect): Rect {
+	return {
+		x: 0,
+		y: 0,
+		width: domRect.width,
+		height: domRect.height
+	};
+}
+
+function clampToSceneRect(point: ScenePoint, boundRect: Rect): ScenePoint {
+	// X cannot go below boundRect.x, cannot go above boundRect.x + boundRect.width
+	// Y cannot go below boundRect.y, cannot go above boundRect.y + boundRect.height
+	return {
+		x: Math.max(boundRect.x, Math.min(point.x, boundRect.x + boundRect.width)),
+		y: Math.max(boundRect.y, Math.min(point.y, boundRect.y + boundRect.height))
+	};
+}
+
+function mapScenePointToSquare(point: ScenePoint, geometry: SceneRenderGeometry): Square | null {
+	const { x, y } = point;
 	if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
 
-	const { boardSize, squareSize, orientation } = geometry;
+	const orientation = geometry.orientation;
+	const boardRect = geometry.boardRect;
+	const boardSize = boardRect.width;
+	const squareSize = geometry.squareSize;
 
 	if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) return null;
 
 	// Grid cell indices, each in [0, 7].
-	const xIndex = Math.floor(x / squareSize);
-	const yIndex = Math.floor(y / squareSize);
+	const xIndex = Math.floor((x - boardRect.x) / squareSize);
+	const yIndex = Math.floor((y - boardRect.y) / squareSize);
 
 	// Invert the orientation mapping used by geometry.squareRect:
 	//   white: xIndex = file,     yIndex = 7 - rank  →  file = xIndex,     rank = 7 - yIndex
@@ -24,12 +79,4 @@ export function mapBoardPointToSquare(
 	const rank = orientation === ColorCode.White ? 7 - yIndex : yIndex;
 
 	return (rank * 8 + file) as Square;
-}
-
-export function clampBoardPoint(point: ScenePoint, geometry: RenderGeometry): ScenePoint {
-	const { boardSize } = geometry;
-	return {
-		x: Math.min(Math.max(point.x, 0), boardSize),
-		y: Math.min(Math.max(point.y, 0), boardSize)
-	};
 }

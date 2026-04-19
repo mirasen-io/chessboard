@@ -102,7 +102,7 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 				fill: 'none'
 			}; // TODO: Remove, this is just for visual test
 			for (const [square, destination] of interaction.activeDestinations) {
-				const rect = geometry.squareRect(square);
+				const rect = geometry.getSquareRect(square);
 				const circleX = rect.x + geometry.squareSize / 2;
 				const circleY = rect.y + geometry.squareSize / 2;
 				const selectedPieceCode =

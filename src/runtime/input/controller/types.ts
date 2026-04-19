@@ -1,5 +1,5 @@
-import { SceneEvent } from '../../../extensions/types/basic/events.js';
 import { TransientInput } from '../../../extensions/types/basic/transient-visuals.js';
+import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
 import { PieceCode, Square } from '../../../state/board/types/internal.js';
 import { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
 
@@ -14,6 +14,7 @@ export interface RuntimeInteractionSurface {
 	cancelActiveInteraction(): void;
 	cancelInteraction(): void;
 	transientInput(input: TransientInput): void;
+	onEvent(context: ExtensionOnEventContext): void;
 }
 
 export interface InteractionControllerInternal {
@@ -25,5 +26,5 @@ export interface InteractionControllerInitOptions {
 }
 
 export interface InteractionController {
-	onEvent(event: SceneEvent): void;
+	onEvent(context: ExtensionOnEventContext): void;
 }

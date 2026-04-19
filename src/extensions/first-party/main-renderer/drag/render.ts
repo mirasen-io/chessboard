@@ -8,7 +8,7 @@ export function rendererDragRenderTransientVisuals(
 	layer: SVGElement
 ): void {
 	const geometry = context.currentFrame.layout.geometry;
-	const point = context.transientInput.clampedPoint;
+	const point = context.transientInput.boardClampedPoint;
 	const squareSize = geometry.squareSize.toString();
 	const x = (point.x - geometry.squareSize / 2).toString();
 	const y = (point.y - geometry.squareSize / 2).toString();

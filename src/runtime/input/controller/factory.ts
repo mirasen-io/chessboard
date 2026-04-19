@@ -1,7 +1,6 @@
 import {
 	handlePointerCancel,
 	handlePointerDown,
-	handlePointerLeave,
 	handlePointerMove,
 	handlePointerUp
 } from './pointer.js';
@@ -25,25 +24,26 @@ export function createInteractionController(
 ): InteractionController {
 	const internalState = createInteractionControllerInternal(options);
 	return {
-		onEvent(event) {
-			switch (event.type) {
+		onEvent(context) {
+			internalState.surface.onEvent(context);
+			if (context.rawEvent.defaultPrevented) {
+				return; // The event has been handled by the surface (extensions)
+			}
+			switch (context.rawEvent.type) {
 				case 'pointerdown':
-					handlePointerDown(internalState, event);
+					handlePointerDown(internalState, context);
 					break;
 				case 'pointermove':
-					handlePointerMove(internalState, event);
+					handlePointerMove(internalState, context);
 					break;
 				case 'pointerup':
-					handlePointerUp(internalState, event);
+					handlePointerUp(internalState, context);
 					break;
 				case 'pointercancel':
-					handlePointerCancel(internalState, event);
-					break;
-				case 'pointerleave':
-					handlePointerLeave(internalState, event);
+					handlePointerCancel(internalState, context);
 					break;
 			}
-			transmitTransientInput(internalState, event);
+			transmitTransientInput(internalState, context);
 		}
 	};
 }

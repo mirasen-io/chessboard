@@ -23,13 +23,13 @@ export function rendererBoardRender(
 	const { light, dark } = state.config;
 
 	for (let sq = 0 as Square; sq < SQUARE_COUNT; sq++) {
-		const r = geometry.squareRect(sq);
+		const r = geometry.getSquareRect(sq);
 		createSvgElement(layer, 'rect', {
 			'data-chessboard-id': `square-${sq}`,
 			x: r.x.toString(),
 			y: r.y.toString(),
-			width: r.size.toString(),
-			height: r.size.toString(),
+			width: r.width.toString(),
+			height: r.height.toString(),
 			fill: isLightSquare(sq) ? light : dark,
 			'shape-rendering': 'crispEdges'
 		});

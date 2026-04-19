@@ -23,14 +23,14 @@ export function rendererPiecesRender(
 
 		if (isNonEmptyPieceCode(pieceCode) && !suppressed) {
 			const url = state.config[pieceCode];
-			const r = geometry.squareRect(sq);
+			const r = geometry.getSquareRect(sq);
 
 			if (existing !== null) {
 				updateElementAttributes(existing.root, {
 					x: r.x.toString(),
 					y: r.y.toString(),
-					width: r.size.toString(),
-					height: r.size.toString(),
+					width: r.width.toString(),
+					height: r.height.toString(),
 					href: url
 				});
 			} else {
@@ -40,8 +40,8 @@ export function rendererPiecesRender(
 						href: url,
 						x: r.x.toString(),
 						y: r.y.toString(),
-						width: r.size.toString(),
-						height: r.size.toString()
+						width: r.width.toString(),
+						height: r.height.toString()
 					})
 				});
 			}

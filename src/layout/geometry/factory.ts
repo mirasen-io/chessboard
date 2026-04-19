@@ -1,36 +1,39 @@
 import { fileOf, rankOf } from '../../state/board/coords.js';
 import { ColorCode } from '../../state/board/types/internal.js';
-import { RenderGeometry } from './types.js';
+import { makeBoardRect, measureBoardSize } from './helpers.js';
+import { SceneRenderGeometry, Size } from './types.js';
 
-/**
- * Create RenderGeometry for a given board size (in px) and orientation.
- * - Geometry uses an SVG-local coordinate system with origin at top-left.
- * - Orientation mapping:
- *   - 'white': files increase left→right (a..h), ranks increase bottom→top (1..8).
- *              yIndex = 7 - rank, xIndex = file
- *   - 'black': files increase right→left (a..h), ranks increase top→bottom (1..8).
- *              yIndex = rank, xIndex = 7 - file
- */
-export function createRenderGeometry(boardSize: number, orientation: ColorCode): RenderGeometry {
-	if (!(boardSize > 0 && Number.isFinite(boardSize))) {
-		throw new RangeError(`Invalid boardSize: ${boardSize}`);
+export function createRenderGeometry(sceneSize: Size, orientation: ColorCode): SceneRenderGeometry {
+	if (
+		!(
+			sceneSize.height > 0 &&
+			Number.isFinite(sceneSize.height) &&
+			sceneSize.width > 0 &&
+			Number.isFinite(sceneSize.width)
+		)
+	) {
+		throw new RangeError(`Invalid sceneSize: ${JSON.stringify(sceneSize)}`);
 	}
+	const boardSize = measureBoardSize(sceneSize);
+	const boardRect = makeBoardRect(sceneSize);
 	const squareSize = boardSize / 8;
 	const white = orientation === ColorCode.White;
 
 	return {
-		boardSize,
+		sceneSize: { ...sceneSize },
+		boardRect,
 		squareSize,
 		orientation,
-		squareRect(sq) {
+		getSquareRect(sq) {
 			const f = fileOf(sq);
 			const r = rankOf(sq);
 			const xIndex = white ? f : 7 - f;
 			const yIndex = white ? 7 - r : r;
 			return {
-				x: xIndex * squareSize,
-				y: yIndex * squareSize,
-				size: squareSize
+				x: boardRect.x + xIndex * squareSize,
+				y: boardRect.y + yIndex * squareSize,
+				width: squareSize,
+				height: squareSize
 			};
 		}
 	};

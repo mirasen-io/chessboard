@@ -7,6 +7,7 @@ export interface ScenePoint {
 
 export interface TransientInput {
 	target: Square | null;
-	rawPoint: ScenePoint;
+	point: ScenePoint;
 	clampedPoint: ScenePoint;
+	boardClampedPoint: ScenePoint;
 }

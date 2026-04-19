@@ -1,16 +1,16 @@
 import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
-import type { RenderGeometry } from '../../layout/geometry/types.js';
+import type { SceneRenderGeometry } from '../../layout/geometry/types.js';
 import { createSvgElement } from '../../render/svg/helpers.js';
 import type { AnimationTrackStatic } from '../types.js';
 import type { PreparedStaticNode } from './types.js';
 
 export function prepareStaticTrack(
 	track: AnimationTrackStatic,
-	geometry: RenderGeometry,
+	geometry: SceneRenderGeometry,
 	pieceUrls: PieceUrls,
 	layer: SVGElement
 ): PreparedStaticNode {
-	const r = geometry.squareRect(track.sq);
+	const r = geometry.getSquareRect(track.sq);
 	const url = pieceUrls[track.pieceCode];
 	const root = createSvgElement(layer, 'image', {
 		'data-chessboard-id': `animation-static-${track.id}`,
@@ -18,8 +18,8 @@ export function prepareStaticTrack(
 		href: url,
 		x: r.x.toString(),
 		y: r.y.toString(),
-		width: r.size.toString(),
-		height: r.size.toString()
+		width: r.width.toString(),
+		height: r.height.toString()
 	});
 	return { ...track, root };
 }

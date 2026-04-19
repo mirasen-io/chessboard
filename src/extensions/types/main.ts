@@ -3,6 +3,7 @@ import { ExtensionInvalidationState } from '../invalidation/types.js';
 import { ExtensionAnimationControllerInternalSurface } from './basic/animation.js';
 import { SceneEventType } from './basic/events.js';
 import { UpdateFrameSnapshot } from './basic/update.js';
+import { ExtensionOnEventContext } from './context/events.js';
 import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
 import { AnyExtensionDefinition, AnyExtensionInstance } from './extension.js';
 import { ExtensionRuntimeSurfaceCommands } from './surface/commands.js';
@@ -44,6 +45,7 @@ export interface ExtensionSystem {
 	getSharedDataForRenderSystem(): ExtensionSystemSharedDataForRenderSystem;
 	onUpdate(request: ExtensionSystemUpdateRequest): void;
 	onUIMoveRequest(context: ExtensionUIMoveRequestContext): void;
+	onEvent(context: ExtensionOnEventContext): void;
 	onUnmount(): void;
 	onDestroy(): void;
 }

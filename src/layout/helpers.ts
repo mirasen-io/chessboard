@@ -1,6 +1,9 @@
-/**
- * Measure board size from container (square board fits within host).
- */
-export function measureBoardSize(container: HTMLElement): number {
-	return Math.min(container.clientWidth, container.clientHeight);
+import { Size } from './geometry/types.js';
+
+export function measureSceneSize(container: HTMLElement): Size {
+	return { width: container.clientWidth, height: container.clientHeight };
+}
+
+export function isSceneSizeValid(size: Size | null): boolean {
+	return size !== null && size.width > 0 && size.height > 0;
 }

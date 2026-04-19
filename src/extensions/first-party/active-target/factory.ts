@@ -85,19 +85,19 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 				return;
 			}
 			const geometry = context.currentFrame.layout.geometry;
-			const r = geometry.squareRect(square);
+			const r = geometry.getSquareRect(square);
 			const rectAttributes = {
 				x: r.x.toString(),
 				y: r.y.toString(),
-				width: r.size.toString(),
-				height: r.size.toString(),
+				width: r.width.toString(),
+				height: r.height.toString(),
 				fill: internalState.config.squareColor.color,
 				'fill-opacity': internalState.config.squareColor.opacity.toString(),
 				'shape-rendering': 'crispEdges'
 			};
 			const radius = geometry.squareSize * internalState.config.halo.radiusRatio;
-			const centerX = r.x + r.size / 2;
-			const centerY = r.y + r.size / 2;
+			const centerX = r.x + r.width / 2;
+			const centerY = r.y + r.height / 2;
 			const haloAttributes = {
 				cx: centerX.toString(),
 				cy: centerY.toString(),

@@ -1,5 +1,6 @@
 import { createRenderGeometry } from './geometry/factory.js';
-import { measureBoardSize } from './helpers.js';
+import { sceneSizesEqual } from './geometry/helpers.js';
+import { isSceneSizeValid, measureSceneSize } from './helpers.js';
 import { LayoutInternal, LayoutRefreshOptions } from './types.js';
 
 export function layoutRefreshGeometry(
@@ -16,24 +17,24 @@ export function layoutRefreshGeometry(
 		);
 	}
 
-	let boardSize = options.container ? measureBoardSize(options.container) : state.boardSize;
+	let sceneSize = options.container ? measureSceneSize(options.container) : state.sceneSize;
 
-	if (boardSize !== null && boardSize <= 0) boardSize = null;
+	if (sceneSize !== null && !isSceneSizeValid(sceneSize)) sceneSize = null;
 
-	const changed = boardSize !== state.boardSize || orientation !== state.orientation;
+	const changed = !sceneSizesEqual(sceneSize, state.sceneSize) || orientation !== state.orientation;
 	if (!changed) {
 		return false; // no-op, no relevant changes
 	}
 
 	// Update the state
-	state.boardSize = boardSize;
+	state.sceneSize = sceneSize;
 	state.orientation = orientation;
-	if (boardSize === null || orientation === null) {
+	if (sceneSize === null || orientation === null) {
 		// General invalid-geometry rule. Orientation is currently guarded above,
 		// but this branch stays explicit in case null orientation is allowed later.
 		state.geometry = null;
 	} else {
-		state.geometry = createRenderGeometry(boardSize, orientation);
+		state.geometry = createRenderGeometry(sceneSize, orientation);
 	}
 	state.layoutEpoch++;
 	return true;

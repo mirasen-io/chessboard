@@ -44,7 +44,7 @@ export function rendererCoordinatesRender(
 		const label =
 			geometry.orientation === ColorCode.White ? String(8 - visualRank) : String(1 + visualRank);
 
-		const r = geometry.squareRect(sq);
+		const r = geometry.getSquareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
 		const text = createSvgElement(layer, 'text', {
@@ -73,13 +73,13 @@ export function rendererCoordinatesRender(
 				? String.fromCharCode('a'.charCodeAt(0) + visualFile)
 				: String.fromCharCode('h'.charCodeAt(0) - visualFile);
 
-		const r = geometry.squareRect(sq);
+		const r = geometry.getSquareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-file-${label}`,
-			x: (r.x + r.size - offset).toString(),
-			y: (r.y + r.size - offset).toString(),
+			x: (r.x + r.width - offset).toString(),
+			y: (r.y + r.height - offset).toString(),
 			'font-size': fontSize.toString(),
 			'font-family': 'sans-serif',
 			'font-weight': 'bold',

@@ -1,5 +1,6 @@
 import { RenderFrameSnapshot } from '../../extensions/types/basic/render.js';
 import { ExtensionRenderContext } from '../../extensions/types/context/render.js';
+import { sceneSizesEqual } from '../../layout/geometry/helpers.js';
 import { updateElementAttributes } from '../svg/helpers.js';
 import { RenderSystemInternal } from '../types.js';
 import { validateIsMounted } from './helpers.js';
@@ -25,14 +26,13 @@ export function performRenderPass(
 		throw new Error('render() called without a valid layout geometry');
 	}
 
-	const currentSize = request.layout.geometry.boardSize;
-	const prevSize = state.currentFrame?.layout.geometry?.boardSize;
-	if (currentSize !== prevSize) {
-		const size = String(currentSize);
+	const currentSize = request.layout.geometry.sceneSize;
+	const prevSize = state.currentFrame?.layout.geometry?.sceneSize ?? null;
+	if (!sceneSizesEqual(currentSize, prevSize)) {
 		updateElementAttributes(state.svgRoots.svgRoot, {
-			width: size,
-			height: size,
-			viewBox: `0 0 ${size} ${size}`
+			width: currentSize.width.toString(),
+			height: currentSize.height.toString(),
+			viewBox: `0 0 ${currentSize.width} ${currentSize.height}`
 		});
 	}
 

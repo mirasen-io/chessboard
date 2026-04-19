@@ -1,12 +1,12 @@
 import { ReadonlyDeep } from 'type-fest';
 import { ColorCode } from '../state/board/types/internal.js';
-import { RenderGeometry } from './geometry/types.js';
+import { SceneRenderGeometry, Size } from './geometry/types.js';
 import { LayoutMutationSession } from './mutation.js';
 
 export interface LayoutInternal {
-	boardSize: number | null;
+	sceneSize: Size | null;
 	orientation: ColorCode | null;
-	geometry: RenderGeometry | null;
+	geometry: SceneRenderGeometry | null;
 	layoutEpoch: number;
 }
 
@@ -18,9 +18,9 @@ export interface LayoutRefreshOptions {
 }
 
 export interface Layout {
-	readonly boardSize: number | null;
+	readonly sceneSize: Size | null;
 	readonly orientation: ColorCode | null;
-	readonly geometry: RenderGeometry | null;
+	readonly geometry: SceneRenderGeometry | null;
 	readonly layoutEpoch: number;
 
 	refreshGeometry(options: LayoutRefreshOptions, mutationSession: LayoutMutationSession): boolean;

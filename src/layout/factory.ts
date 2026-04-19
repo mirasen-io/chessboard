@@ -5,7 +5,7 @@ import { Layout, LayoutInternal } from './types.js';
 
 function createLayoutInternal(): LayoutInternal {
 	return {
-		boardSize: 0,
+		sceneSize: null,
 		orientation: ColorCode.White,
 		geometry: null,
 		layoutEpoch: 0
@@ -16,8 +16,8 @@ export function createLayout(): Layout {
 	const internalState = createLayoutInternal();
 
 	return {
-		get boardSize() {
-			return internalState.boardSize;
+		get sceneSize() {
+			return internalState.sceneSize;
 		},
 		get orientation() {
 			return internalState.orientation;

@@ -84,12 +84,12 @@ function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSqu
 				return;
 			}
 			const geometry = context.currentFrame.layout.geometry;
-			const r = geometry.squareRect(selectedSquare);
+			const r = geometry.getSquareRect(selectedSquare);
 			const rectAttributes = {
 				x: r.x.toString(),
 				y: r.y.toString(),
-				width: r.size.toString(),
-				height: r.size.toString(),
+				width: r.width.toString(),
+				height: r.height.toString(),
 				fill: internalState.config.color,
 				'fill-opacity': internalState.config.opacity.toString(),
 				'shape-rendering': 'crispEdges'

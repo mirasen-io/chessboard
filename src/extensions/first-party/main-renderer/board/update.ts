@@ -1,3 +1,4 @@
+import { sceneRectsEqual } from '../../../../layout/geometry/helpers.js';
 import { isFrameRenderable } from '../../../types/basic/update.js';
 import {
 	ExtensionUpdateContext,
@@ -23,16 +24,17 @@ export function rendererBoardOnUpdate(
 
 	// Ok geometry changed, let's check the board size
 	const currentGeometry = context.currentFrame.layout.geometry;
-	const currentBoardSize = currentGeometry.boardSize;
+	const currentBoardRect = currentGeometry.boardRect;
 	const currentOrientation = currentGeometry.orientation;
 	const previousGeometry =
 		context.previousFrame && isFrameRenderable(context.previousFrame)
 			? context.previousFrame.layout.geometry
 			: null;
-	const previousBoardSize = previousGeometry?.boardSize;
+	const previousBoardRect = previousGeometry?.boardRect ?? null;
 	const previousOrientation = previousGeometry?.orientation;
 	const needsRender =
-		currentBoardSize !== previousBoardSize || currentOrientation !== previousOrientation;
+		sceneRectsEqual(currentBoardRect, previousBoardRect) === false ||
+		currentOrientation !== previousOrientation;
 	if (!needsRender) {
 		return; // no-op
 	}
