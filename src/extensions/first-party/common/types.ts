@@ -1,4 +1,4 @@
-import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../../types/basic/mount';
+import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../../types/basic/mount.js';
 
 export interface ExtensionInternal<TSlots extends readonly ExtensionSlotName[]> {
 	slotRoots: ExtensionSlotSvgRoots<TSlots> | null;

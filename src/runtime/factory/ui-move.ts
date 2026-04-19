@@ -1,7 +1,7 @@
-import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move';
-import { RolePromotionCode, Square } from '../../state/board/types/internal';
-import { MoveDestinationSnapshot } from '../../state/interaction/types/internal';
-import { UIMoveRequestContextInternal } from '../types/ui-move';
+import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move.js';
+import { RolePromotionCode, Square } from '../../state/board/types/internal.js';
+import { MoveDestinationSnapshot } from '../../state/interaction/types/internal.js';
+import { UIMoveRequestContextInternal } from '../types/ui-move.js';
 
 function createMoveRequestContextInternal(
 	sourceSquare: Square,

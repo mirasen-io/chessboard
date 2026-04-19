@@ -1,5 +1,5 @@
-import { Square } from '../../../state/board/types/internal';
-import { ScenePoint } from '../basic/transient-visuals';
+import { Square } from '../../../state/board/types/internal.js';
+import { ScenePoint } from '../basic/transient-visuals.js';
 
 interface SceneEventBase {
 	readonly defaultPrevented: boolean;

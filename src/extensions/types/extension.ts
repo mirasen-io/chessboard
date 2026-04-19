@@ -1,16 +1,16 @@
-import { SceneEvent } from './basic/events';
-import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount';
+import { SceneEvent } from './basic/events.js';
+import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount.js';
 import {
 	ExtensionAnimationFinishedContext,
 	ExtensionCleanAnimationContext,
 	ExtensionPrepareAnimationContext,
 	ExtensionRenderAnimationContext
-} from './context/animation';
-import { ExtensionRenderContext } from './context/render';
-import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals';
-import { ExtensionUIMoveRequestContext } from './context/ui-move';
-import { ExtensionUpdateContext } from './context/update';
-import { ExtensionRuntimeSurface } from './surface/main';
+} from './context/animation.js';
+import { ExtensionRenderContext } from './context/render.js';
+import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals.js';
+import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
+import { ExtensionUpdateContext } from './context/update.js';
+import { ExtensionRuntimeSurface } from './surface/main.js';
 
 interface ExtensionInstanceBase<TId extends string, TSlots extends readonly ExtensionSlotName[]> {
 	readonly id: TId;

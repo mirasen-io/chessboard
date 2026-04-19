@@ -1,5 +1,5 @@
-import { PieceString } from '../../../../state/board/types/input';
-import { TMainRendererConfig } from './template';
+import { PieceString } from '../../../../state/board/types/input.js';
+import { TMainRendererConfig } from './template.js';
 
 export type PieceUrlsInput = Record<PieceString, string>;
 

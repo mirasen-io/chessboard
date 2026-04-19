@@ -1,11 +1,14 @@
-import { setsEqual } from '../../../../helpers/util';
-import { piecePositionsEqual } from '../../../../state/board/check';
-import { Square } from '../../../../state/board/types/internal';
-import { ExtensionCleanAnimationContext } from '../../../types/context/animation';
-import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../../types/context/update';
-import { DirtyLayer } from '../types/extension';
-import { calculateSuppressedSquares } from './suppress';
-import { MainRendererPiecesInternal } from './types';
+import { setsEqual } from '../../../../helpers/util.js';
+import { piecePositionsEqual } from '../../../../state/board/check.js';
+import { Square } from '../../../../state/board/types/internal.js';
+import { ExtensionCleanAnimationContext } from '../../../types/context/animation.js';
+import {
+	ExtensionUpdateContext,
+	isUpdateContextRenderable
+} from '../../../types/context/update.js';
+import { DirtyLayer } from '../types/extension.js';
+import { calculateSuppressedSquares } from './suppress.js';
+import { MainRendererPiecesInternal } from './types.js';
 
 export function rendererPiecesOnUpdate(
 	state: MainRendererPiecesInternal,

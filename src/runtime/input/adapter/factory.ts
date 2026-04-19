@@ -6,8 +6,8 @@ import {
 	onPointerMove,
 	onPointerUp,
 	releaseCapture
-} from './pointer';
-import { InputAdapter, InputAdapterInitOptions, InputAdapterInternal } from './types';
+} from './pointer.js';
+import { InputAdapter, InputAdapterInitOptions, InputAdapterInternal } from './types.js';
 
 function createInputAdapterInternal(options: InputAdapterInitOptions): InputAdapterInternal {
 	return {

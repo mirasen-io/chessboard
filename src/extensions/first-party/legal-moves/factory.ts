@@ -1,16 +1,16 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { clearElementChildren, createSvgElement } from '../../../render/svg/helpers';
-import { isNonEmptyPieceCode } from '../../../state/board/check';
-import { fromPieceCode } from '../../../state/board/piece';
-import { MovabilityModeCode } from '../../../state/interaction/types/internal';
-import { isUpdateContextRenderable } from '../../types/context/update';
+import { clearElementChildren, createSvgElement } from '../../../render/svg/helpers.js';
+import { isNonEmptyPieceCode } from '../../../state/board/check.js';
+import { fromPieceCode } from '../../../state/board/piece.js';
+import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
+import { isUpdateContextRenderable } from '../../types/context/update.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroy,
 	extensionMount,
 	extensionUnmount
-} from '../common/helpers';
+} from '../common/helpers.js';
 import {
 	DEFAULT_CONFIG,
 	DirtyLayer,
@@ -22,7 +22,7 @@ import {
 	LegalMovesInitConfig,
 	LegalMovesInstance,
 	LegalMovesInstanceInternal
-} from './types';
+} from './types.js';
 
 export function createLegalMoves(config: LegalMovesInitConfig = {}): LegalMovesDefinition {
 	const mergedConfig = toMerged(DEFAULT_CONFIG, config) as LegalMovesConfig;

@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
-import { isNonEmptyPieceCode } from '../../../../state/board/check';
-import { ExtensionUpdateContext } from '../../../types/context/update';
-import { MainRendererDragInternal } from './types';
+import { isNonEmptyPieceCode } from '../../../../state/board/check.js';
+import { ExtensionUpdateContext } from '../../../types/context/update.js';
+import { MainRendererDragInternal } from './types.js';
 
 export function rendererDragOnUpdate(
 	state: MainRendererDragInternal,

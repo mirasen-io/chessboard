@@ -1,14 +1,14 @@
 import { ReadonlyDeep } from 'type-fest';
-import { NonEmptyPieceCode, Square } from '../../board/types/internal';
-import { InteractionStateMutationSession } from '../mutation';
-import { MovabilityInput } from './input';
+import { NonEmptyPieceCode, Square } from '../../board/types/internal.js';
+import { InteractionStateMutationSession } from '../mutation.js';
+import { MovabilityInput } from './input.js';
 import {
 	DragSession,
 	DragSessionSnapshot,
 	Movability,
 	MovabilitySnapshot,
 	MoveDestinationSnapshot
-} from './internal';
+} from './internal.js';
 
 export interface InteractionStateSelected {
 	square: Square;

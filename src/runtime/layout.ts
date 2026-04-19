@@ -1,6 +1,6 @@
-import { runtimeValidateIsMounted } from './lifecycle';
-import { runtimeRunMutationPipeline } from './mutation/run';
-import { RuntimeInternal } from './types/main';
+import { runtimeValidateIsMounted } from './lifecycle.js';
+import { runtimeRunMutationPipeline } from './mutation/run.js';
+import { RuntimeInternal } from './types/main.js';
 
 export function runtimeRefreshGeometry(state: RuntimeInternal): void {
 	runtimeValidateIsMounted(state);

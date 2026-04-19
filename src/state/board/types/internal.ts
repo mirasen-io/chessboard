@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import { TMove, TMoveBase, TMoveCaptured, TMoveRequest, TMoveRequestBase } from './template';
+import { TMove, TMoveBase, TMoveCaptured, TMoveRequest, TMoveRequestBase } from './template.js';
 
 // Numeric square index (0..63); a1 = 0, b1 = 1, ..., h8 = 63.
 // Note: We keep it as number but document the domain. Converters live in coords.ts.

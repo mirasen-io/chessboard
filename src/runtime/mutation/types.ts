@@ -1,9 +1,9 @@
-import { LayoutMutationPayloadByCause } from '../../layout/mutation';
-import { MutationSession, ReadonlyMutationSession } from '../../mutation/types';
-import { BoardStateMutationPayloadByCause } from '../../state/board/mutation';
-import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation';
-import { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation';
-import { ViewStateMutationPayloadByCause } from '../../state/view/mutation';
+import { LayoutMutationPayloadByCause } from '../../layout/mutation.js';
+import { MutationSession, ReadonlyMutationSession } from '../../mutation/types.js';
+import { BoardStateMutationPayloadByCause } from '../../state/board/mutation.js';
+import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation.js';
+import { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation.js';
+import { ViewStateMutationPayloadByCause } from '../../state/view/mutation.js';
 
 type RuntimeOwnMutationPayloadByCause = {
 	'runtime.interaction.dropTo': undefined;

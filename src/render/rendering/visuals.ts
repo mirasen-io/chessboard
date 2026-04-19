@@ -1,7 +1,7 @@
-import { TransientInput } from '../../extensions/types/basic/transient-visuals';
-import { ExtensionRenderTransientVisualsContext } from '../../extensions/types/context/transient-visuals';
-import { RenderSystemInternal } from '../types';
-import { validateIsMounted } from './helpers';
+import { TransientInput } from '../../extensions/types/basic/transient-visuals.js';
+import { ExtensionRenderTransientVisualsContext } from '../../extensions/types/context/transient-visuals.js';
+import { RenderSystemInternal } from '../types.js';
+import { validateIsMounted } from './helpers.js';
 
 export function performRenderTransientVisualsPass(
 	state: RenderSystemInternal,

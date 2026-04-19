@@ -1,7 +1,7 @@
-import { ExtensionRenderTransientVisualsContext } from '../../../types/context/transient-visuals';
-import { ExtensionUpdateContext } from '../../../types/context/update';
-import { ExtensionRuntimeSurface } from '../../../types/surface/main';
-import { PieceUrls } from '../types/internal';
+import { ExtensionRenderTransientVisualsContext } from '../../../types/context/transient-visuals.js';
+import { ExtensionUpdateContext } from '../../../types/context/update.js';
+import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
+import { PieceUrls } from '../types/internal.js';
 
 export interface MainRendererDragInternal {
 	readonly config: PieceUrls;

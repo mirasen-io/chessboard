@@ -1,4 +1,4 @@
-import type { ExtensionInvalidationState, ExtensionInvalidationStateInternal } from './types';
+import type { ExtensionInvalidationState, ExtensionInvalidationStateInternal } from './types.js';
 
 function createExtensionInvalidationStateInternal(): ExtensionInvalidationStateInternal {
 	return {

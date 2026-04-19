@@ -1,5 +1,5 @@
-import { LayoutSnapshot } from '../../../layout/types';
-import { RuntimeStateSnapshot } from '../../../state/types';
+import { LayoutSnapshot } from '../../../layout/types.js';
+import { RuntimeStateSnapshot } from '../../../state/types.js';
 
 export interface RenderLayoutSnapshot extends LayoutSnapshot {
 	readonly geometry: NonNullable<LayoutSnapshot['geometry']>;

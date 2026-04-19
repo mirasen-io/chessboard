@@ -1,6 +1,6 @@
-import type { Square } from '../../../state/board/types/internal';
-import { MovabilityModeCode } from '../../../state/interaction/types/internal';
-import { InteractionStateSnapshot } from '../../../state/interaction/types/main';
+import type { Square } from '../../../state/board/types/internal.js';
+import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
+import { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
 
 export function canMoveTo(snapshot: InteractionStateSnapshot, target: Square): boolean {
 	const { movability } = snapshot;

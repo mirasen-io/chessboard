@@ -12,7 +12,7 @@ import {
 	Role,
 	RoleShort,
 	SquareString
-} from './types/input';
+} from './types/input.js';
 import {
 	ColorCode,
 	EmptyPieceCode,
@@ -25,8 +25,8 @@ import {
 	SQUARE_COUNT,
 	SquareFile,
 	SquareRank
-} from './types/internal';
-import { BoardStateSnapshot } from './types/main';
+} from './types/internal.js';
+import { BoardStateSnapshot } from './types/main.js';
 
 export function isWhitePieceCode(code: NonEmptyPieceCode): boolean {
 	return code > PieceCode.Empty && code < ColorCode.Black;

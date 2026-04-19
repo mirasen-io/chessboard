@@ -1,7 +1,7 @@
-import { PieceUrls } from '../types/internal';
-import { rendererPiecesRender } from './render';
-import { MainRendererPieces, MainRendererPiecesInternal } from './types';
-import { rendererPiecesOnUpdate, rendererPiecesRefreshSuppressedSquares } from './update';
+import { PieceUrls } from '../types/internal.js';
+import { rendererPiecesRender } from './render.js';
+import { MainRendererPieces, MainRendererPiecesInternal } from './types.js';
+import { rendererPiecesOnUpdate, rendererPiecesRefreshSuppressedSquares } from './update.js';
 
 export function createMainRendererPieces(config: PieceUrls): MainRendererPieces {
 	const state: MainRendererPiecesInternal = {

@@ -1,12 +1,12 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
 import type { ReadonlyDeep } from 'type-fest';
-import { setsEqual } from '../../helpers/util';
-import type { RolePromotionCode, Square } from '../board/types/internal';
-import { selectedEqual } from './helpers';
-import { movabilitiesEqual } from './movability';
-import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal';
-import { InteractionStateInternal, InteractionStateSelected } from './types/main';
+import { setsEqual } from '../../helpers/util.js';
+import type { RolePromotionCode, Square } from '../board/types/internal.js';
+import { selectedEqual } from './helpers.js';
+import { movabilitiesEqual } from './movability.js';
+import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal.js';
+import { InteractionStateInternal, InteractionStateSelected } from './types/main.js';
 
 export function interactionSetSelected(
 	state: InteractionStateInternal,

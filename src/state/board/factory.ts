@@ -1,10 +1,10 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { isNormalizedMoveRequest } from './check';
-import { normalizeColor, normalizeMoveRequest } from './normalize';
-import { boardParsePiecePositionInput, boardParsePosition } from './position';
-import { boardMove, boardSetPosition, boardSetTurn } from './reducers';
-import { PositionInput } from './types/input';
-import { BoardState, BoardStateInternal } from './types/main';
+import { isNormalizedMoveRequest } from './check.js';
+import { normalizeColor, normalizeMoveRequest } from './normalize.js';
+import { boardParsePiecePositionInput, boardParsePosition } from './position.js';
+import { boardMove, boardSetPosition, boardSetTurn } from './reducers.js';
+import { PositionInput } from './types/input.js';
+import { BoardState, BoardStateInternal } from './types/main.js';
 
 function createBoardStateInternal(position: PositionInput): BoardStateInternal {
 	const parsedPosition = boardParsePosition(position);

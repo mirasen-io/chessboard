@@ -1,9 +1,9 @@
-import { createSvgElement, updateElementAttributes } from '../../../../render/svg/helpers';
-import { isNonEmptyPieceCode } from '../../../../state/board/check';
-import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal';
-import { ExtensionRenderContext } from '../../../types/context/render';
-import { DirtyLayer } from '../types/extension';
-import { MainRendererPiecesInternal } from './types';
+import { createSvgElement, updateElementAttributes } from '../../../../render/svg/helpers.js';
+import { isNonEmptyPieceCode } from '../../../../state/board/check.js';
+import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal.js';
+import { ExtensionRenderContext } from '../../../types/context/render.js';
+import { DirtyLayer } from '../types/extension.js';
+import { MainRendererPiecesInternal } from './types.js';
 
 export function rendererPiecesRender(
 	state: MainRendererPiecesInternal,

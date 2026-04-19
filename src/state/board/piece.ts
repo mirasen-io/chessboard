@@ -1,4 +1,4 @@
-import { ColorCode, NonEmptyPieceCode, PieceCode, PieceCoded, RoleCode } from './types/internal';
+import { ColorCode, NonEmptyPieceCode, PieceCode, PieceCoded, RoleCode } from './types/internal.js';
 
 export function toPieceCode(role: RoleCode, color: ColorCode): PieceCode {
 	return color + role;

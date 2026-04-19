@@ -1,4 +1,4 @@
-import { TMoveRequest } from './template';
+import { TMoveRequest } from './template.js';
 
 export type Color = 'white' | 'black';
 export type ColorShort = 'w' | 'b';

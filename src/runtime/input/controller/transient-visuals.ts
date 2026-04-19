@@ -1,5 +1,5 @@
-import { SceneEvent, ScenePointerEvent } from '../../../extensions/types/basic/events';
-import { InteractionControllerInternal } from './types';
+import { SceneEvent, ScenePointerEvent } from '../../../extensions/types/basic/events.js';
+import { InteractionControllerInternal } from './types.js';
 
 function isPointerEvent(event: SceneEvent): event is ScenePointerEvent {
 	return event.type.startsWith('pointer');

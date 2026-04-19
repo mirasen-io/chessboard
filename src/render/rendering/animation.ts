@@ -6,9 +6,9 @@ import {
 	ExtensionPrepareAnimationContext,
 	ExtensionRenderAnimationContext,
 	ExtensionSubmittedAnimationSession
-} from '../../extensions/types/context/animation';
-import { RenderSystemInternal } from '../types';
-import { validateIsMounted } from './helpers';
+} from '../../extensions/types/context/animation.js';
+import { RenderSystemInternal } from '../types.js';
+import { validateIsMounted } from './helpers.js';
 
 export interface RenderAnimationResult {
 	requestRenderAnimation: boolean;

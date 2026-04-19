@@ -1,7 +1,7 @@
 import { ReadonlyDeep } from 'type-fest';
-import { ColorCode } from '../state/board/types/internal';
-import { RenderGeometry } from './geometry/types';
-import { LayoutMutationSession } from './mutation';
+import { ColorCode } from '../state/board/types/internal.js';
+import { RenderGeometry } from './geometry/types.js';
+import { LayoutMutationSession } from './mutation.js';
 
 export interface LayoutInternal {
 	boardSize: number | null;

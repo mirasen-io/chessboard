@@ -1,5 +1,5 @@
-import { NonEmptyPieceCode, PieceCode } from '../../../../state/board/types/internal';
-import { TMainRendererConfig } from './template';
+import { NonEmptyPieceCode, PieceCode } from '../../../../state/board/types/internal.js';
+import { TMainRendererConfig } from './template.js';
 
 export interface ConfigColorPair {
 	light: string; // board light square color

@@ -1,9 +1,9 @@
-import { ExtensionSystem } from '../../extensions/types/main';
-import { Layout, LayoutSnapshot } from '../../layout/types';
-import { MutationPipe, MutationPipeline } from '../../mutation/types';
-import { RenderSystem } from '../../render/types';
-import { RuntimeState, RuntimeStateSnapshot } from '../../state/types';
-import { RuntimeMutationPayloadByCause } from './types';
+import { ExtensionSystem } from '../../extensions/types/main.js';
+import { Layout, LayoutSnapshot } from '../../layout/types.js';
+import { MutationPipe, MutationPipeline } from '../../mutation/types.js';
+import { RenderSystem } from '../../render/types.js';
+import { RuntimeState, RuntimeStateSnapshot } from '../../state/types.js';
+import { RuntimeMutationPayloadByCause } from './types.js';
 
 export interface RuntimeMutationPipelineContext {
 	readonly state: RuntimeState;

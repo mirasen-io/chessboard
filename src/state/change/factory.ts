@@ -1,6 +1,6 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { changeStateSetDeferredUIMoveRequestContext, changeStateSetLastMove } from './reducers';
-import type { ChangeState, ChangeStateInternal } from './types';
+import { changeStateSetDeferredUIMoveRequestContext, changeStateSetLastMove } from './reducers.js';
+import type { ChangeState, ChangeStateInternal } from './types.js';
 
 function createChangeStateInternal(): ChangeStateInternal {
 	return {

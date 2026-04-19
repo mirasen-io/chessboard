@@ -1,5 +1,5 @@
-import { RenderGeometry } from '../../../layout/geometry/types';
-import { InteractionController } from '../controller/types';
+import { RenderGeometry } from '../../../layout/geometry/types.js';
+import { InteractionController } from '../controller/types.js';
 
 export interface InputAdapterInitOptions {
 	container: HTMLElement;

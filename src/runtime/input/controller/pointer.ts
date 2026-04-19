@@ -1,10 +1,10 @@
 import assert from '@ktarmyshov/assert';
-import { ScenePointerEvent } from '../../../extensions/types/basic/events';
-import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check';
-import { fromPieceCode } from '../../../state/board/piece';
-import { MovabilityModeCode } from '../../../state/interaction/types/internal';
-import { canMoveTo } from './helpers';
-import { InteractionControllerInternal } from './types';
+import { ScenePointerEvent } from '../../../extensions/types/basic/events.js';
+import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check.js';
+import { fromPieceCode } from '../../../state/board/piece.js';
+import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
+import { canMoveTo } from './helpers.js';
+import { InteractionControllerInternal } from './types.js';
 
 export function handlePointerDown(
 	state: InteractionControllerInternal,

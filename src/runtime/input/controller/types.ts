@@ -1,7 +1,7 @@
-import { SceneEvent } from '../../../extensions/types/basic/events';
-import { TransientInput } from '../../../extensions/types/basic/transient-visuals';
-import { PieceCode, Square } from '../../../state/board/types/internal';
-import { InteractionStateSnapshot } from '../../../state/interaction/types/main';
+import { SceneEvent } from '../../../extensions/types/basic/events.js';
+import { TransientInput } from '../../../extensions/types/basic/transient-visuals.js';
+import { PieceCode, Square } from '../../../state/board/types/internal.js';
+import { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
 
 export interface RuntimeInteractionSurface {
 	getInteractionStateSnapshot(): InteractionStateSnapshot;

@@ -1,8 +1,8 @@
-import { ExtensionRuntimeSurface } from '../../../types/surface/main';
-import { PieceUrls } from '../types/internal';
-import { rendererDragRenderTransientVisuals } from './render';
-import { MainRendererDrag, MainRendererDragInternal } from './types';
-import { rendererDragOnUpdate } from './update';
+import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
+import { PieceUrls } from '../types/internal.js';
+import { rendererDragRenderTransientVisuals } from './render.js';
+import { MainRendererDrag, MainRendererDragInternal } from './types.js';
+import { rendererDragOnUpdate } from './update.js';
 
 function createMainRendererDragInternal(
 	config: PieceUrls,

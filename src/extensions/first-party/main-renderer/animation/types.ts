@@ -1,14 +1,14 @@
-import { PreparedNodeMap } from '../../../../animation/render/types';
-import { AnimationPlan } from '../../../../animation/types';
-import { Square } from '../../../../state/board/types/internal';
+import { PreparedNodeMap } from '../../../../animation/render/types.js';
+import { AnimationPlan } from '../../../../animation/types.js';
+import { Square } from '../../../../state/board/types/internal.js';
 import {
 	ExtensionCleanAnimationContext,
 	ExtensionPrepareAnimationContext,
 	ExtensionRenderAnimationContext
-} from '../../../types/context/animation';
-import { ExtensionUpdateContext } from '../../../types/context/update';
-import { ExtensionRuntimeSurface } from '../../../types/surface/main';
-import type { PieceUrls } from '../types/internal';
+} from '../../../types/context/animation.js';
+import { ExtensionUpdateContext } from '../../../types/context/update.js';
+import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
+import type { PieceUrls } from '../types/internal.js';
 
 export interface MainRendererAnimationEntry {
 	plan: AnimationPlan;

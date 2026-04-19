@@ -1,7 +1,7 @@
-import { ConfigColorPair } from '../types/internal';
-import { rendererBoardRender } from './render';
-import { MainRendererBoard, MainRendererBoardInternal } from './types';
-import { rendererBoardOnUpdate } from './update';
+import { ConfigColorPair } from '../types/internal.js';
+import { rendererBoardRender } from './render.js';
+import { MainRendererBoard, MainRendererBoardInternal } from './types.js';
+import { rendererBoardOnUpdate } from './update.js';
 
 function createMainRendererBoardInternal(config: ConfigColorPair): MainRendererBoardInternal {
 	return { config };

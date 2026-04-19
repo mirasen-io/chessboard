@@ -1,6 +1,6 @@
-import { setsEqual } from '../../helpers/util';
-import { assertValidSquare } from '../board/check';
-import type { Square } from '../board/types/internal';
+import { setsEqual } from '../../helpers/util.js';
+import { assertValidSquare } from '../board/check.js';
+import type { Square } from '../board/types/internal.js';
 import {
 	MovabilityDestinationsRecordSnapshot,
 	MovabilityDestinationsSnapshot,
@@ -8,8 +8,8 @@ import {
 	MoveDestinationSnapshot,
 	type MovabilitySnapshot,
 	type MovabilityStrict
-} from './types/internal';
-import { InteractionStateInternal } from './types/main';
+} from './types/internal.js';
+import { InteractionStateInternal } from './types/main.js';
 
 function moveDestinationsEqual(
 	a: MoveDestinationSnapshot | null | undefined,

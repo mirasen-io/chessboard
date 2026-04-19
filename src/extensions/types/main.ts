@@ -1,11 +1,11 @@
-import { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types';
-import { ExtensionInvalidationState } from '../invalidation/types';
-import { ExtensionAnimationControllerInternalSurface } from './basic/animation';
-import { SceneEventType } from './basic/events';
-import { UpdateFrameSnapshot } from './basic/update';
-import { ExtensionUIMoveRequestContext } from './context/ui-move';
-import { AnyExtensionDefinition, AnyExtensionInstance } from './extension';
-import { ExtensionRuntimeSurfaceCommands } from './surface/commands';
+import { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types.js';
+import { ExtensionInvalidationState } from '../invalidation/types.js';
+import { ExtensionAnimationControllerInternalSurface } from './basic/animation.js';
+import { SceneEventType } from './basic/events.js';
+import { UpdateFrameSnapshot } from './basic/update.js';
+import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
+import { AnyExtensionDefinition, AnyExtensionInstance } from './extension.js';
+import { ExtensionRuntimeSurfaceCommands } from './surface/commands.js';
 
 export interface ExtensionSystemExtensionRecord {
 	readonly id: string;

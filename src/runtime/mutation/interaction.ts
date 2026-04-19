@@ -1,7 +1,7 @@
-import { isEmptyPieceCode } from '../../state/board/check';
-import { selectedEqual } from '../../state/interaction/helpers';
-import { InteractionStateSelected } from '../../state/interaction/types/main';
-import { RuntimeMutationPipe } from './pipeline';
+import { isEmptyPieceCode } from '../../state/board/check.js';
+import { selectedEqual } from '../../state/interaction/helpers.js';
+import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import { RuntimeMutationPipe } from './pipeline.js';
 
 export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutationPipe = (
 	context,

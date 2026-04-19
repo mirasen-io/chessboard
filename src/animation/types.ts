@@ -1,5 +1,5 @@
 import { ReadonlyDeep } from 'type-fest';
-import type { NonEmptyPieceCode, Square } from '../state/board/types/internal';
+import type { NonEmptyPieceCode, Square } from '../state/board/types/internal.js';
 
 export interface AnimationTrackMove {
 	id: number;

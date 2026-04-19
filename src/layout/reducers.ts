@@ -1,6 +1,6 @@
-import { createRenderGeometry } from './geometry/factory';
-import { measureBoardSize } from './helpers';
-import { LayoutInternal, LayoutRefreshOptions } from './types';
+import { createRenderGeometry } from './geometry/factory.js';
+import { measureBoardSize } from './helpers.js';
+import { LayoutInternal, LayoutRefreshOptions } from './types.js';
 
 export function layoutRefreshGeometry(
 	state: LayoutInternal,

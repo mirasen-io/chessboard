@@ -1,6 +1,6 @@
-import { ExtensionInvalidationState } from '../../invalidation/types';
-import { ExtensionAnimationSession } from '../basic/animation';
-import { ExtensionRenderContext } from './render';
+import { ExtensionInvalidationState } from '../../invalidation/types.js';
+import { ExtensionAnimationSession } from '../basic/animation.js';
+import { ExtensionRenderContext } from './render.js';
 
 export interface ExtensionSubmittedAnimationSession extends ExtensionAnimationSession {
 	readonly status: 'submitted';

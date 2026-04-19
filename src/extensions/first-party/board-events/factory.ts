@@ -1,10 +1,10 @@
-import { denormalizeMove } from '../../../state/board/denormalize';
+import { denormalizeMove } from '../../../state/board/denormalize.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroy,
 	extensionMount,
 	extensionUnmount
-} from '../common/helpers';
+} from '../common/helpers.js';
 import {
 	BoardEventsDefinition,
 	BoardEventsInstance,
@@ -13,7 +13,7 @@ import {
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
 	ExtensionSlotsType
-} from './types';
+} from './types.js';
 
 export function createBoardEvents(): BoardEventsDefinition {
 	return {

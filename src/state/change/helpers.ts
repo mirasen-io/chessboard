@@ -1,12 +1,12 @@
-import { ExtensionUIMoveRequestContextSnapshot } from '../../extensions/types/context/ui-move';
-import { setsEqual } from '../../helpers/util';
+import { ExtensionUIMoveRequestContextSnapshot } from '../../extensions/types/context/ui-move.js';
+import { setsEqual } from '../../helpers/util.js';
 import type {
 	MoveBaseSnapshot,
 	MoveRequest,
 	MoveRequestBase,
 	MoveSnapshot
-} from '../board/types/internal';
-import { MoveDestinationSnapshot } from '../interaction/types/internal';
+} from '../board/types/internal.js';
+import { MoveDestinationSnapshot } from '../interaction/types/internal.js';
 
 function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
 	const diffs: boolean[] = [

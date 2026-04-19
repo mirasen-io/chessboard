@@ -1,4 +1,4 @@
-import { RenderSystemInternal } from '../types';
+import { RenderSystemInternal } from '../types.js';
 
 export function validateIsMounted(state: RenderSystemInternal): void {
 	if (!state.container) {

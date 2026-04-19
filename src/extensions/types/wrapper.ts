@@ -2,12 +2,12 @@
  * Public built-in extension ids accepted by createBoard({ extensions })
  */
 
-import { ActiveTargetDefinition } from '../first-party/active-target/types';
-import { BoardEventsDefinition } from '../first-party/board-events/types';
-import { LastMoveDefinition } from '../first-party/last-move/types';
-import { LegalMovesDefinition } from '../first-party/legal-moves/types';
-import { MainRendererDefinition } from '../first-party/main-renderer/types/extension';
-import { SelectedSquareDefinition } from '../first-party/selected-square/types';
+import { ActiveTargetDefinition } from '../first-party/active-target/types.js';
+import { BoardEventsDefinition } from '../first-party/board-events/types.js';
+import { LastMoveDefinition } from '../first-party/last-move/types.js';
+import { LegalMovesDefinition } from '../first-party/legal-moves/types.js';
+import { MainRendererDefinition } from '../first-party/main-renderer/types/extension.js';
+import { SelectedSquareDefinition } from '../first-party/selected-square/types.js';
 
 export const DefaultBuiltinChessboardExtensions = [
 	'mainRenderer',

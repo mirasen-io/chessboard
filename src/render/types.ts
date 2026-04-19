@@ -2,14 +2,14 @@ import {
 	ALL_EXTENSION_SLOTS,
 	ExtensionAllocatedSlotsInternal,
 	ExtensionSlotSvgRoots
-} from '../extensions/types/basic/mount';
-import { RenderFrameSnapshot } from '../extensions/types/basic/render';
-import { TransientInput } from '../extensions/types/basic/transient-visuals';
+} from '../extensions/types/basic/mount.js';
+import { RenderFrameSnapshot } from '../extensions/types/basic/render.js';
+import { TransientInput } from '../extensions/types/basic/transient-visuals.js';
 import {
 	ExtensionSystemExtensionRecord,
 	ExtensionSystemSharedDataForRenderSystem
-} from '../extensions/types/main';
-import { Scheduler } from './scheduler/types';
+} from '../extensions/types/main.js';
+import { Scheduler } from './scheduler/types.js';
 
 export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLOTS> {
 	readonly svgRoot: SVGSVGElement;

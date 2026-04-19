@@ -1,7 +1,7 @@
-import { ExtensionAnimationController } from '../basic/animation';
-import { ExtensionRuntimeSurfaceCommands } from './commands';
-import { ExtensionRuntimeSurfaceEvents } from './events';
-import { ExtensionRuntimeSurfaceTransientVisuals } from './transient-visuals';
+import { ExtensionAnimationController } from '../basic/animation.js';
+import { ExtensionRuntimeSurfaceCommands } from './commands.js';
+import { ExtensionRuntimeSurfaceEvents } from './events.js';
+import { ExtensionRuntimeSurfaceTransientVisuals } from './transient-visuals.js';
 
 export interface ExtensionRuntimeSurface {
 	readonly commands: ExtensionRuntimeSurfaceCommands;

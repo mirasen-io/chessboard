@@ -1,4 +1,4 @@
-import { MoveRequestInput, RolePromotionInput, SquareString } from '../../board/types/input';
+import { MoveRequestInput, RolePromotionInput, SquareString } from '../../board/types/input.js';
 
 export interface MoveDestinationInput extends Omit<MoveRequestInput, 'from' | 'promotedTo'> {
 	promotedTo?: RolePromotionInput[]; // For cases where multiple promotions are possible (e.g., underpromotion options)

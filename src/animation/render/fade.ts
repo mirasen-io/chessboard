@@ -1,8 +1,8 @@
-import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal';
-import type { RenderGeometry } from '../../layout/geometry/types';
-import { createSvgElement, updateElementAttributes } from '../../render/svg/helpers';
-import type { AnimationTrackFade } from '../types';
-import type { PreparedFadeNode } from './types';
+import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
+import type { RenderGeometry } from '../../layout/geometry/types.js';
+import { createSvgElement, updateElementAttributes } from '../../render/svg/helpers.js';
+import type { AnimationTrackFade } from '../types.js';
+import type { PreparedFadeNode } from './types.js';
 
 export function prepareFadeTrack(
 	track: AnimationTrackFade,

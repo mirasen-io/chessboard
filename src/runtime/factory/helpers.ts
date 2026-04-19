@@ -1,10 +1,10 @@
 import assert from '@ktarmyshov/assert';
-import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move';
-import { isEmptyPieceCode } from '../../state/board/check';
-import { Square } from '../../state/board/types/internal';
-import { canMoveTo } from '../input/controller/helpers';
-import { RuntimeInternal } from '../types/main';
-import { createUIMoveRequestContext } from './ui-move';
+import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move.js';
+import { isEmptyPieceCode } from '../../state/board/check.js';
+import { Square } from '../../state/board/types/internal.js';
+import { canMoveTo } from '../input/controller/helpers.js';
+import { RuntimeInternal } from '../types/main.js';
+import { createUIMoveRequestContext } from './ui-move.js';
 
 function assertResolvedAfterAutoResolve(
 	state: ExtensionUIMoveRequestContext

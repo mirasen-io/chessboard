@@ -3,7 +3,7 @@ import type {
 	MutationPayload,
 	MutationSession,
 	ReadonlyMutationSession
-} from './types';
+} from './types.js';
 
 export function createReadonlyMutationSession<PayloadByCause extends Record<string, unknown>>(
 	payloads: ReadonlyMap<

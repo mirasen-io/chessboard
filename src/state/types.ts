@@ -1,13 +1,13 @@
-import { PositionInput } from './board/types/input';
-import { BoardState, BoardStateSnapshot } from './board/types/main';
-import type { ChangeState, ChangeStateSnapshot } from './change/types';
+import { PositionInput } from './board/types/input.js';
+import { BoardState, BoardStateSnapshot } from './board/types/main.js';
+import type { ChangeState, ChangeStateSnapshot } from './change/types.js';
 import {
 	InteractionState,
 	InteractionStateInitOptions,
 	InteractionStateSnapshot
-} from './interaction/types/main';
-import { ViewStateSnapshot } from './view/types/internal';
-import { ViewState, ViewStateInitOptions } from './view/types/main';
+} from './interaction/types/main.js';
+import { ViewStateSnapshot } from './view/types/internal.js';
+import { ViewState, ViewStateInitOptions } from './view/types/main.js';
 
 export interface RuntimeStateInternal {
 	readonly board: BoardState;

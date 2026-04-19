@@ -1,8 +1,8 @@
-import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal';
-import type { RenderGeometry } from '../../layout/geometry/types';
-import { createSvgElement, updateElementAttributes } from '../../render/svg/helpers';
-import type { AnimationTrackMove } from '../types';
-import type { PreparedMoveNode } from './types';
+import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
+import type { RenderGeometry } from '../../layout/geometry/types.js';
+import { createSvgElement, updateElementAttributes } from '../../render/svg/helpers.js';
+import type { AnimationTrackMove } from '../types.js';
+import type { PreparedMoveNode } from './types.js';
 
 export function prepareMoveTrack(
 	track: AnimationTrackMove,

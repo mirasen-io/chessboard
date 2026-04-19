@@ -1,10 +1,10 @@
 import assert from '@ktarmyshov/assert';
-import type { ExtensionAnimationController } from '../types/basic/animation';
-import type { AnyExtensionDefinition } from '../types/extension';
-import type { GetInternalState } from '../types/main';
-import type { ExtensionRuntimeSurfaceCommands } from '../types/surface/commands';
-import type { ExtensionRuntimeSurface } from '../types/surface/main';
-import type { ExtensionRuntimeSurfaceTransientVisuals } from '../types/surface/transient-visuals';
+import type { ExtensionAnimationController } from '../types/basic/animation.js';
+import type { AnyExtensionDefinition } from '../types/extension.js';
+import type { GetInternalState } from '../types/main.js';
+import type { ExtensionRuntimeSurfaceCommands } from '../types/surface/commands.js';
+import type { ExtensionRuntimeSurface } from '../types/surface/main.js';
+import type { ExtensionRuntimeSurfaceTransientVisuals } from '../types/surface/transient-visuals.js';
 
 function createExtensionRuntimeSurfaceTransientVisuals(
 	getInternalState: GetInternalState,
