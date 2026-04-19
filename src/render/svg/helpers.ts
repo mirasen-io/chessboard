@@ -1,5 +1,5 @@
-import { fileOf, rankOf } from '../../state/board/coords';
-import { Square } from '../../state/board/types/internal';
+import { fileOf, rankOf } from '../../state/board/coords.js';
+import { Square } from '../../state/board/types/internal.js';
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 

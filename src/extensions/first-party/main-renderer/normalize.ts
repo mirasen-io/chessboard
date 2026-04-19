@@ -1,9 +1,9 @@
 import assert from '@ktarmyshov/assert';
-import { normalizePiece } from '../../../state/board/normalize';
-import { PieceString } from '../../../state/board/types/input';
-import { ALL_NON_EMPTY_PIECE_CODES, PieceCode } from '../../../state/board/types/internal';
-import { MainRendererConfigInput, PieceUrlsInput } from './types/input';
-import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig, PieceUrls } from './types/internal';
+import { normalizePiece } from '../../../state/board/normalize.js';
+import { PieceString } from '../../../state/board/types/input.js';
+import { ALL_NON_EMPTY_PIECE_CODES, PieceCode } from '../../../state/board/types/internal.js';
+import { MainRendererConfigInput, PieceUrlsInput } from './types/input.js';
+import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig, PieceUrls } from './types/internal.js';
 
 function assertPieceUrlsComplete(pieceUrls: Partial<PieceUrls>): asserts pieceUrls is PieceUrls {
 	for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {

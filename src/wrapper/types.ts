@@ -2,14 +2,14 @@ import type {
 	AnyExtensionDefinition,
 	ExtensionDefinitionId,
 	ExtensionDefinitionPublicApi
-} from '../extensions/types/extension';
+} from '../extensions/types/extension.js';
 import {
 	BuiltInExtensionDefinitionMap,
 	BuiltInExtensionId,
 	DefaultBuiltinChessboardExtensions
-} from '../extensions/types/wrapper';
-import { Runtime } from '../runtime/types/main';
-import { RuntimeStateInitOptions } from '../state/types';
+} from '../extensions/types/wrapper.js';
+import { Runtime } from '../runtime/types/main.js';
+import { RuntimeStateInitOptions } from '../state/types.js';
 
 /**
  * What createBoard accepts in options.extensions

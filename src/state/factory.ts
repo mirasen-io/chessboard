@@ -1,8 +1,8 @@
-import { createBoardState } from './board/factory';
-import { createChangeState } from './change/factory';
-import { createInteractionState } from './interaction/factory';
-import type { RuntimeState, RuntimeStateInitOptions, RuntimeStateInternal } from './types';
-import { createViewState } from './view/factory';
+import { createBoardState } from './board/factory.js';
+import { createChangeState } from './change/factory.js';
+import { createInteractionState } from './interaction/factory.js';
+import type { RuntimeState, RuntimeStateInitOptions, RuntimeStateInternal } from './types.js';
+import { createViewState } from './view/factory.js';
 
 function createRuntimeStateInternal(options: RuntimeStateInitOptions): RuntimeStateInternal {
 	return {

@@ -4,13 +4,13 @@ import {
 	handlePointerLeave,
 	handlePointerMove,
 	handlePointerUp
-} from './pointer';
-import { transmitTransientInput } from './transient-visuals';
+} from './pointer.js';
+import { transmitTransientInput } from './transient-visuals.js';
 import {
 	InteractionController,
 	InteractionControllerInitOptions,
 	InteractionControllerInternal
-} from './types';
+} from './types.js';
 
 function createInteractionControllerInternal(
 	options: InteractionControllerInitOptions

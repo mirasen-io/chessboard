@@ -1,6 +1,6 @@
-import { isValidSquare } from './check';
-import { fileOf, rankOf } from './coords';
-import { fromPieceCode } from './piece';
+import { isValidSquare } from './check.js';
+import { fileOf, rankOf } from './coords.js';
+import { fromPieceCode } from './piece.js';
 import {
 	ColorShort,
 	FileChar,
@@ -9,7 +9,7 @@ import {
 	RolePromotionShort,
 	RoleShort,
 	SquareString
-} from './types/input';
+} from './types/input.js';
 import {
 	ColorCode,
 	FILE_START,
@@ -21,8 +21,8 @@ import {
 	RoleCode,
 	RolePromotionCode,
 	Square
-} from './types/internal';
-import { MoveBaseOutput, MoveCapturedOutput, MoveOutput } from './types/output';
+} from './types/internal.js';
+import { MoveBaseOutput, MoveCapturedOutput, MoveOutput } from './types/output.js';
 
 export function denormalizeSquare(sq: Square): SquareString {
 	if (!isValidSquare(sq)) {

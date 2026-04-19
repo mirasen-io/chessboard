@@ -1,5 +1,5 @@
-import { isFrameRenderable } from '../../extensions/types/basic/update';
-import { RuntimeMutationPipe, RuntimeMutationPipeContext } from './pipeline';
+import { isFrameRenderable } from '../../extensions/types/basic/update.js';
+import { RuntimeMutationPipe, RuntimeMutationPipeContext } from './pipeline.js';
 
 export const requestRenderPipe: RuntimeMutationPipe = (context) => {
 	const { current } = context;

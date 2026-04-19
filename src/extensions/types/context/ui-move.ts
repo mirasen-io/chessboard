@@ -1,5 +1,5 @@
-import { MoveRequest, Square } from '../../../state/board/types/internal';
-import { MoveDestinationSnapshot } from '../../../state/interaction/types/internal';
+import { MoveRequest, Square } from '../../../state/board/types/internal.js';
+import { MoveDestinationSnapshot } from '../../../state/interaction/types/internal.js';
 
 export type ExtensionUIMoveRequestStatus = 'unresolved' | 'deferred' | 'resolved';
 

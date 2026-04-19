@@ -1,6 +1,6 @@
-import { isEmptyPieceCode } from './check';
-import { denormalizeSquare } from './denormalize';
-import { fromPieceCode, toPieceCode } from './piece';
+import { isEmptyPieceCode } from './check.js';
+import { denormalizeSquare } from './denormalize.js';
+import { fromPieceCode, toPieceCode } from './piece.js';
 import {
 	ColorCode,
 	Move,
@@ -9,8 +9,8 @@ import {
 	MoveRequest,
 	MoveRequestBase,
 	PieceCode
-} from './types/internal';
-import { BoardStateInternal } from './types/main';
+} from './types/internal.js';
+import { BoardStateInternal } from './types/main.js';
 
 export function boardSetPosition(state: BoardStateInternal, pieces: Uint8Array): boolean {
 	state.pieces = new Uint8Array(pieces);

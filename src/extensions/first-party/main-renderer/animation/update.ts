@@ -1,8 +1,11 @@
-import { calculateAnimationPlan } from '../../../../animation/planner';
-import { AnimationTrackExclude } from '../../../../animation/types';
-import { piecePositionsEqual } from '../../../../state/board/check';
-import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../../types/context/update';
-import type { MainRendererAnimationInternal } from './types';
+import { calculateAnimationPlan } from '../../../../animation/planner.js';
+import { AnimationTrackExclude } from '../../../../animation/types.js';
+import { piecePositionsEqual } from '../../../../state/board/check.js';
+import {
+	ExtensionUpdateContext,
+	isUpdateContextRenderable
+} from '../../../types/context/update.js';
+import type { MainRendererAnimationInternal } from './types.js';
 
 const DEFAULT_ANIMATION_DURATION_MS = 180;
 

@@ -1,13 +1,13 @@
-import { RuntimeReadonlyMutationSession } from '../../../runtime/mutation/types';
-import { ExtensionInvalidationState } from '../../invalidation/types';
-import { RenderFrameSnapshot } from '../basic/render';
+import { RuntimeReadonlyMutationSession } from '../../../runtime/mutation/types.js';
+import { ExtensionInvalidationState } from '../../invalidation/types.js';
+import { RenderFrameSnapshot } from '../basic/render.js';
 import {
 	isFrameMounted,
 	isFrameRenderable,
 	UpdateFrameSnapshot,
 	UpdateFrameSnapshotMounted,
 	UpdateFrameSnapshotUnmounted
-} from '../basic/update';
+} from '../basic/update.js';
 
 export interface ExtensionUpdateContextCommon {
 	readonly previousFrame: UpdateFrameSnapshot | null;

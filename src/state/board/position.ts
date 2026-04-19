@@ -1,5 +1,5 @@
 import { parse } from '@echecs/fen';
-import { normalizeColor, normalizePiece, normalizeSquare } from './normalize';
+import { normalizeColor, normalizePiece, normalizeSquare } from './normalize.js';
 import {
 	FenString,
 	PieceInput,
@@ -10,8 +10,8 @@ import {
 	PositionInput,
 	PositionInputObject,
 	SquareString
-} from './types/input';
-import { ColorCode, ParsedPosition, SQUARE_COUNT } from './types/internal';
+} from './types/input.js';
+import { ColorCode, ParsedPosition, SQUARE_COUNT } from './types/internal.js';
 
 const START_POSITION_RECORD_STRING: PiecePositionRecordString = {
 	a1: 'wR',

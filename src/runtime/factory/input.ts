@@ -1,11 +1,11 @@
 import assert from '@ktarmyshov/assert';
-import { isEmptyPieceCode } from '../../state/board/check';
-import { DragSession } from '../../state/interaction/types/internal';
-import { InteractionStateSelected } from '../../state/interaction/types/main';
-import { RuntimeInteractionSurface } from '../input/controller/types';
-import { runtimeRunMutationPipeline } from '../mutation/run';
-import { GetInternalState } from '../types/main';
-import { uiMoveCompleteTo } from './helpers';
+import { isEmptyPieceCode } from '../../state/board/check.js';
+import { DragSession } from '../../state/interaction/types/internal.js';
+import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import { RuntimeInteractionSurface } from '../input/controller/types.js';
+import { runtimeRunMutationPipeline } from '../mutation/run.js';
+import { GetInternalState } from '../types/main.js';
+import { uiMoveCompleteTo } from './helpers.js';
 
 export function createRuntimeInteractionSurface(
 	state: GetInternalState

@@ -139,6 +139,7 @@
 
 	onDestroy(() => {
 		board?.destroy();
+		board = null;
 	});
 </script>
 

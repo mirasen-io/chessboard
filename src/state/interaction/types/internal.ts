@@ -1,5 +1,10 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { MoveRequest, PieceCode, RolePromotionCode, Square } from '../../board/types/internal';
+import type {
+	MoveRequest,
+	PieceCode,
+	RolePromotionCode,
+	Square
+} from '../../board/types/internal.js';
 
 export interface DragSession {
 	type: 'lifted-piece-drag' | 'release-targeting';

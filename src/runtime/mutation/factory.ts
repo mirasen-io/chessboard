@@ -1,17 +1,17 @@
-import { createMutationPipeline } from '../../mutation/pipeline';
-import { extensionSystemUpdatePipe } from './extension-update';
-import { reconcileInteractionSelectionAfterBoardStateChange } from './interaction';
-import { clearLastMoveOnBoardSetPosition, updateLastMoveOnBoardMove } from './last-move';
-import { layoutRefreshGeometryPipe } from './layout';
+import { createMutationPipeline } from '../../mutation/pipeline.js';
+import { extensionSystemUpdatePipe } from './extension-update.js';
+import { reconcileInteractionSelectionAfterBoardStateChange } from './interaction.js';
+import { clearLastMoveOnBoardSetPosition, updateLastMoveOnBoardMove } from './last-move.js';
+import { layoutRefreshGeometryPipe } from './layout.js';
 import {
 	RuntimeMutationPipe,
 	RuntimeMutationPipeContext,
 	RuntimeMutationPipeContextPrevious,
 	RuntimeMutationPipeline,
 	RuntimeMutationPipelineContext
-} from './pipeline';
-import { requestRenderPipe } from './request-render';
-import { RuntimeMutationPayloadByCause } from './types';
+} from './pipeline.js';
+import { requestRenderPipe } from './request-render.js';
+import { RuntimeMutationPayloadByCause } from './types.js';
 
 function buildPreviousContext(
 	current: RuntimeMutationPipelineContext

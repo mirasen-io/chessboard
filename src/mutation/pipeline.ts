@@ -1,5 +1,5 @@
-import { createMutationSession } from './session';
-import type { MutationPipe, MutationPipeline } from './types';
+import { createMutationSession } from './session.js';
+import type { MutationPipe, MutationPipeline } from './types.js';
 
 export function createMutationPipeline<PayloadByCause extends Record<string, unknown>, Context>(
 	pipes: readonly MutationPipe<PayloadByCause, Context>[]

@@ -1,6 +1,6 @@
-import { ExtensionRenderContext } from '../../../types/context/render';
-import { ExtensionUpdateContext } from '../../../types/context/update';
-import { ConfigColorPair } from '../types/internal';
+import { ExtensionRenderContext } from '../../../types/context/render.js';
+import { ExtensionUpdateContext } from '../../../types/context/update.js';
+import { ConfigColorPair } from '../types/internal.js';
 
 export interface MainRendererBoardInternal {
 	readonly config: ConfigColorPair;

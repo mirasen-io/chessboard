@@ -1,4 +1,4 @@
-import { ConfigColors } from './internal';
+import { ConfigColors } from './internal.js';
 
 export interface TMainRendererConfig<TPieceUrls> {
 	colors: ConfigColors;

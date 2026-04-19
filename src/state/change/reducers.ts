@@ -1,8 +1,8 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move';
-import type { MoveSnapshot } from '../board/types/internal';
-import { movesEqual, uiMoveRequestContextsEqual } from './helpers';
-import type { ChangeStateInternal } from './types';
+import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move.js';
+import type { MoveSnapshot } from '../board/types/internal.js';
+import { movesEqual, uiMoveRequestContextsEqual } from './helpers.js';
+import type { ChangeStateInternal } from './types.js';
 
 export function changeStateSetLastMove(
 	state: ChangeStateInternal,

@@ -2,9 +2,9 @@ import { Writable } from 'type-fest';
 import {
 	ExtensionAllocatedSlotsInternal,
 	ExtensionSlotName
-} from '../../extensions/types/basic/mount';
-import { RenderSystemInitOptionsInternal, SvgRoots } from '../types';
-import { createSvgElement } from './helpers';
+} from '../../extensions/types/basic/mount.js';
+import { RenderSystemInitOptionsInternal, SvgRoots } from '../types.js';
+import { createSvgElement } from './helpers.js';
 
 export function createSvgRoots(options: RenderSystemInitOptionsInternal): SvgRoots {
 	const { doc } = options;

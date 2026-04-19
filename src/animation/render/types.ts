@@ -3,7 +3,7 @@ import type {
 	AnimationTrackFade,
 	AnimationTrackMove,
 	AnimationTrackStatic
-} from '../types';
+} from '../types.js';
 
 /** Prepared node for a move track — holds the SVG image and its track. */
 export interface PreparedMoveNode extends AnimationTrackMove {

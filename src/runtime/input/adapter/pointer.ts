@@ -3,11 +3,11 @@ import {
 	SCENE_POINTER_EVENT_TYPES,
 	ScenePointerEvent,
 	ScenePointerEventType
-} from '../../../extensions/types/basic/events';
-import { ScenePoint } from '../../../extensions/types/basic/transient-visuals';
-import { Square } from '../../../state/board/types/internal';
-import { clampBoardPoint, mapBoardPointToSquare } from './helpers';
-import { InputAdapterInternal } from './types';
+} from '../../../extensions/types/basic/events.js';
+import { ScenePoint } from '../../../extensions/types/basic/transient-visuals.js';
+import { Square } from '../../../state/board/types/internal.js';
+import { clampBoardPoint, mapBoardPointToSquare } from './helpers.js';
+import { InputAdapterInternal } from './types.js';
 
 const validPointerEventTypes = new Set<string>(SCENE_POINTER_EVENT_TYPES);
 

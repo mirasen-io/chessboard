@@ -2,11 +2,11 @@ import {
 	clearElementChildren,
 	createSvgElement,
 	isLightSquare
-} from '../../../../render/svg/helpers';
-import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal';
-import { ExtensionRenderContext } from '../../../types/context/render';
-import { DirtyLayer } from '../types/extension';
-import { MainRendererBoardInternal } from './types';
+} from '../../../../render/svg/helpers.js';
+import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal.js';
+import { ExtensionRenderContext } from '../../../types/context/render.js';
+import { DirtyLayer } from '../types/extension.js';
+import { MainRendererBoardInternal } from './types.js';
 
 export function rendererBoardRender(
 	state: MainRendererBoardInternal,

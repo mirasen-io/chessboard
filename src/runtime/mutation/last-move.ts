@@ -1,5 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import { RuntimeMutationPipe } from './pipeline';
+import { RuntimeMutationPipe } from './pipeline.js';
 
 export const updateLastMoveOnBoardMove: RuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;

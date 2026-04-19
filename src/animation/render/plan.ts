@@ -1,10 +1,10 @@
-import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal';
-import type { RenderGeometry } from '../../layout/geometry/types';
-import type { AnimationPlan } from '../types';
-import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade';
-import { cleanMoveTrack, prepareMoveTrack, renderMoveTrack } from './move';
-import { cleanStaticTrack, prepareStaticTrack, renderStaticTrack } from './static';
-import type { PreparedNodeMap, PreparedTrackNode } from './types';
+import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
+import type { RenderGeometry } from '../../layout/geometry/types.js';
+import type { AnimationPlan } from '../types.js';
+import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade.js';
+import { cleanMoveTrack, prepareMoveTrack, renderMoveTrack } from './move.js';
+import { cleanStaticTrack, prepareStaticTrack, renderStaticTrack } from './static.js';
+import type { PreparedNodeMap, PreparedTrackNode } from './types.js';
 
 /**
  * Prepare all tracks in the plan — creates SVG nodes in `layer` for each track.

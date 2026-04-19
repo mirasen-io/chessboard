@@ -1,16 +1,16 @@
-import { createActiveTarget } from '../extensions/first-party/active-target/factory';
-import { createBoardEvents } from '../extensions/first-party/board-events/factory';
-import { createLastMove } from '../extensions/first-party/last-move/factory';
-import { createLegalMoves } from '../extensions/first-party/legal-moves/factory';
-import { createMainRenderer } from '../extensions/first-party/main-renderer/factory';
-import { createSelectedSquare } from '../extensions/first-party/selected-square/factory';
-import { AnyExtensionDefinition } from '../extensions/types/extension';
+import { createActiveTarget } from '../extensions/first-party/active-target/factory.js';
+import { createBoardEvents } from '../extensions/first-party/board-events/factory.js';
+import { createLastMove } from '../extensions/first-party/last-move/factory.js';
+import { createLegalMoves } from '../extensions/first-party/legal-moves/factory.js';
+import { createMainRenderer } from '../extensions/first-party/main-renderer/factory.js';
+import { createSelectedSquare } from '../extensions/first-party/selected-square/factory.js';
+import { AnyExtensionDefinition } from '../extensions/types/extension.js';
 import {
 	BuiltInExtensionId,
 	DefaultBuiltinChessboardExtensions
-} from '../extensions/types/wrapper';
-import { createRuntime } from '../runtime/factory/main';
-import { Chessboard, ChessboardExtensionInput, ChessboardInitOptions } from './types';
+} from '../extensions/types/wrapper.js';
+import { createRuntime } from '../runtime/factory/main.js';
+import { Chessboard, ChessboardExtensionInput, ChessboardInitOptions } from './types.js';
 
 function createBuiltInExtensionDefinition(id: BuiltInExtensionId): AnyExtensionDefinition {
 	switch (id) {

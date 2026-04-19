@@ -1,8 +1,8 @@
-import { RenderFrameSnapshot } from '../../extensions/types/basic/render';
-import { ExtensionRenderContext } from '../../extensions/types/context/render';
-import { updateElementAttributes } from '../svg/helpers';
-import { RenderSystemInternal } from '../types';
-import { validateIsMounted } from './helpers';
+import { RenderFrameSnapshot } from '../../extensions/types/basic/render.js';
+import { ExtensionRenderContext } from '../../extensions/types/context/render.js';
+import { updateElementAttributes } from '../svg/helpers.js';
+import { RenderSystemInternal } from '../types.js';
+import { validateIsMounted } from './helpers.js';
 
 export function checkNeedsRender(state: RenderSystemInternal): boolean {
 	for (const extensionRec of state.extensions.values()) {

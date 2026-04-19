@@ -1,8 +1,8 @@
 import assert from '@ktarmyshov/assert';
-import { RenderSystem } from '../render/types';
-import { createInputAdapter } from './input/adapter/factory';
-import { runtimeRefreshGeometry } from './layout';
-import { RuntimeInternal } from './types/main';
+import { RenderSystem } from '../render/types.js';
+import { createInputAdapter } from './input/adapter/factory.js';
+import { runtimeRefreshGeometry } from './layout.js';
+import { RuntimeInternal } from './types/main.js';
 
 export function runtimeIsMounted(state: RuntimeInternal): boolean {
 	return state.renderSystem.isMounted;

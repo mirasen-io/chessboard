@@ -1,4 +1,4 @@
-import type { Square, SquareFile, SquareRank } from './types/internal';
+import type { Square, SquareFile, SquareRank } from './types/internal.js';
 
 export function fileOf(sq: Square): SquareFile {
 	return Math.trunc(sq % 8) as SquareFile;

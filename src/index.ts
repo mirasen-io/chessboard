@@ -1,11 +1,11 @@
-export { createBoard } from './wrapper/factory';
+export { createBoard } from './wrapper/factory.js';
 
 export type {
 	Chessboard,
 	ChessboardExtensionInput,
 	ChessboardInitOptions,
 	ChessboardRuntimeSurface
-} from './wrapper/types';
+} from './wrapper/types.js';
 
-export type { MoveRequestInput, PiecePositionRecordString } from './state/board/types/input';
-export type { RuntimeStateInitOptions } from './state/types';
+export type { MoveRequestInput, PiecePositionRecordString } from './state/board/types/input.js';
+export type { RuntimeStateInitOptions } from './state/types.js';

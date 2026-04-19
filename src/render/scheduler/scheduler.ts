@@ -1,4 +1,4 @@
-import { Scheduler, SchedulerOptions } from './types';
+import { Scheduler, SchedulerOptions } from './types.js';
 
 export function createScheduler(opts: SchedulerOptions): Scheduler {
 	const { render } = opts;

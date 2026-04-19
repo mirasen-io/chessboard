@@ -1,25 +1,25 @@
 import assert from '@ktarmyshov/assert';
-import { createExtensionSystem } from '../../extensions/factory/main';
-import { assertFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update';
-import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
-import { createLayout } from '../../layout/factory';
-import { createRenderSystem } from '../../render/factory';
-import { isNonEmptyPieceCode } from '../../state/board/check';
-import { normalizeSquare } from '../../state/board/normalize';
-import { createRuntimeState } from '../../state/factory';
-import { InteractionStateSelected } from '../../state/interaction/types/main';
-import { createInteractionController } from '../input/controller/factory';
-import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle';
-import { createRuntimeMutationPipeline } from '../mutation/factory';
-import { runtimeRunMutationPipeline } from '../mutation/run';
+import { createExtensionSystem } from '../../extensions/factory/main.js';
+import { assertFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update.js';
+import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands.js';
+import { createLayout } from '../../layout/factory.js';
+import { createRenderSystem } from '../../render/factory.js';
+import { isNonEmptyPieceCode } from '../../state/board/check.js';
+import { normalizeSquare } from '../../state/board/normalize.js';
+import { createRuntimeState } from '../../state/factory.js';
+import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import { createInteractionController } from '../input/controller/factory.js';
+import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle.js';
+import { createRuntimeMutationPipeline } from '../mutation/factory.js';
+import { runtimeRunMutationPipeline } from '../mutation/run.js';
 import type {
 	Runtime,
 	RuntimeInitOptions,
 	RuntimeInitOptionsInternal,
 	RuntimeInternal,
 	RuntimeStatus
-} from '../types/main';
-import { createRuntimeInteractionSurface } from './input';
+} from '../types/main.js';
+import { createRuntimeInteractionSurface } from './input.js';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
 	const extensionSystem = createExtensionSystem(options);

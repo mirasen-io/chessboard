@@ -1,14 +1,14 @@
-import { cleanAnimationPlan } from '../../../../animation/render/plan';
-import type { ExtensionRuntimeSurface } from '../../../types/surface/main';
-import type { PieceUrls } from '../types/internal';
+import { cleanAnimationPlan } from '../../../../animation/render/plan.js';
+import type { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
+import type { PieceUrls } from '../types/internal.js';
 import {
 	getAnimationSuppressedSquares,
 	rendererAnimationClean,
 	rendererAnimationPrepare,
 	rendererAnimationRender
-} from './render';
-import type { MainRendererAnimation, MainRendererAnimationInternal } from './types';
-import { rendererAnimationOnUpdate } from './update';
+} from './render.js';
+import type { MainRendererAnimation, MainRendererAnimationInternal } from './types.js';
+import { rendererAnimationOnUpdate } from './update.js';
 
 export function createMainRendererAnimation(
 	config: PieceUrls,

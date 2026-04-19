@@ -1,4 +1,4 @@
-import { RuntimeMutationPipe } from './pipeline';
+import { RuntimeMutationPipe } from './pipeline.js';
 
 export const extensionSystemUpdatePipe: RuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;

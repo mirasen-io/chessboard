@@ -2,9 +2,9 @@ import type { ReadonlyDeep } from 'type-fest';
 import {
 	ExtensionUIMoveRequestContext,
 	ExtensionUIMoveRequestContextSnapshot
-} from '../../extensions/types/context/ui-move';
-import type { MoveSnapshot } from '../board/types/internal';
-import type { ChangeStateMutationSession } from './mutation';
+} from '../../extensions/types/context/ui-move.js';
+import type { MoveSnapshot } from '../board/types/internal.js';
+import type { ChangeStateMutationSession } from './mutation.js';
 
 export interface ChangeStateInternal {
 	lastMove: MoveSnapshot | null;

@@ -1,14 +1,14 @@
 import { ReadonlyDeep } from 'type-fest';
-import { denormalizeSquare } from '../board/denormalize';
-import { normalizeRolePromotion, normalizeSquare } from '../board/normalize';
-import { SquareString } from '../board/types/input';
-import { MovabilityInput, MoveDestinationInput } from './types/input';
+import { denormalizeSquare } from '../board/denormalize.js';
+import { normalizeRolePromotion, normalizeSquare } from '../board/normalize.js';
+import { SquareString } from '../board/types/input.js';
+import { MovabilityInput, MoveDestinationInput } from './types/input.js';
 import {
 	Movability,
 	MovabilityDestinations,
 	MovabilityModeCode,
 	MoveDestination
-} from './types/internal';
+} from './types/internal.js';
 
 export function normalizeMoveDestinationInput(
 	destination: ReadonlyDeep<MoveDestinationInput>

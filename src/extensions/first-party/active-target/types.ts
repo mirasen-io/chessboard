@@ -1,6 +1,6 @@
 import { PartialDeep } from 'type-fest';
-import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
-import { ExtensionInternal, OpaqueColor } from '../common/types';
+import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
+import { ExtensionInternal, OpaqueColor } from '../common/types.js';
 
 export const EXTENSION_SLOTS = ['underPieces', 'overPieces'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;

@@ -1,7 +1,7 @@
 import { ReadonlyDeep } from 'type-fest';
-import { BoardStateMutationSession } from '../mutation';
-import { ColorInput, MoveRequestInput, PiecePositionInput, PositionInput } from './input';
-import { ColorCode, Move, MoveRequest, PieceCode, Square } from './internal';
+import { BoardStateMutationSession } from '../mutation.js';
+import { ColorInput, MoveRequestInput, PiecePositionInput, PositionInput } from './input.js';
+import { ColorCode, Move, MoveRequest, PieceCode, Square } from './internal.js';
 
 export interface BoardStateInternal {
 	// Encoded pieces on the board

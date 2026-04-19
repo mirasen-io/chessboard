@@ -1,43 +1,35 @@
 <script lang="ts">
-	import assert from '@ktarmyshov/assert';
-	import { createActiveTarget } from '@mirasen/chessboard/unstable/extensions/first-party/active-target/factory.js';
-	import { createBoardEvents } from '@mirasen/chessboard/unstable/extensions/first-party/board-events/factory.js';
-	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
-	import { createLegalMoves } from '@mirasen/chessboard/unstable/extensions/first-party/legal-moves/factory.js';
-	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
-	import { createSelectedSquare } from '@mirasen/chessboard/unstable/extensions/first-party/selected-square/factory.js';
-	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
-	import type { PiecePositionRecordString } from '@mirasen/chessboard/unstable/state/board/types/input.js';
+	import { createBoard, type PiecePositionRecordString } from '@mirasen/chessboard';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
-	let runtime: ReturnType<typeof createRuntime> | null = null;
+	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
 
 	const START_POSITION: PiecePositionRecordString = {
-		a7: 'wP'
+		e7: 'wP'
 	} as const;
 
 	function refreshSnapshot() {
-		if (!runtime) return;
-		snapshotText = JSON.stringify(runtime.getSnapshot(), null, 2);
+		if (!board) return;
+		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
 	}
 
 	function setWhite() {
-		if (!runtime) return;
-		runtime.setOrientation('white');
+		if (!board) return;
+		board.setOrientation('white');
 		refreshSnapshot();
 	}
 
 	function setBlack() {
-		if (!runtime) return;
-		runtime.setOrientation('black');
+		if (!board) return;
+		board.setOrientation('black');
 		refreshSnapshot();
 	}
 
 	function resetPosition() {
-		if (!runtime) return;
-		runtime.setPosition({
+		if (!board) return;
+		board.setPosition({
 			pieces: START_POSITION,
 			turn: 'w'
 		});
@@ -45,42 +37,33 @@
 	}
 
 	function clearSelection() {
-		if (!runtime) return;
-		runtime.select(null);
+		if (!board) return;
+		board.select(null);
 		refreshSnapshot();
 	}
 
 	onMount(() => {
-		runtime = createRuntime({
-			doc: document,
+		board = createBoard({
+			element: boardEl,
 			state: {
 				board: {
 					turn: 'b',
 					pieces: START_POSITION
+				},
+				interaction: {
+					movability: {
+						mode: 'strict',
+						destinations: (source) => {
+							if (source === 'e7') return [{ to: 'e8', promotedTo: ['B', 'R', 'N', 'Q'] }];
+						}
+					}
 				}
-			},
-			extensions: [
-				createMainRenderer({}),
-				createSelectedSquare(),
-				createLastMove(),
-				createActiveTarget(),
-				createLegalMoves(),
-				createBoardEvents()
-			]
-		});
-		runtime.setMovability({
-			mode: 'strict',
-			destinations: (source) => {
-				assert(source === 'a7');
-				return [{ to: 'a8', promotedTo: ['Q', 'R', 'B', 'N'] }];
 			}
 		});
-		runtime.mount(boardEl);
-		const pubRecExtensions = runtime.getExtensionsPublicRecord();
-		pubRecExtensions.events.setOnRawUpdate((context) => {
+		board.extensions.events.setOnRawUpdate((context) => {
 			console.log('Raw update:', context);
 		});
-		pubRecExtensions.events.setOnUIMove((move) => {
+		board.extensions.events.setOnUIMove((move) => {
 			console.log('Move played:', move);
 		});
 		refreshSnapshot();
@@ -93,8 +76,8 @@
 	});
 
 	onDestroy(() => {
-		runtime?.unmount();
-		runtime = null;
+		board?.destroy();
+		board = null;
 	});
 </script>
 

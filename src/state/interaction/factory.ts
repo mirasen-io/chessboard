@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit';
-import { updateActiveDestinations } from './helpers';
-import { normalizeMovability } from './normalize';
+import { updateActiveDestinations } from './helpers.js';
+import { normalizeMovability } from './normalize.js';
 import {
 	interactionClear,
 	interactionClearActive,
@@ -9,13 +9,13 @@ import {
 	interactionSetMovability,
 	interactionSetSelected,
 	interactionUpdateDragSessionCurrentTarget
-} from './reducers';
-import { MovabilityDisabled, MovabilityModeCode } from './types/internal';
+} from './reducers.js';
+import { MovabilityDisabled, MovabilityModeCode } from './types/internal.js';
 import {
 	InteractionState,
 	InteractionStateInitOptions,
 	InteractionStateInternal
-} from './types/main';
+} from './types/main.js';
 
 const DefaultMovabilityDisabled: MovabilityDisabled = { mode: MovabilityModeCode.Disabled };
 

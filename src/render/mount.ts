@@ -1,7 +1,7 @@
-import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../extensions/types/basic/mount';
-import { validateIsMounted, validateIsNotMounted } from './rendering/helpers';
-import { clearElementChildren } from './svg/helpers';
-import { RenderSystemInternal } from './types';
+import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../extensions/types/basic/mount.js';
+import { validateIsMounted, validateIsNotMounted } from './rendering/helpers.js';
+import { clearElementChildren } from './svg/helpers.js';
+import { RenderSystemInternal } from './types.js';
 
 export function renderMount(state: RenderSystemInternal, element: HTMLElement): void {
 	validateIsNotMounted(state);

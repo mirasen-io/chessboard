@@ -1,9 +1,9 @@
-import { AnyExtensionDefinition } from '../../extensions/types/extension';
-import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands';
-import { RuntimeStateInitOptions } from '../../state/types';
-import { InputAdapter } from '../input/adapter/types';
-import { InteractionController } from '../input/controller/types';
-import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from '../mutation/pipeline';
+import { AnyExtensionDefinition } from '../../extensions/types/extension.js';
+import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands.js';
+import { RuntimeStateInitOptions } from '../../state/types.js';
+import { InputAdapter } from '../input/adapter/types.js';
+import { InteractionController } from '../input/controller/types.js';
+import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from '../mutation/pipeline.js';
 
 export type RuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
 

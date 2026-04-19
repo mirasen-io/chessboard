@@ -1,5 +1,5 @@
-import { ExtensionDefinition, ExtensionInstance } from '../../../types/extension';
-import { MainRendererConfigInput } from './input';
+import { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
+import { MainRendererConfigInput } from './input.js';
 
 export type MainRendererInitOptions = Partial<MainRendererConfigInput>;
 

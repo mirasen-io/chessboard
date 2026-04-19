@@ -1,6 +1,6 @@
-import { LayoutSnapshot } from '../../../layout/types';
-import { RuntimeStateSnapshot } from '../../../state/types';
-import { RenderFrameSnapshot } from './render';
+import { LayoutSnapshot } from '../../../layout/types.js';
+import { RuntimeStateSnapshot } from '../../../state/types.js';
+import { RenderFrameSnapshot } from './render.js';
 
 export interface UpdateFrameSnapshotUnmounted {
 	readonly isMounted: false;

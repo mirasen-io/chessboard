@@ -1,7 +1,7 @@
 import {
 	ExtensionAnimationSessionInternalSurface,
 	ExtensionAnimationSessionStatus
-} from '../types/basic/animation';
+} from '../types/basic/animation.js';
 
 export interface ExtensionAnimationSessionInternal {
 	readonly id: number;

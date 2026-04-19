@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
-import { clearElementChildren } from '../../../render/svg/helpers';
-import { ExtensionSlotName } from '../../types/basic/mount';
-import { ExtensionInternal } from './types';
+import { clearElementChildren } from '../../../render/svg/helpers.js';
+import { ExtensionSlotName } from '../../types/basic/mount.js';
+import { ExtensionInternal } from './types.js';
 
 export function extensionCreateInternalBase<
 	TSlots extends readonly ExtensionSlotName[]

@@ -1,19 +1,19 @@
-import { RenderFrameSnapshot } from '../extensions/types/basic/render';
-import { TransientInput } from '../extensions/types/basic/transient-visuals';
-import { renderMount, renderUnmount } from './mount';
-import { performAnimationCleanup, performAnimationPass } from './rendering/animation';
-import { validateIsMounted } from './rendering/helpers';
-import { performRenderPass } from './rendering/state';
-import { performRenderTransientVisualsPass } from './rendering/visuals';
-import { createScheduler } from './scheduler/scheduler';
-import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
+import { RenderFrameSnapshot } from '../extensions/types/basic/render.js';
+import { TransientInput } from '../extensions/types/basic/transient-visuals.js';
+import { renderMount, renderUnmount } from './mount.js';
+import { performAnimationCleanup, performAnimationPass } from './rendering/animation.js';
+import { validateIsMounted } from './rendering/helpers.js';
+import { performRenderPass } from './rendering/state.js';
+import { performRenderTransientVisualsPass } from './rendering/visuals.js';
+import { createScheduler } from './scheduler/scheduler.js';
+import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory.js';
 import {
 	RenderExtensionRecord,
 	RenderSystem,
 	RenderSystemInitOptions,
 	RenderSystemInitOptionsInternal,
 	RenderSystemInternal
-} from './types';
+} from './types.js';
 
 function createRenderInternal(options: RenderSystemInitOptionsInternal): RenderSystemInternal {
 	const svgRoots = createSvgRoots(options);

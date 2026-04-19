@@ -1,7 +1,10 @@
-import { isFrameRenderable } from '../../../types/basic/update';
-import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../../types/context/update';
-import { DirtyLayer } from '../types/extension';
-import { MainRendererBoardInternal } from './types';
+import { isFrameRenderable } from '../../../types/basic/update.js';
+import {
+	ExtensionUpdateContext,
+	isUpdateContextRenderable
+} from '../../../types/context/update.js';
+import { DirtyLayer } from '../types/extension.js';
+import { MainRendererBoardInternal } from './types.js';
 
 export function rendererBoardOnUpdate(
 	_state: MainRendererBoardInternal,

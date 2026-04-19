@@ -1,13 +1,13 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
-import { isUpdateContextRenderable } from '../../types/context/update';
+import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers.js';
+import { isUpdateContextRenderable } from '../../types/context/update.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroy,
 	extensionMount,
 	extensionUnmount
-} from '../common/helpers';
+} from '../common/helpers.js';
 import {
 	DEFAULT_CONFIG,
 	DirtyLayer,
@@ -19,7 +19,7 @@ import {
 	SelectedSquareInitConfig,
 	SelectedSquareInstance,
 	SelectedSquareInstanceInternal
-} from './types';
+} from './types.js';
 
 export function createSelectedSquare(
 	config: SelectedSquareInitConfig = {}

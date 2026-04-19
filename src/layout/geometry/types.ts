@@ -1,5 +1,5 @@
 import { ReadonlyDeep } from 'type-fest';
-import { ColorCode, Square } from '../../state/board/types/internal';
+import { ColorCode, Square } from '../../state/board/types/internal.js';
 
 export interface SquareRect {
 	x: number; // top-left x coordinate in px

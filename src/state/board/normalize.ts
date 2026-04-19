@@ -1,4 +1,4 @@
-import { isPieceString, isRolePromotionCode, isValidSquare } from './check';
+import { isPieceString, isRolePromotionCode, isValidSquare } from './check.js';
 import {
 	ColorInput,
 	ColorShort,
@@ -8,7 +8,7 @@ import {
 	RolePromotionInput,
 	RoleShort,
 	SquareString
-} from './types/input';
+} from './types/input.js';
 import {
 	ColorCode,
 	FILE_START,
@@ -18,7 +18,7 @@ import {
 	RoleCode,
 	RolePromotionCode,
 	Square
-} from './types/internal';
+} from './types/internal.js';
 
 export function normalizeColor(input: ColorInput): ColorCode {
 	switch (input) {

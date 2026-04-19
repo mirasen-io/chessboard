@@ -2,12 +2,17 @@ import {
 	clearElementChildren,
 	createSvgElement,
 	isLightSquare
-} from '../../../../render/svg/helpers';
-import { squareOf } from '../../../../state/board/coords';
-import { ColorCode, Square, SquareFile, SquareRank } from '../../../../state/board/types/internal';
-import { ExtensionRenderContext } from '../../../types/context/render';
-import { DirtyLayer } from '../types/extension';
-import { MainRendererCoordinatesInternal } from './types';
+} from '../../../../render/svg/helpers.js';
+import { squareOf } from '../../../../state/board/coords.js';
+import {
+	ColorCode,
+	Square,
+	SquareFile,
+	SquareRank
+} from '../../../../state/board/types/internal.js';
+import { ExtensionRenderContext } from '../../../types/context/render.js';
+import { DirtyLayer } from '../types/extension.js';
+import { MainRendererCoordinatesInternal } from './types.js';
 
 function labelColorForSquare(sq: Square, coordColors: { light: string; dark: string }): string {
 	return isLightSquare(sq) ? coordColors.dark : coordColors.light;

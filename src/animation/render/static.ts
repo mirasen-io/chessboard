@@ -1,8 +1,8 @@
-import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal';
-import type { RenderGeometry } from '../../layout/geometry/types';
-import { createSvgElement } from '../../render/svg/helpers';
-import type { AnimationTrackStatic } from '../types';
-import type { PreparedStaticNode } from './types';
+import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
+import type { RenderGeometry } from '../../layout/geometry/types.js';
+import { createSvgElement } from '../../render/svg/helpers.js';
+import type { AnimationTrackStatic } from '../types.js';
+import type { PreparedStaticNode } from './types.js';
 
 export function prepareStaticTrack(
 	track: AnimationTrackStatic,

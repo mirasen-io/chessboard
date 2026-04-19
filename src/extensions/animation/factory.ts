@@ -4,8 +4,11 @@ import {
 	ExtensionAnimationSessionInternalSurface,
 	ExtensionAnimationSessionStatus,
 	ExtensionAnimationSessionSubmitOptions
-} from '../types/basic/animation';
-import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from './types';
+} from '../types/basic/animation.js';
+import {
+	ExtensionAnimationControllerInternal,
+	ExtensionAnimationSessionInternal
+} from './types.js';
 
 function createExtensionAnimationSessionInternal(
 	id: number,

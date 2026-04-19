@@ -1,17 +1,17 @@
 import { toMerged } from 'es-toolkit';
-import { ExtensionCreateInstanceOptions } from '../../types/extension';
+import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroy,
 	extensionMount,
 	extensionUnmount
-} from '../common/helpers';
-import { createMainRendererAnimation } from './animation/factory';
-import { createMainRendererBoard } from './board/factory';
-import { createMainRendererCoordinates } from './coordinates/factory';
-import { createMainRendererDrag } from './drag/factory';
-import { normalizeMainRendererConfig } from './normalize';
-import { createMainRendererPieces } from './pieces/factory';
+} from '../common/helpers.js';
+import { createMainRendererAnimation } from './animation/factory.js';
+import { createMainRendererBoard } from './board/factory.js';
+import { createMainRendererCoordinates } from './coordinates/factory.js';
+import { createMainRendererDrag } from './drag/factory.js';
+import { normalizeMainRendererConfig } from './normalize.js';
+import { createMainRendererPieces } from './pieces/factory.js';
 import {
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
@@ -19,9 +19,9 @@ import {
 	MainRendererDefinition,
 	MainRendererInitOptions,
 	MainRendererInstance
-} from './types/extension';
-import { MainRendererInstanceInternal } from './types/instance';
-import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/internal';
+} from './types/extension.js';
+import { MainRendererInstanceInternal } from './types/instance.js';
+import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/internal.js';
 
 export function createMainRenderer(options: MainRendererInitOptions = {}): MainRendererDefinition {
 	const config: MainRendererConfig = toMerged(

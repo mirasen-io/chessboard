@@ -1,11 +1,11 @@
-import { ExtensionUIMoveRequestContext } from './types/context/ui-move';
+import { ExtensionUIMoveRequestContext } from './types/context/ui-move.js';
 import {
 	ExtensionUpdateContext,
 	ExtensionUpdateContextCommon,
 	ExtensionUpdateContextCommonUnmounted,
 	isUpdateContextCommonMounted
-} from './types/context/update';
-import { ExtensionSystemInternal, ExtensionSystemUpdateRequest } from './types/main';
+} from './types/context/update.js';
+import { ExtensionSystemInternal, ExtensionSystemUpdateRequest } from './types/main.js';
 
 export function extensionSystemUpdateState(
 	state: ExtensionSystemInternal,

@@ -1,6 +1,6 @@
-import { fileOf, rankOf } from '../../state/board/coords';
-import { ColorCode } from '../../state/board/types/internal';
-import { RenderGeometry } from './types';
+import { fileOf, rankOf } from '../../state/board/coords.js';
+import { ColorCode } from '../../state/board/types/internal.js';
+import { RenderGeometry } from './types.js';
 
 /**
  * Create RenderGeometry for a given board size (in px) and orientation.

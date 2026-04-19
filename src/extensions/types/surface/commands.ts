@@ -1,14 +1,14 @@
-import { LayoutSnapshot } from '../../../layout/types';
+import { LayoutSnapshot } from '../../../layout/types.js';
 import {
 	ColorInput,
 	MoveRequestInput,
 	PiecePositionInput,
 	PositionInput,
 	SquareString
-} from '../../../state/board/types/input';
-import { Move } from '../../../state/board/types/internal';
-import { MovabilityInput } from '../../../state/interaction/types/input';
-import { RuntimeStateSnapshot } from '../../../state/types';
+} from '../../../state/board/types/input.js';
+import { Move } from '../../../state/board/types/internal.js';
+import { MovabilityInput } from '../../../state/interaction/types/input.js';
+import { RuntimeStateSnapshot } from '../../../state/types.js';
 
 export interface ExtensionRuntimeSurfaceCommandsSnapshot {
 	readonly state: RuntimeStateSnapshot;

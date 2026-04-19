@@ -1,13 +1,13 @@
-import { createExtensionAnimationController } from '../animation/factory';
-import { createExtensionInvalidationState } from '../invalidation/factory';
+import { createExtensionAnimationController } from '../animation/factory.js';
+import { createExtensionInvalidationState } from '../invalidation/factory.js';
 import {
 	ExtensionSystem,
 	ExtensionSystemExtensionRecord,
 	ExtensionSystemInitOptions,
 	ExtensionSystemInternal
-} from '../types/main';
-import { extensionSystemUpdateState, extensionSystemUpdateUIMoveRequest } from '../update';
-import { createExtensionRuntimeSurface } from './runtime';
+} from '../types/main.js';
+import { extensionSystemUpdateState, extensionSystemUpdateUIMoveRequest } from '../update.js';
+import { createExtensionRuntimeSurface } from './runtime.js';
 
 function createExtensionSystemInternal(
 	getInternalState: () => ExtensionSystemInternal,

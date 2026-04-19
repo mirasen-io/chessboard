@@ -1,8 +1,13 @@
 import { WritableDeep } from 'type-fest';
-import { isNonEmptyPieceCode } from '../state/board/check';
-import { fileOf, rankOf } from '../state/board/coords';
-import { NonEmptyPieceCode, PieceCode, Square, SQUARE_COUNT } from '../state/board/types/internal';
-import { BoardStateSnapshot } from '../state/board/types/main';
+import { isNonEmptyPieceCode } from '../state/board/check.js';
+import { fileOf, rankOf } from '../state/board/coords.js';
+import {
+	NonEmptyPieceCode,
+	PieceCode,
+	Square,
+	SQUARE_COUNT
+} from '../state/board/types/internal.js';
+import { BoardStateSnapshot } from '../state/board/types/main.js';
 import {
 	AnimationPlan,
 	AnimationTrack,
@@ -10,7 +15,7 @@ import {
 	CalculateAnimationTracksOptions,
 	isMoveExclude,
 	isSquareExclude
-} from './types';
+} from './types.js';
 
 // Precomputed squared distance: (dFile² + dRank²) for all square pairs.
 // Max value = 7² + 7² = 98, fits in Uint8. Index: a * 64 + b.
