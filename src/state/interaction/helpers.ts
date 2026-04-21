@@ -1,6 +1,7 @@
 import { getActiveDestinations } from './movability.js';
 import { InteractionStateMutationSession } from './mutation.js';
 import { interactionSetActiveDestinations } from './reducers.js';
+import { DragSessionCoreOwnedSnapshot, DragSessionSnapshot } from './types/internal.js';
 import { InteractionStateInternal, InteractionStateSelected } from './types/main.js';
 
 export function selectedEqual(
@@ -27,4 +28,10 @@ export function updateActiveDestinations(
 		'state.interaction.updateActiveDestinations',
 		interactionSetActiveDestinations(state, activeDests)
 	);
+}
+
+export function isDragSessionCoreOwned(
+	session: DragSessionSnapshot
+): session is DragSessionCoreOwnedSnapshot {
+	return session.owner === 'core';
 }

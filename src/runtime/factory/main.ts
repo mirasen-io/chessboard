@@ -1,13 +1,13 @@
 import assert from '@ktarmyshov/assert';
 import { createExtensionSystem } from '../../extensions/factory/main.js';
 import { assertFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update.js';
-import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands.js';
+import type { ExtensionRuntimeSurfaceCommandsInternalSurface } from '../../extensions/types/surface/commands.js';
 import { createLayout } from '../../layout/factory.js';
 import { createRenderSystem } from '../../render/factory.js';
 import { isNonEmptyPieceCode } from '../../state/board/check.js';
 import { normalizeSquare } from '../../state/board/normalize.js';
 import { createRuntimeState } from '../../state/factory.js';
-import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import type { InteractionStateSelected } from '../../state/interaction/types/main.js';
 import { createInteractionController } from '../input/controller/factory.js';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle.js';
 import { createRuntimeMutationPipeline } from '../mutation/factory.js';
@@ -42,9 +42,9 @@ function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInte
 	};
 }
 
-function createExtensionRuntimeSurfaceCommands(
+function createExtensionRuntimeSurfaceCommandsInternalSurface(
 	getInternalState: () => RuntimeInternal
-): ExtensionRuntimeSurfaceCommands {
+): ExtensionRuntimeSurfaceCommandsInternalSurface {
 	return {
 		setPosition(input) {
 			const state = getInternalState();
@@ -120,6 +120,13 @@ function createExtensionRuntimeSurfaceCommands(
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
+		startDrag(session) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			const changed = state.state.interaction.setDragSession(session, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
 		clearActiveInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
@@ -158,7 +165,8 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 	}
 
 	// Create RuntimeExtensionSurface to pass to the extension system for initialization of extension instances
-	const extensionSurfaceCommands = createExtensionRuntimeSurfaceCommands(getInternalState);
+	const extensionSurfaceCommands =
+		createExtensionRuntimeSurfaceCommandsInternalSurface(getInternalState);
 	const extensionSurfaceEvents = createExtensionRuntimeSurfaceEvents(getInternalState);
 
 	// Now construct the internal state

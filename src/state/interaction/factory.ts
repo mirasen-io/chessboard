@@ -81,8 +81,13 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 		},
 
 		setDragSession(session, mutationSession) {
-			// Assert that the selected is the same as the source of the drag session when setting a lifted-piece-drag session
-			if (session) {
+			// assert that there is no active session when setting a new session.
+			assert(
+				session === null || internalState.dragSession === null,
+				'Cannot set a new drag session while another session is active'
+			);
+			if (session && session.owner === 'core') {
+				// Assert that the selected is the same as the source of the drag session when setting a lifted-piece-drag session
 				assert(internalState.selected, 'There must be a selected piece to start a drag session');
 				if (session.type === 'lifted-piece-drag') {
 					assert(

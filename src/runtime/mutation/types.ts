@@ -1,13 +1,13 @@
-import { LayoutMutationPayloadByCause } from '../../layout/mutation.js';
-import { MutationSession, ReadonlyMutationSession } from '../../mutation/types.js';
-import { BoardStateMutationPayloadByCause } from '../../state/board/mutation.js';
-import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation.js';
-import { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation.js';
-import { ViewStateMutationPayloadByCause } from '../../state/view/mutation.js';
+import type { LayoutMutationPayloadByCause } from '../../layout/mutation.js';
+import type { MutationSession, ReadonlyMutationSession } from '../../mutation/types.js';
+import type { BoardStateMutationPayloadByCause } from '../../state/board/mutation.js';
+import type { ChangeStateMutationPayloadByCause } from '../../state/change/mutation.js';
+import type { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation.js';
+import type { DragSessionCoreOwnedSnapshot } from '../../state/interaction/types/internal.js';
+import type { ViewStateMutationPayloadByCause } from '../../state/view/mutation.js';
 
 type RuntimeOwnMutationPayloadByCause = {
-	'runtime.interaction.dropTo': undefined;
-	'runtime.interaction.releaseTo': undefined;
+	'runtime.interaction.completeDragTo': DragSessionCoreOwnedSnapshot;
 };
 export type RuntimeMutationPayloadByCause = BoardStateMutationPayloadByCause &
 	ChangeStateMutationPayloadByCause &

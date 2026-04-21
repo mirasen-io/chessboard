@@ -1,11 +1,12 @@
 import { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types.js';
+import { DragSessionExtensionOwned } from '../../state/interaction/types/internal.js';
 import { ExtensionInvalidationState } from '../invalidation/types.js';
 import { ExtensionAnimationControllerInternalSurface } from './basic/animation.js';
 import { UpdateFrameSnapshot } from './basic/update.js';
 import { ExtensionOnEventContext } from './context/events.js';
 import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
 import { AnyExtensionDefinition, AnyExtensionInstance } from './extension.js';
-import { ExtensionRuntimeSurfaceCommands } from './surface/commands.js';
+import { ExtensionRuntimeSurfaceCommandsInternalSurface } from './surface/commands.js';
 import { ExtensionRuntimeSurfaceEvents } from './surface/events.js';
 
 export interface ExtensionSystemExtensionRecord {
@@ -17,7 +18,7 @@ export interface ExtensionSystemExtensionRecord {
 }
 
 export interface ExtensionSystemInitOptions {
-	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommands;
+	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommandsInternalSurface;
 	extensionRuntimeSurfaceEvents: ExtensionRuntimeSurfaceEvents;
 	extensions?: readonly AnyExtensionDefinition[];
 }
@@ -47,6 +48,7 @@ export interface ExtensionSystem {
 	onUpdate(request: ExtensionSystemUpdateRequest): void;
 	onUIMoveRequest(context: ExtensionUIMoveRequestContext): void;
 	onEvent(context: ExtensionOnEventContext): void;
+	completeDrag(session: DragSessionExtensionOwned): void;
 	onUnmount(): void;
 	onDestroy(): void;
 }

@@ -2,6 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
 import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
+import { isDragSessionCoreOwned } from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import { canMoveTo } from './helpers.js';
 import { InteractionControllerInternal } from './types.js';
@@ -99,34 +100,39 @@ export function handlePointerUp(
 		'handlePointerUp should only be called for pointerup events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
+	const dragSession = interaction.dragSession;
 
-	if (!interaction.dragSession) {
+	if (!dragSession) {
 		// No active drag session, so nothing to do on pointer up
 		return;
 	}
 
 	const sceneEvent = context.sceneEvent;
 	assert(sceneEvent, 'Scene event should be present for pointer events');
+
+	if (!isDragSessionCoreOwned(dragSession)) {
+		// For extension-owned drag sessions, we simply end the session without attempting to make a move,
+		// since the runtime doesn't have enough information about the semantics of the drag session.
+		state.surface.completeExtensionDrag(sceneEvent.targetSquare);
+		return;
+	}
+
 	// Check if the square is the same as the source square of the drag session.
 	// If it is, then we can end the drag session without making a move.
-	if (sceneEvent.targetSquare === interaction.dragSession.sourceSquare) {
+	if (sceneEvent.targetSquare === dragSession.sourceSquare) {
 		state.surface.cancelActiveInteraction();
 		return;
 	}
 
 	// Check if the target square is a valid destination for the selected piece.
 	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
-		if (interaction.dragSession.type === 'lifted-piece-drag') {
-			state.surface.dropTo(sceneEvent.targetSquare);
-		} else {
-			state.surface.releaseTo(sceneEvent.targetSquare);
-		}
+		state.surface.completeCoreDragTo(sceneEvent.targetSquare);
 		return;
 	}
 
 	// Invalid target: piece returns to source for lifted drag (selection preserved),
 	// or selection is cleared for release targeting.
-	if (interaction.dragSession.type === 'lifted-piece-drag') {
+	if (dragSession.type === 'lifted-piece-drag') {
 		state.surface.cancelActiveInteraction();
 	} else {
 		state.surface.cancelInteraction();

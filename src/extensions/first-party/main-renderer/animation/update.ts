@@ -1,3 +1,4 @@
+import assert from '@ktarmyshov/assert';
 import { calculateAnimationPlan } from '../../../../animation/planner.js';
 import { AnimationTrackExclude } from '../../../../animation/types.js';
 import { piecePositionsEqual } from '../../../../state/board/check.js';
@@ -29,19 +30,28 @@ export function rendererAnimationOnUpdate(
 	// On DropTo exclude the move that user did from the animation plan
 	const exclude: AnimationTrackExclude[] = [];
 	if (
-		context.mutation.hasMutation({ causes: ['runtime.interaction.dropTo'] }) &&
+		context.mutation.hasMutation({ causes: ['runtime.interaction.completeDragTo'] }) &&
 		context.currentFrame.state.change.lastMove
 	) {
-		exclude.push({
-			fromSq: context.currentFrame.state.change.lastMove.from,
-			toSq: context.currentFrame.state.change.lastMove.to
-		});
-		exclude.push({
-			sq: context.currentFrame.state.change.lastMove.from
-		});
-		exclude.push({
-			sq: context.currentFrame.state.change.lastMove.to
-		});
+		const payloads = context.mutation.getPayloads('runtime.interaction.completeDragTo');
+		assert(
+			payloads && payloads.length === 1,
+			'Expected exactly one payload for runtime.interaction.completeDragTo'
+		);
+		const dragSession = payloads[0];
+		if (dragSession.type === 'lifted-piece-drag') {
+			// For piece drag, exclude animation, cause user already "animated" the piece by dragging it
+			exclude.push({
+				fromSq: context.currentFrame.state.change.lastMove.from,
+				toSq: context.currentFrame.state.change.lastMove.to
+			});
+			exclude.push({
+				sq: context.currentFrame.state.change.lastMove.from
+			});
+			exclude.push({
+				sq: context.currentFrame.state.change.lastMove.to
+			});
+		}
 	}
 	const plan = calculateAnimationPlan(
 		previousBoard,

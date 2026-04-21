@@ -1,17 +1,31 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type {
+	ExtensionDragSession,
+	ExtensionDragSessionBase
+} from '../../../extensions/types/basic/interaction.js';
+import type {
 	MoveRequest,
 	PieceCode,
 	RolePromotionCode,
 	Square
 } from '../../board/types/internal.js';
 
-export interface DragSession {
+export type DragSessionExtensionOwned = ExtensionDragSession & {
+	owner: string; // Extension identifier
+};
+export type DragSessionExtensionOwnedSnapshot = ReadonlyDeep<DragSessionExtensionOwned>;
+
+export interface DragSessionCoreOwned extends ExtensionDragSessionBase {
+	owner: 'core';
 	type: 'lifted-piece-drag' | 'release-targeting';
 	sourceSquare: Square;
 	sourcePieceCode: PieceCode;
 	targetSquare: Square | null;
 }
+export type DragSessionCoreOwnedSnapshot = ReadonlyDeep<DragSessionCoreOwned>;
+
+export type DragSession = DragSessionCoreOwned | DragSessionExtensionOwned;
+
 export type DragSessionSnapshot = ReadonlyDeep<DragSession>;
 
 export interface MoveDestination extends Omit<MoveRequest, 'from' | 'promotedTo'> {

@@ -1,5 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check.js';
+import { isDragSessionCoreOwned } from '../../state/interaction/helpers.js';
 import { DragSession } from '../../state/interaction/types/internal.js';
 import { InteractionStateSelected } from '../../state/interaction/types/main.js';
 import { RuntimeInteractionSurface } from '../input/controller/types.js';
@@ -36,6 +37,7 @@ export function createRuntimeInteractionSurface(
 			interaction.setSelected(interactionSource, interactionMutationSession);
 
 			const dragSession: DragSession = {
+				owner: 'core',
 				type: 'lifted-piece-drag',
 				sourceSquare: interactionSource.square,
 				sourcePieceCode: interactionSource.pieceCode,
@@ -48,36 +50,37 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			internalState.renderSystem.requestRenderVisuals(input);
 		},
-		dropTo(target) {
+		completeCoreDragTo(target) {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 			const dragSession = interaction.dragSession;
-
-			assert(dragSession !== null, 'dropTo requires an active drag session');
+			assert(dragSession !== null, 'completeDragTo requires an active drag session');
 			assert(
-				dragSession.type === 'lifted-piece-drag',
-				'dropTo requires a lifted-piece-drag session'
+				isDragSessionCoreOwned(dragSession),
+				'completeDragTo can only be called for core-owned drag sessions'
 			);
 
 			uiMoveCompleteTo(internalState, target);
-			mutationSession.addMutation('runtime.interaction.dropTo', true);
+			mutationSession.addMutation('runtime.interaction.completeDragTo', true, dragSession);
 			runtimeRunMutationPipeline(internalState);
 		},
-		releaseTo(target) {
+		completeExtensionDrag(target) {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 			const dragSession = interaction.dragSession;
-
-			assert(dragSession !== null, 'releaseTo requires an active drag session');
+			assert(dragSession !== null, 'completeExtensionDrag requires an active drag session');
 			assert(
-				dragSession.type === 'release-targeting',
-				'releaseTo requires a release-targeting session'
+				!isDragSessionCoreOwned(dragSession),
+				'completeExtensionDrag can only be called for extension-owned drag sessions'
 			);
-			uiMoveCompleteTo(internalState, target);
-			mutationSession.addMutation('runtime.interaction.releaseTo', true);
-			runtimeRunMutationPipeline(internalState);
+			assert(
+				dragSession.targetSquare === target,
+				'The target square in completeExtensionDrag must match the current target square of the drag session'
+			);
+			internalState.extensionSystem.completeDrag(dragSession);
+			internalState.state.interaction.setDragSession(null, mutationSession);
 		},
 		startReleaseTargetingDrag(source, target): void {
 			const internalState = state();
@@ -91,6 +94,7 @@ export function createRuntimeInteractionSurface(
 			);
 
 			const dragSession: DragSession = {
+				owner: 'core',
 				type: 'release-targeting',
 				sourceSquare: source,
 				sourcePieceCode: interaction.selected.pieceCode,

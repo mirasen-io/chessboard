@@ -1,3 +1,4 @@
+import assert from '@ktarmyshov/assert';
 import { createExtensionAnimationController } from '../animation/factory.js';
 import { createExtensionInvalidationState } from '../invalidation/factory.js';
 import {
@@ -16,6 +17,9 @@ function createExtensionSystemInternal(
 	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
 	const extensionsArray = options.extensions ?? [];
 	for (const extensionDef of extensionsArray) {
+		if (extensionDef.id === 'core') {
+			throw new Error('Extension id "core" is reserved and cannot be used by extensions');
+		}
 		if (extensions.has(extensionDef.id)) {
 			throw new Error(`Duplicate extension id found: ${extensionDef.id}`);
 		}
@@ -99,6 +103,18 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 					}
 				}
 			}
+		},
+		completeDrag(session) {
+			const extensionRec = internalState.extensions.get(session.owner);
+			assert(
+				extensionRec,
+				`Extension record not found for completing drag session with owner ${session.owner}`
+			);
+			assert(
+				extensionRec.instance.completeDrag,
+				`Extension instance does not have a completeDrag handler for completing drag session with owner ${session.owner}`
+			);
+			extensionRec.instance.completeDrag(session);
 		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();

@@ -1,4 +1,5 @@
 import { SceneEvent } from './basic/events.js';
+import { ExtensionDragSessionSnapshot } from './basic/interaction.js';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount.js';
 import {
 	ExtensionAnimationFinishedContext,
@@ -29,6 +30,8 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	renderAnimation?(context: ExtensionRenderAnimationContext): void;
 	onAnimationFinished?(context: ExtensionAnimationFinishedContext): void;
 	cleanAnimation?(context: ExtensionCleanAnimationContext): void;
+	// Interaction
+	completeDrag?(session: ExtensionDragSessionSnapshot): void;
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events

@@ -7,9 +7,9 @@ export interface RuntimeInteractionSurface {
 	getInteractionStateSnapshot(): InteractionStateSnapshot;
 	getPieceCodeAt(square: Square): PieceCode;
 	startLiftedDrag(source: Square, target: Square): void;
-	dropTo(target: Square): void;
 	startReleaseTargetingDrag(source: Square, target: Square): void;
-	releaseTo(target: Square): void;
+	completeCoreDragTo(target: Square): void;
+	completeExtensionDrag(target: Square | null): void;
 	updateDragSessionCurrentTarget(target: Square | null): void;
 	cancelActiveInteraction(): void;
 	cancelInteraction(): void;
