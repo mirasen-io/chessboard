@@ -14,6 +14,8 @@ import { createLegalMoves } from '../first-party/legal-moves/factory.js';
 import { EXTENSION_ID as EXTENSION_ID_LEGAL_MOVES } from '../first-party/legal-moves/types.js';
 import { createMainRenderer } from '../first-party/main-renderer/factory.js';
 import { EXTENSION_ID as EXTENSION_ID_RENDERER } from '../first-party/main-renderer/types/extension.js';
+import { createPromotion } from '../first-party/promotion/factory.js';
+import { EXTENSION_ID as EXTENSION_ID_PROMOTION } from '../first-party/promotion/types/main.js';
 import { createSelectedSquare } from '../first-party/selected-square/factory.js';
 import { EXTENSION_ID as EXTENSION_ID_SELECTED_SQUARE } from '../first-party/selected-square/types.js';
 
@@ -24,7 +26,8 @@ export const builtInExtensionFactoryMap = {
 	[EXTENSION_ID_ACTIVE_TARGET]: createActiveTarget,
 	[EXTENSION_ID_LEGAL_MOVES]: createLegalMoves,
 	[EXTENSION_ID_BOARD_EVENTS]: createBoardEvents,
-	[EXTENSION_ID_AUTO_PROMOTE]: createAutoPromote
+	[EXTENSION_ID_AUTO_PROMOTE]: createAutoPromote,
+	[EXTENSION_ID_PROMOTION]: createPromotion
 };
 export type BuiltInExtensionId = keyof typeof builtInExtensionFactoryMap;
 export type BuiltInExtensionDefinitionMap = {
@@ -38,6 +41,7 @@ export const DefaultBuiltinChessboardExtensions = [
 	EXTENSION_ID_ACTIVE_TARGET,
 	EXTENSION_ID_LEGAL_MOVES,
 	EXTENSION_ID_BOARD_EVENTS,
-	EXTENSION_ID_AUTO_PROMOTE
+	EXTENSION_ID_AUTO_PROMOTE,
+	EXTENSION_ID_PROMOTION
 ] as const;
 export type DefaultBuiltinChessboardExtensions = typeof DefaultBuiltinChessboardExtensions;

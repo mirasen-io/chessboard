@@ -1,4 +1,4 @@
-import { MoveRequest, Square } from '../../board/types/internal.js';
+import { MoveRequest, RolePromotionCode, Square } from '../../board/types/internal.js';
 import { MoveDestinationSnapshot } from '../../interaction/types/internal.js';
 
 export type PendingUIMoveRequestStatus = 'unresolved' | 'deferred' | 'resolved';
@@ -23,4 +23,8 @@ export interface PendingUIMoveRequestInternal {
 	readonly destination: MoveDestinationSnapshot;
 	status: PendingUIMoveRequestStatus;
 	resolvedMoveRequest: MoveRequest | null;
+}
+
+export interface DeferredUIMoveResolutionDetails {
+	readonly promotedTo: RolePromotionCode;
 }

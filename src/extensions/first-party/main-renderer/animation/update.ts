@@ -6,6 +6,7 @@ import {
 	ExtensionUpdateContext,
 	isUpdateContextRenderable
 } from '../../../types/context/update.js';
+import { deriveRuntimeState } from '../helpers.js';
 import type { MainRendererAnimationInternal } from './types.js';
 
 const DEFAULT_ANIMATION_DURATION_MS = 180;
@@ -16,14 +17,17 @@ export function rendererAnimationOnUpdate(
 ): void {
 	if (
 		!isUpdateContextRenderable(context) ||
-		!context.mutation.hasMutation({ prefixes: ['state.board.'] }) ||
+		!context.mutation.hasMutation({ prefixes: ['state.board.', 'state.change.'] }) ||
 		!context.previousFrame
 	) {
 		return;
 	}
 
-	const previousBoard = context.previousFrame.state.board;
-	const currentBoard = context.currentFrame.state.board;
+	const currentState = deriveRuntimeState(context.currentFrame.state);
+	const previousState = deriveRuntimeState(context.previousFrame.state);
+
+	const previousBoard = previousState.board;
+	const currentBoard = currentState.board;
 
 	if (piecePositionsEqual(previousBoard, currentBoard)) return;
 
@@ -31,7 +35,7 @@ export function rendererAnimationOnUpdate(
 	const exclude: AnimationTrackExclude[] = [];
 	if (
 		context.mutation.hasMutation({ causes: ['runtime.interaction.completeDragTo'] }) &&
-		context.currentFrame.state.change.lastMove
+		currentState.change.lastMove
 	) {
 		const payloads = context.mutation.getPayloads('runtime.interaction.completeDragTo');
 		assert(
@@ -42,14 +46,14 @@ export function rendererAnimationOnUpdate(
 		if (dragSession.type === 'lifted-piece-drag') {
 			// For piece drag, exclude animation, cause user already "animated" the piece by dragging it
 			exclude.push({
-				fromSq: context.currentFrame.state.change.lastMove.from,
-				toSq: context.currentFrame.state.change.lastMove.to
+				fromSq: currentState.change.lastMove.from,
+				toSq: currentState.change.lastMove.to
 			});
 			exclude.push({
-				sq: context.currentFrame.state.change.lastMove.from
+				sq: currentState.change.lastMove.from
 			});
 			exclude.push({
-				sq: context.currentFrame.state.change.lastMove.to
+				sq: currentState.change.lastMove.to
 			});
 		}
 	}

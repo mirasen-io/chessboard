@@ -7,7 +7,10 @@
 	let snapshotText = $state('');
 
 	const START_POSITION: PiecePositionRecordString = {
-		e7: 'wP'
+		e2: 'wP',
+		f7: 'wP',
+		d7: 'bP',
+		c2: 'bP'
 	} as const;
 
 	function refreshSnapshot() {
@@ -63,7 +66,27 @@
 					movability: {
 						mode: 'strict',
 						destinations: (source) => {
-							if (source === 'e7') return [{ to: 'e8', promotedTo: ['B', 'R', 'N', 'Q'] }];
+							if (source === 'e2')
+								return [
+									{ to: 'e8', promotedTo: ['B', 'R', 'N', 'Q'] },
+									{ to: 'd8', promotedTo: ['B', 'R', 'N', 'Q'] }
+								];
+							if (source === 'f7')
+								return [
+									{ to: 'f8', promotedTo: ['B', 'R', 'N', 'Q'] },
+									{ to: 'g8', promotedTo: ['B', 'R', 'N', 'Q'] }
+								];
+							if (source === 'd7')
+								return [
+									{ to: 'd1', promotedTo: ['B', 'R', 'N', 'Q'] },
+									{ to: 'e1', promotedTo: ['B', 'R', 'N', 'Q'] }
+								];
+							if (source === 'c2')
+								return [
+									{ to: 'c1', promotedTo: ['B', 'R', 'N', 'Q'] },
+									{ to: 'b1', promotedTo: ['B', 'R', 'N', 'Q'] }
+								];
+							return [];
 						}
 					}
 				}

@@ -8,6 +8,8 @@ import type { ViewStateMutationPayloadByCause } from '../../state/view/mutation.
 
 type RuntimeOwnMutationPayloadByCause = {
 	'runtime.interaction.completeDragTo': DragSessionCoreOwnedSnapshot;
+	'runtime.interaction.resolveDeferredUIMoveRequest': undefined;
+	'runtime.interaction.cancelDeferredUIMoveRequest': undefined;
 };
 export type RuntimeMutationPayloadByCause = BoardStateMutationPayloadByCause &
 	ChangeStateMutationPayloadByCause &

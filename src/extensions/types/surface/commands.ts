@@ -7,6 +7,7 @@ import {
 	SquareString
 } from '../../../state/board/types/input.js';
 import { Move } from '../../../state/board/types/internal.js';
+import { DeferredUIMoveResolutionDetails } from '../../../state/change/types/ui-move.js';
 import { MovabilityInput } from '../../../state/interaction/types/input.js';
 import { DragSessionExtensionOwned } from '../../../state/interaction/types/internal.js';
 import { RuntimeStateSnapshot } from '../../../state/types.js';
@@ -36,6 +37,9 @@ export interface ExtensionRuntimeSurfaceCommands {
 	startDrag(session: ExtensionDragSession): boolean;
 	clearActiveInteraction(): boolean;
 	clearInteraction(): boolean;
+	// Deferred UI move
+	resolveDeferredUIMoveRequest(details: DeferredUIMoveResolutionDetails): Move;
+	cancelDeferredUIMoveRequest(): boolean;
 	// Render
 	requestRender(request: ExtensionRuntimeSurfaceCommandsRenderRequest): void;
 	// Snapshot

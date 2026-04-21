@@ -16,6 +16,7 @@ export type ChangeStateSnapshot = ReadonlyDeep<
 
 export interface ChangeState {
 	readonly lastMove: MoveSnapshot | null;
+	readonly deferredUIMoveRequest: PendingUIMoveRequest | null;
 	setLastMove(move: MoveSnapshot | null, mutationSession: ChangeStateMutationSession): boolean;
 	setDeferredUIMoveRequest(
 		request: PendingUIMoveRequest | null,

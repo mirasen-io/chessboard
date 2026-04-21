@@ -6,6 +6,7 @@ import { createLayout } from '../../layout/factory.js';
 import { createRenderSystem } from '../../render/factory.js';
 import { isNonEmptyPieceCode } from '../../state/board/check.js';
 import { normalizeSquare } from '../../state/board/normalize.js';
+import type { MoveRequest } from '../../state/board/types/internal.js';
 import { createRuntimeState } from '../../state/factory.js';
 import type { InteractionStateSelected } from '../../state/interaction/types/main.js';
 import { createInteractionController } from '../input/controller/factory.js';
@@ -138,6 +139,36 @@ function createExtensionRuntimeSurfaceCommandsInternalSurface(
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
 			const changed = state.state.interaction.clear(mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		resolveDeferredUIMoveRequest(details) {
+			const state = getInternalState();
+			const deferredRequest = state.state.change.deferredUIMoveRequest;
+			assert(deferredRequest, 'No deferred UI move request to resolve');
+			const { sourceSquare, destination } = deferredRequest;
+			const moveRequest: MoveRequest = {
+				from: sourceSquare,
+				to: destination.to,
+				...(destination.capturedSquare !== undefined && {
+					capturedSquare: destination.capturedSquare
+				}),
+				...(destination.secondary !== undefined && { secondary: destination.secondary }),
+				promotedTo: details.promotedTo
+			};
+			const mutationSession = state.mutation.getSession();
+			const move = state.state.board.move(moveRequest, mutationSession);
+			state.state.change.setDeferredUIMoveRequest(null, mutationSession);
+			mutationSession.addMutation('runtime.interaction.resolveDeferredUIMoveRequest', true);
+			runtimeRunMutationPipeline(state);
+			return move;
+		},
+		cancelDeferredUIMoveRequest() {
+			const state = getInternalState();
+			assert(state.state.change.deferredUIMoveRequest, 'No deferred UI move request to cancel');
+			const mutationSession = state.mutation.getSession();
+			const changed = state.state.change.setDeferredUIMoveRequest(null, mutationSession);
+			mutationSession.addMutation('runtime.interaction.cancelDeferredUIMoveRequest', changed);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},

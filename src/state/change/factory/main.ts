@@ -15,6 +15,9 @@ export function createChangeState(): ChangeState {
 		get lastMove() {
 			return cloneDeep(internalState.lastMove);
 		},
+		get deferredUIMoveRequest() {
+			return cloneDeep(internalState.deferredUIMoveRequest);
+		},
 		setLastMove(move, mutationSession) {
 			return mutationSession.addMutation(
 				'state.change.setLastMove',

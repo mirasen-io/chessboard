@@ -11,7 +11,7 @@ function assertPieceUrlsComplete(pieceUrls: Partial<PieceUrls>): asserts pieceUr
 	}
 }
 
-export function normalizePieceUrls(input: PieceUrlsInput): PieceUrls {
+function normalizePieceUrls(input: PieceUrlsInput): PieceUrls {
 	const normalized: Partial<PieceUrls> = {};
 	for (const [key, url] of Object.entries(input) as [PieceString, string][]) {
 		const pieceCode = normalizePiece(key);

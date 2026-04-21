@@ -1,4 +1,3 @@
-import { SceneEvent } from './basic/events.js';
 import { ExtensionDragSessionSnapshot } from './basic/interaction.js';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount.js';
 import {
@@ -22,8 +21,6 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	destroy?(): void;
 	// Render state cycle
 	onUpdate?(context: ExtensionUpdateContext): void;
-	onUIMoveRequest?(context: ExtensionPendingUIMoveRequestContext): void;
-	onEvent?(event: ExtensionOnEventContext): void;
 	render?(context: ExtensionRenderContext): void;
 	// Animation
 	prepareAnimation?(context: ExtensionPrepareAnimationContext): void;
@@ -35,7 +32,8 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events
-	onEvent?(event: SceneEvent): void;
+	onUIMoveRequest?(context: ExtensionPendingUIMoveRequestContext): void;
+	onEvent?(context: ExtensionOnEventContext): void;
 }
 
 type ExtensionInstancePublicPart<TPublic> = [TPublic] extends [never]

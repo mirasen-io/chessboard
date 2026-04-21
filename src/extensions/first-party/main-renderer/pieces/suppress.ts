@@ -15,5 +15,10 @@ export function calculateSuppressedSquares(
 	if (dragSquare !== null) {
 		result.add(dragSquare);
 	}
+	const pendingMoveRequest = context.currentFrame.state.change.deferredUIMoveRequest;
+	if (pendingMoveRequest) {
+		result.add(pendingMoveRequest.sourceSquare);
+		result.add(pendingMoveRequest.destination.to);
+	}
 	return result;
 }
