@@ -226,6 +226,22 @@ These are separate extensions on purpose:
 
 This separation is a good example of the architecture: common chess UX can be built in without collapsing everything into one hardcoded board layer.
 
+```ts
+import { createBoard } from '@mirasen/chessboard';
+
+const element = document.getElementById('board');
+
+if (!element) {
+	throw new Error('Missing board element');
+}
+
+const board = createBoard({
+	element
+});
+
+board.autoPromote.toQueen = true;
+```
+
 ## Architecture
 
 `@mirasen/chessboard` is built around explicit boundaries:
