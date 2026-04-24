@@ -2,9 +2,9 @@ import { toMerged } from 'es-toolkit';
 import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
-	extensionDestroy,
-	extensionMount,
-	extensionUnmount
+	extensionDestroyBase,
+	extensionMountBase,
+	extensionUnmountBase
 } from '../common/helpers.js';
 import { createMainRendererAnimation } from './animation/factory.js';
 import { createMainRendererBoard } from './board/factory.js';
@@ -82,7 +82,7 @@ function createMainRendererInstance(
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
+			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			internalState.board.onUpdate(context);
@@ -119,11 +119,11 @@ function createMainRendererInstance(
 		},
 		unmount() {
 			extensionUnmountLocal(internalState);
-			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 		},
 		destroy() {
 			extensionUnmountLocal(internalState);
-			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 		}
 	};
 }

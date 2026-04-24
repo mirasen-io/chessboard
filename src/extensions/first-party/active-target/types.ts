@@ -1,8 +1,12 @@
 import { PartialDeep } from 'type-fest';
+import { ExtensionSlotName } from '../../types/basic/mount.js';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
-import { ExtensionInternal, OpaqueColor } from '../common/types.js';
+import { ExtensionInternalBase, OpaqueColor } from '../common/types.js';
 
-export const EXTENSION_SLOTS = ['underPieces', 'overPieces'] as const;
+export const EXTENSION_SLOTS = [
+	'underPieces',
+	'overPieces'
+] as const satisfies readonly ExtensionSlotName[];
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'activeTarget' as const;
 
@@ -42,7 +46,7 @@ export type ActiveTargetInstance = ExtensionInstance<
 	never
 >;
 
-export interface ActiveTargetInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
+export interface ActiveTargetInstanceInternal extends ExtensionInternalBase<ExtensionSlotsType> {
 	svgRect: SVGRectElement | null;
 	svgCircle: SVGCircleElement | null;
 	readonly config: ActiveTargetConfig;

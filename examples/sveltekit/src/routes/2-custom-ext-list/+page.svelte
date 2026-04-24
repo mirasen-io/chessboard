@@ -1,47 +1,37 @@
 <script lang="ts">
-	import { createBoard, type Chessboard } from '@mirasen/chessboard';
-	import type { BuiltInExtensionId } from '@mirasen/chessboard/extensions';
+	import { createBoard, type Chessboard, type ChessboardExtensionInput } from '@mirasen/chessboard';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
 	const extensionList = [
+		// Always add renderer first, otherwise nothing will be rendered
 		'renderer',
-		'selectedSquare',
-		'activeTarget',
-		'events'
-	] as const satisfies BuiltInExtensionId[];
+		'lastMove',
+		// Keep autoPromote before promotion, otherwise promotion may defer the move first
+		'autoPromote',
+		'promotion'
+		// customExtensionDefinition
+	] as const satisfies ChessboardExtensionInput[];
 	let board: Chessboard<typeof extensionList> | null = null;
-	let snapshotText = $state('');
-
-	// 2 - Custom extension list example
-
-	function refreshSnapshot() {
-		if (!board) return;
-		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
-	}
 
 	function setWhite() {
 		if (!board) return;
 		board.setOrientation('white');
-		refreshSnapshot();
 	}
 
 	function setBlack() {
 		if (!board) return;
 		board.setOrientation('black');
-		refreshSnapshot();
 	}
 
 	function resetPosition() {
 		if (!board) return;
 		board.setPosition('start');
-		refreshSnapshot();
 	}
 
 	function clearSelection() {
 		if (!board) return;
 		board.select(null);
-		refreshSnapshot();
 	}
 
 	function fileOf(square: number) {
@@ -76,8 +66,6 @@
 			to: toSquare
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
-
-		refreshSnapshot();
 	}
 
 	onMount(() => {
@@ -88,19 +76,6 @@
 		board.setMovability({
 			mode: 'free'
 		});
-		board.extensions.events.setOnUIMove((move) => {
-			console.log('Move played:', move);
-		});
-		board.extensions.events.setOnRawUpdate((context) => {
-			console.log('Raw update:', context);
-		});
-		refreshSnapshot();
-
-		const intervalId = window.setInterval(refreshSnapshot, 100);
-
-		return () => {
-			window.clearInterval(intervalId);
-		};
 	});
 
 	onDestroy(() => {
@@ -123,18 +98,12 @@
 			<button onclick={setBlack}>Orientation: black</button>
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
-			<button onclick={refreshSnapshot}>Refresh snapshot</button>
 			<button onclick={randomMove}>Random move</button>
 		</div>
 
 		<div class="board-wrap">
 			<div bind:this={boardEl} class="board"></div>
 		</div>
-	</div>
-
-	<div class="panel">
-		<h2>Interaction snapshot</h2>
-		<pre>{snapshotText}</pre>
 	</div>
 </div>
 
@@ -169,10 +138,6 @@
 	}
 
 	h1,
-	h2 {
-		margin: 0 0 12px;
-	}
-
 	.subtitle {
 		margin: 0 0 16px;
 		color: #4b5563;
@@ -210,18 +175,6 @@
 		overflow: hidden;
 		touch-action: pinch-zoom;
 		user-select: none;
-	}
-
-	pre {
-		margin: 0;
-		padding: 16px;
-		border-radius: 12px;
-		background: #111827;
-		color: #e5e7eb;
-		font-size: 12px;
-		line-height: 1.45;
-		overflow: auto;
-		max-height: 70vh;
 	}
 
 	@media (max-width: 1100px) {

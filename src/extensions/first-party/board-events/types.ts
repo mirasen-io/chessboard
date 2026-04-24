@@ -1,6 +1,5 @@
 import { RuntimeReadonlyMutationSession } from '../../../runtime/mutation/types.js';
 import { MoveOutput } from '../../../state/board/types/output.js';
-import { ExtensionSlotSvgRoots } from '../../types/basic/mount.js';
 import { UpdateFrameSnapshot } from '../../types/basic/update.js';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
 
@@ -31,8 +30,6 @@ export type BoardEventsInstance = ExtensionInstance<
 	typeof EXTENSION_SLOTS,
 	BoardEventsPublic
 >;
-
-export type BoardEventsSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
 export interface BoardEventsInstanceInternal {
 	onUIMove: OnUIMoveCallback | null;

@@ -1,76 +1,30 @@
 <script lang="ts">
-	import { createBoard, type PiecePositionRecordString } from '@mirasen/chessboard';
+	import { createBoard } from '@mirasen/chessboard';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
 	let board: ReturnType<typeof createBoard> | null = null;
-	let snapshotText = $state('');
 
-	const START_POSITION: PiecePositionRecordString = {
-		a3: 'wP',
-		b2: 'wP',
-		c2: 'wP',
-		d2: 'wP',
-		e2: 'wP',
-		f2: 'wP',
-		g2: 'wP',
-		h2: 'wP',
-
-		a1: 'wR',
-		b1: 'wN',
-		c1: 'wB',
-		d1: 'wQ',
-		e1: 'wK',
-		f1: 'wB',
-		g1: 'wN',
-		h1: 'wR',
-
-		a7: 'bP',
-		b7: 'bP',
-		c7: 'bP',
-		d7: 'bP',
-		e7: 'bP',
-		f7: 'bP',
-		g7: 'bP',
-		h7: 'bP',
-
-		a8: 'bR',
-		b8: 'bN',
-		c8: 'bB',
-		d8: 'bQ',
-		e8: 'bK',
-		f8: 'bB',
-		g8: 'bN',
-		h8: 'bR'
-	} as const;
-
-	function refreshSnapshot() {
-		if (!board) return;
-		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
-	}
+	// 1 - minimal example of chessboard runtime usage
 
 	function setWhite() {
 		if (!board) return;
 		board.setOrientation('white');
-		refreshSnapshot();
 	}
 
 	function setBlack() {
 		if (!board) return;
 		board.setOrientation('black');
-		refreshSnapshot();
 	}
 
 	function resetPosition() {
 		if (!board) return;
 		board.setPosition('start');
-		refreshSnapshot();
 	}
 
 	function clearSelection() {
 		if (!board) return;
 		board.select(null);
-		refreshSnapshot();
 	}
 
 	function fileOf(square: number) {
@@ -105,36 +59,15 @@
 			to: toSquare
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
-
-		refreshSnapshot();
 	}
 
 	onMount(() => {
 		board = createBoard({
-			element: boardEl,
-			state: {
-				board: {
-					turn: 'b',
-					pieces: START_POSITION
-				},
-				interaction: {
-					movability: { mode: 'free' }
-				}
-			}
+			element: boardEl
 		});
-		board.extensions.events.setOnRawUpdate((context) => {
-			console.log('Raw update:', context);
+		board.setMovability({
+			mode: 'free'
 		});
-		board.extensions.events.setOnUIMove((move) => {
-			console.log('Move played:', move);
-		});
-		refreshSnapshot();
-
-		const intervalId = window.setInterval(refreshSnapshot, 100);
-
-		return () => {
-			window.clearInterval(intervalId);
-		};
 	});
 
 	onDestroy(() => {
@@ -157,18 +90,12 @@
 			<button onclick={setBlack}>Orientation: black</button>
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
-			<button onclick={refreshSnapshot}>Refresh snapshot</button>
 			<button onclick={randomMove}>Random move</button>
 		</div>
 
 		<div class="board-wrap">
 			<div bind:this={boardEl} class="board"></div>
 		</div>
-	</div>
-
-	<div class="panel">
-		<h2>Interaction snapshot</h2>
-		<pre>{snapshotText}</pre>
 	</div>
 </div>
 
@@ -203,10 +130,6 @@
 	}
 
 	h1,
-	h2 {
-		margin: 0 0 12px;
-	}
-
 	.subtitle {
 		margin: 0 0 16px;
 		color: #4b5563;
@@ -244,18 +167,6 @@
 		overflow: hidden;
 		touch-action: pinch-zoom;
 		user-select: none;
-	}
-
-	pre {
-		margin: 0;
-		padding: 16px;
-		border-radius: 12px;
-		background: #111827;
-		color: #e5e7eb;
-		font-size: 12px;
-		line-height: 1.45;
-		overflow: auto;
-		max-height: 70vh;
 	}
 
 	@media (max-width: 1100px) {

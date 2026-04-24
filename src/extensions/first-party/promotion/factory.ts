@@ -7,9 +7,9 @@ import { isUpdateContextRenderable } from '../../types/context/update.js';
 import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
-	extensionDestroy,
-	extensionMount,
-	extensionUnmount
+	extensionDestroyBase,
+	extensionMountBase,
+	extensionUnmountBase
 } from '../common/helpers.js';
 import { normalizePromotionConfig } from './normalize.js';
 import { PromotionInitConfig } from './types/input.js';
@@ -87,7 +87,7 @@ function createPromotionInstance(
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
+			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUIMoveRequest(context) {
 			const request = context.request;
@@ -253,11 +253,11 @@ function createPromotionInstance(
 			internalState.runtimeSurface.commands.cancelDeferredUIMoveRequest();
 		},
 		unmount() {
-			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		}
 	};

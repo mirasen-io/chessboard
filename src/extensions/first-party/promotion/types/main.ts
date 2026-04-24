@@ -2,7 +2,7 @@ import { RolePromotionCode, Square } from '../../../../state/board/types/interna
 import { ExtensionSlotName } from '../../../types/basic/mount.js';
 import { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
 import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
-import { ExtensionInternal } from '../../common/types.js';
+import { ExtensionInternalBase } from '../../common/types.js';
 import { PromotionConfig } from './internal.js';
 
 export const EXTENSION_SLOTS = ['animation'] as const satisfies readonly ExtensionSlotName[];
@@ -26,7 +26,7 @@ export interface PromotionPieceNode {
 	readonly rect: SVGRectElement;
 }
 
-export interface PromotionInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
+export interface PromotionInstanceInternal extends ExtensionInternalBase<ExtensionSlotsType> {
 	readonly config: PromotionConfig;
 	readonly svgPromotionPieces: Map<RolePromotionCode, PromotionPieceNode>;
 	readonly activePromotionSquares: Map<Square, RolePromotionCode>;

@@ -1,6 +1,6 @@
 import { PartialDeep } from 'type-fest';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
-import { ExtensionInternal, OpaqueColor } from '../common/types.js';
+import { ExtensionInternalBase, OpaqueColor } from '../common/types.js';
 
 export const EXTENSION_SLOTS = ['underPieces'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
@@ -27,7 +27,7 @@ export type LastMoveInstance = ExtensionInstance<
 	never
 >;
 
-export interface LastMoveInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
+export interface LastMoveInstanceInternal extends ExtensionInternalBase<ExtensionSlotsType> {
 	svgRectFrom: SVGRectElement | null;
 	svgRectTo: SVGRectElement | null;
 	readonly config: LastMoveConfig;

@@ -6,35 +6,24 @@
 	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
 
-	// 1 - minimal example of chessboard runtime usage
-
-	function refreshSnapshot() {
-		if (!board) return;
-		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
-	}
-
 	function setWhite() {
 		if (!board) return;
 		board.setOrientation('white');
-		refreshSnapshot();
 	}
 
 	function setBlack() {
 		if (!board) return;
 		board.setOrientation('black');
-		refreshSnapshot();
 	}
 
 	function resetPosition() {
 		if (!board) return;
 		board.setPosition('start');
-		refreshSnapshot();
 	}
 
 	function clearSelection() {
 		if (!board) return;
 		board.select(null);
-		refreshSnapshot();
 	}
 
 	function fileOf(square: number) {
@@ -69,8 +58,6 @@
 			to: toSquare
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
-
-		refreshSnapshot();
 	}
 
 	onMount(() => {
@@ -85,14 +72,21 @@
 		});
 		board.extensions.events.setOnRawUpdate((context) => {
 			console.log('Raw update:', context);
+			const currentFrame = context.currentFrame;
+			// Convert sets and maps into arrays for better readability in the snapshot
+			const replacer = (key: string, value: unknown) => {
+				if (value instanceof Set) {
+					return Array.from(value);
+				}
+				if (value instanceof Map) {
+					return Object.fromEntries(value.entries());
+				}
+				return value;
+			};
+			snapshotText = JSON.stringify(currentFrame, replacer, 2);
 		});
-		refreshSnapshot();
 
-		const intervalId = window.setInterval(refreshSnapshot, 100);
-
-		return () => {
-			window.clearInterval(intervalId);
-		};
+		return () => {};
 	});
 
 	onDestroy(() => {
@@ -115,7 +109,6 @@
 			<button onclick={setBlack}>Orientation: black</button>
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
-			<button onclick={refreshSnapshot}>Refresh snapshot</button>
 			<button onclick={randomMove}>Random move</button>
 		</div>
 

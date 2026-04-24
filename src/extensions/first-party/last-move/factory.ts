@@ -4,9 +4,9 @@ import { createSvgElement, updateElementAttributes } from '../../../render/svg/h
 import { isUpdateContextRenderable } from '../../types/context/update.js';
 import {
 	extensionCreateInternalBase,
-	extensionDestroy,
-	extensionMount,
-	extensionUnmount
+	extensionDestroyBase,
+	extensionMountBase,
+	extensionUnmountBase
 } from '../common/helpers.js';
 import {
 	DEFAULT_CONFIG,
@@ -51,7 +51,7 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
+			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			const needsRender =
@@ -126,11 +126,11 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 			}
 		},
 		unmount() {
-			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		}
 	};

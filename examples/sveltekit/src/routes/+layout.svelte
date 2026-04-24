@@ -6,7 +6,8 @@
 	let { children } = $props();
 
 	const links = [
-		{ href: '/', label: 'Free' },
+		{ href: '/', label: 'Debug' },
+		{ href: '/free', label: 'Free' },
 		{ href: '/2-custom-ext-list', label: 'Custom Extension List' },
 		{ href: '/promotion', label: 'Promotion' }
 		// { href: '/castle', label: 'Castle' }

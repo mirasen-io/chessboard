@@ -77,10 +77,21 @@ board.setMovability({
 });
 ```
 
-### Explicit built-in interaction extensions
+### Explicit extensions
 
 ```ts
-import { createBoard } from '@mirasen/chessboard';
+import { createBoard, type Chessboard, type ChessboardExtensionInput } from '@mirasen/chessboard';
+
+const extensionList = [
+	// Always add renderer first, otherwise nothing will be rendered
+	'renderer',
+	'lastMove',
+	// Keep autoPromote before promotion, otherwise promotion may defer the move first
+	'autoPromote',
+	'promotion'
+	// customExtensionDefinition
+] as const satisfies readonly ChessboardExtensionInput[];
+let board: Chessboard<typeof extensionList> | null = null;
 
 const element = document.getElementById('board');
 
@@ -88,20 +99,9 @@ if (!element) {
 	throw new Error('Missing board element');
 }
 
-const board = createBoard({
+board = createBoard({
 	element,
-	extensions: [
-		// Always add renderer first, otherwise nothing will be rendered
-		'renderer',
-		'selectedSquare',
-		'activeTarget',
-		'legalMoves',
-		'lastMove',
-		'events',
-		// Keep autoPromote before promotion, otherwise promotion may defer the move first
-		'autoPromote',
-		'promotion'
-	]
+	extensions: extensionList
 });
 ```
 
@@ -287,3 +287,20 @@ After the first release candidate, the next steps are expected to include:
 ## Project direction
 
 This platform is being built as a foundation for richer chess learning and interaction workflows, but the board itself is designed to stand as a serious open-source UI platform in its own right.
+
+## Artwork
+
+### Chessnut piece set
+
+This project uses the Chessnut chess piece set.
+
+This is the current default piece set used by the library.
+
+- Author: Alexis Luengas — https://github.com/LexLuengas
+- Source: https://github.com/LexLuengas/chessnut-pieces
+- License: Apache License 2.0 — https://github.com/LexLuengas/chessnut-pieces/blob/master/LICENSE.txt
+
+For details, see:
+
+- [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
+- [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)

@@ -89,11 +89,11 @@ if [[ "$FULL_MODE" == "true" ]]; then
 fi
 
 find "$STAGING_DIR" -type d \( \
-  -name node_modules -o \
-  -name dist -o \
-  -name build -o \
-  -name coverage -o \
-  -name .git \
+  -path "$STAGING_DIR/node_modules" -o \
+  -path "$STAGING_DIR/dist" -o \
+  -path "$STAGING_DIR/build" -o \
+  -path "$STAGING_DIR/coverage" -o \
+  -path "$STAGING_DIR/.git" \
 \) -prune -exec rm -rf {} +
 
 {

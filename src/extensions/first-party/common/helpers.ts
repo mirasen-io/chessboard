@@ -1,54 +1,54 @@
 import assert from '@ktarmyshov/assert';
 import { clearElementChildren } from '../../../render/svg/helpers.js';
 import { ExtensionSlotName } from '../../types/basic/mount.js';
-import { ExtensionInternal } from './types.js';
+import { ExtensionInternalBase } from './types.js';
 
 export function extensionCreateInternalBase<
 	TSlots extends readonly ExtensionSlotName[]
->(): ExtensionInternal<TSlots> {
+>(): ExtensionInternalBase<TSlots> {
 	return {
 		slotRoots: null,
 		destroyed: false
 	};
 }
 
-export function extensionIsMounted<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternal<TSlots>
+export function extensionIsMountedBase<TSlots extends readonly ExtensionSlotName[]>(
+	state: ExtensionInternalBase<TSlots>
 ): boolean {
 	return state.slotRoots !== null;
 }
 
-export function extensionIsDestroyed<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternal<TSlots>
+export function extensionIsDestroyedBase<TSlots extends readonly ExtensionSlotName[]>(
+	state: ExtensionInternalBase<TSlots>
 ): boolean {
 	return state.destroyed;
 }
 
-export function extensionMount<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternal<TSlots>,
-	slotRoots: NonNullable<ExtensionInternal<TSlots>['slotRoots']>
+export function extensionMountBase<TSlots extends readonly ExtensionSlotName[]>(
+	state: ExtensionInternalBase<TSlots>,
+	slotRoots: NonNullable<ExtensionInternalBase<TSlots>['slotRoots']>
 ): void {
-	assert(!extensionIsMounted(state), 'Extension is already mounted');
-	assert(!extensionIsDestroyed(state), 'Extension is destroyed');
+	assert(!extensionIsMountedBase(state), 'Extension is already mounted');
+	assert(!extensionIsDestroyedBase(state), 'Extension is destroyed');
 	state.slotRoots = slotRoots;
 }
 
-export function extensionUnmount<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternal<TSlots>
+export function extensionUnmountBase<TSlots extends readonly ExtensionSlotName[]>(
+	state: ExtensionInternalBase<TSlots>
 ): void {
-	assert(extensionIsMounted(state), 'Extension is not mounted');
+	assert(extensionIsMountedBase(state), 'Extension is not mounted');
 	for (const slotRoot of Object.values<SVGGElement>(state.slotRoots ?? {})) {
 		clearElementChildren(slotRoot);
 	}
 	state.slotRoots = null;
 }
 
-export function extensionDestroy<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternal<TSlots>
+export function extensionDestroyBase<TSlots extends readonly ExtensionSlotName[]>(
+	state: ExtensionInternalBase<TSlots>
 ): void {
-	assert(!extensionIsDestroyed(state), 'Extension is already destroyed');
-	if (extensionIsMounted(state)) {
-		extensionUnmount(state);
+	assert(!extensionIsDestroyedBase(state), 'Extension is already destroyed');
+	if (extensionIsMountedBase(state)) {
+		extensionUnmountBase(state);
 	}
 	state.destroyed = true;
 }

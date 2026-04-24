@@ -38,7 +38,11 @@
 			"types": "./dist/extensions/index.d.ts",
 			"import": "./dist/extensions/index.js"
 		},
-		"./unstable/*.js": {
+		"./extensions/build": {
+			"types": "./dist/extensions/build/index.d.ts",
+			"import": "./dist/extensions/build/index.js"
+		},
+		"./unstable/*": {
 			"types": "./dist/*.d.ts",
 			"import": "./dist/*.js"
 		}
