@@ -1,8 +1,0 @@
-{
-	"mode": "exit",
-	"tag": "rc",
-	"initialVersions": {
-		"@mirasen/chessboard": "0.1.1"
-	},
-	"changesets": ["hungry-deer-obey", "icy-beds-kiss"]
-}
