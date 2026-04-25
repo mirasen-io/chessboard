@@ -1,5 +1,5 @@
 {
-	"mode": "pre",
+	"mode": "exit",
 	"tag": "rc",
 	"initialVersions": {
 		"@mirasen/chessboard": "0.1.1"
