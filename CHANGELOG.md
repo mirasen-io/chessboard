@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.0.1
+
+### Patch Changes
+
+- be927e3: Call `preventDefault()` for board-handled input events to suppress native browser behavior.
+
 ## 1.0.0
 
 ### Major Changes
