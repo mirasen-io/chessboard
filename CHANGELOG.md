@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.0.2
+
+### Patch Changes
+
+- db4969e: Fix README
+
 ## 1.0.1
 
 ### Patch Changes
