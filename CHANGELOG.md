@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.0.3
+
+### Patch Changes
+
+- 09962d6: Prevent native mobile selection and callout behavior on the board surface and coordinate labels.
+
 ## 1.0.2
 
 ### Patch Changes
