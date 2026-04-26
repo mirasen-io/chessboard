@@ -26,7 +26,7 @@ This is not just a board renderer. It is a chessboard platform designed for real
 
 ## What you get out of the box
 
-The built-in first-party extension baseline currently includes both foundational runtime-facing extensions and user-facing board features.
+The default first-party extension baseline includes rendering, events, selection, active target feedback, legal move hints, last move feedback, promotion UI, and optional auto-promotion.
 
 - `renderer` — the first-party rendering extension that validates the same extension architecture used for board features
 - `events`
@@ -80,27 +80,48 @@ if (!element) {
 const board = createBoard({
 	element
 });
-// Set free movability, default - disabled
+
+// User moves are disabled by default.
+// Enable free movement when you want unconstrained UI moves.
 board.setMovability({
 	mode: 'free'
 });
 ```
 
-### Explicit extensions
+### Connect to a game/rules layer
+
+`@mirasen/chessboard` handles board interaction and move intent. Your application can keep chess rules and game state in its own game/rules layer.
+
+A typical integration uses a small adapter between your game move format and the board move format. The `game` object below represents your own chess rules layer, such as chess.js, a server-backed game model, or a custom engine.
 
 ```ts
-import { createBoard, type Chessboard, type ChessboardExtensionInput } from '@mirasen/chessboard';
+import {
+	createBoard,
+	type MoveDestinationInput,
+	type MoveOutput,
+	type MoveRequestInput
+} from '@mirasen/chessboard';
 
-const extensionList = [
-	// Always add renderer first, otherwise nothing will be rendered
-	'renderer',
-	'lastMove',
-	// Keep autoPromote before promotion, otherwise promotion may defer the move first
-	'autoPromote',
-	'promotion'
-	// customExtensionDefinition
-] as const satisfies readonly ChessboardExtensionInput[];
-let board: Chessboard<typeof extensionList> | null = null;
+type GameMove = {
+	from: string;
+	to: string;
+	capturedSquare?: string;
+	secondary?: {
+		from: string;
+		to: string;
+	};
+	promotedTo?: 'queen' | 'rook' | 'bishop' | 'knight';
+};
+
+type GameDestination = {
+	to: string;
+	capturedSquare?: string;
+	secondary?: {
+		from: string;
+		to: string;
+	};
+	promotedTo?: ('queen' | 'rook' | 'bishop' | 'knight')[];
+};
 
 const element = document.getElementById('board');
 
@@ -108,112 +129,72 @@ if (!element) {
 	throw new Error('Missing board element');
 }
 
-board = createBoard({
-	element,
-	extensions: extensionList
-});
-```
-
-### setOnUIMove
-
-```ts
-import { createBoard } from '@mirasen/chessboard';
-
-const element = document.getElementById('board');
-
-if (!element) {
-	throw new Error('Missing board element');
-}
-
+const game = createYourGameEngine(); // Your app/game layer.
 const board = createBoard({
-	element,
-	state: {
-		board: 'start',
-		interaction: {
-			movability: {
-				mode: 'free'
-			}
-		}
+	element
+});
+
+board.setPosition(game.getPosition());
+
+function toBoardDestination(gameDestination: GameDestination): MoveDestinationInput {
+	return {
+		to: gameDestination.to,
+		capturedSquare: gameDestination.capturedSquare,
+		secondary: gameDestination.secondary, // e.g. castling.
+		promotedTo: gameDestination.promotedTo
+	};
+}
+
+function toBoardMoveRequest(gameMove: GameMove): MoveRequestInput {
+	return {
+		from: gameMove.from,
+		to: gameMove.to,
+		capturedSquare: gameMove.capturedSquare,
+		secondary: gameMove.secondary,
+		promotedTo: gameMove.promotedTo
+	};
+}
+
+function toGameMove(move: MoveOutput): GameMove {
+	return {
+		from: move.from,
+		to: move.to,
+		capturedSquare: move.capturedSquare,
+		secondary: move.secondary,
+		promotedTo: move.promotedTo
+	};
+}
+
+board.setMovability({
+	mode: 'strict',
+	destinations: (source): MoveDestinationInput[] | undefined => {
+		const gameDestinations = game.getDestinationsFor(source);
+
+		return gameDestinations.length > 0 ? gameDestinations.map(toBoardDestination) : undefined;
 	}
 });
 
 board.extensions.events.setOnUIMove((move) => {
-	console.log('UI move:', move);
+	// The board accepted and applied this UI move.
+	// Keep your game/rules layer in sync.
+	game.move(toGameMove(move));
 });
-```
 
-### setMovability - strict with explicit destinations
+function applyExternalMove(gameMove: GameMove) {
+	// Apply moves that come from outside the board UI:
+	// server, engine, opponent, imported game, replay, etc.
+	game.move(gameMove);
 
-```ts
-import { createBoard } from '@mirasen/chessboard';
-
-const element = document.getElementById('board');
-
-if (!element) {
-	throw new Error('Missing board element');
+	// Then animate/apply the same move on the board.
+	board.move(toBoardMoveRequest(gameMove));
 }
-
-const board = createBoard({
-	element
-});
-
-board.setMovability({
-	mode: 'strict',
-	destinations: {
-		e2: [{ to: 'e3' }, { to: 'e4' }],
-		d7: [
-			{ to: 'c8', promotedTo: ['queen', 'rook', 'bishop', 'knight'] },
-			{ to: 'd8', promotedTo: ['queen', 'rook', 'bishop', 'knight'] }
-		],
-		g1: [{ to: 'f3' }, { to: 'h3' }]
-	}
-});
 ```
 
-### setMovability - strict with a resolver
+`MoveDestinationInput` can describe more than a target square. For example, `secondary` can represent paired piece movement (e.g. castling), `capturedSquare` can represent captures away from the destination square (e.g. en passant), and `promotedTo` can represent promotion choices.
 
-```ts
-import { createBoard } from '@mirasen/chessboard';
+This lets your game/rules layer own chess legality and game state while the board owns interaction, selection, targeting, visual feedback, promotion UI, animation, and its own displayed position.
 
-const element = document.getElementById('board');
-
-if (!element) {
-	throw new Error('Missing board element');
-}
-
-const board = createBoard({
-	element
-});
-
-board.setMovability({
-	mode: 'strict',
-	destinations: (source) => {
-		if (source === 'e2')
-			return [
-				{ to: 'e8', promotedTo: ['bishop', 'queen'] },
-				{ to: 'd8', promotedTo: ['rook', 'knight', 'queen'] }
-			];
-		if (source === 'f7')
-			return [
-				{ to: 'f8', promotedTo: ['bishop', 'rook', 'knight', 'queen'] },
-				{ to: 'g8', promotedTo: ['bishop', 'rook', 'knight', 'queen'] }
-			];
-		if (source === 'd7')
-			return [
-				{ to: 'd1', promotedTo: ['bishop', 'knight'] },
-				{ to: 'e1', promotedTo: ['rook', 'knight', 'queen'] }
-			];
-		if (source === 'c2')
-			return [
-				{ to: 'c1', promotedTo: ['bishop', 'rook', 'knight', 'queen'] },
-				{ to: 'b1', promotedTo: ['bishop', 'rook', 'knight', 'queen'] }
-			];
-		return undefined;
-	}
-});
-```
-
-## Promotion and auto-promotion
+### Promotion and auto-promotion
 
 Promotion is handled inside the board interaction pipeline through a natural deferred move flow.
 
@@ -249,6 +230,44 @@ const board = createBoard({
 });
 
 board.extensions.autoPromote.toQueen = true;
+```
+
+### Movability modes
+
+Movability controls how the board accepts user-initiated moves.
+
+- `disabled` — user moves are ignored
+- `free` — user moves are accepted without legal destination filtering
+- `strict` — user moves are accepted only when the target is allowed by the destinations provided by your app/rules layer
+
+### Advanced: explicit extension lists
+
+Most users can rely on the default first-party extension baseline. Use an explicit extension list only when you want to control which built-in or custom extensions are installed.
+
+```ts
+import { createBoard, type Chessboard, type ChessboardExtensionInput } from '@mirasen/chessboard';
+
+const extensionList = [
+	// Always add renderer first, otherwise nothing will be rendered
+	'renderer',
+	'lastMove',
+	// Keep autoPromote before promotion, otherwise promotion may defer the move first
+	'autoPromote',
+	'promotion'
+	// customExtensionDefinition
+] as const satisfies readonly ChessboardExtensionInput[];
+let board: Chessboard<typeof extensionList> | null = null;
+
+const element = document.getElementById('board');
+
+if (!element) {
+	throw new Error('Missing board element');
+}
+
+board = createBoard({
+	element,
+	extensions: extensionList
+});
 ```
 
 ## Architecture
