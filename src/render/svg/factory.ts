@@ -9,6 +9,11 @@ import { createSvgElement } from './helpers.js';
 export function createSvgRoots(options: RenderSystemInitOptionsInternal): SvgRoots {
 	const { doc } = options;
 	const svgRoot = createSvgElement(doc, 'svg', { 'data-chessboard-id': 'svg-root' });
+	svgRoot.style.setProperty('user-select', 'none');
+	svgRoot.style.setProperty('-webkit-user-select', 'none');
+	svgRoot.style.setProperty('touch-action', 'pinch-zoom');
+	svgRoot.style.setProperty('-webkit-touch-callout', 'none');
+	svgRoot.style.setProperty('-webkit-tap-highlight-color', 'transparent');
 	const result: SvgRoots = {
 		svgRoot,
 		defs: createSvgElement(doc, 'defs', { 'data-chessboard-id': 'defs-root' }),
