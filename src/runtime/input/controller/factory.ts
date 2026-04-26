@@ -45,10 +45,6 @@ export function createInteractionController(
 					break;
 			}
 			transmitTransientInput(internalState, context);
-			if (!context.rawEvent.defaultPrevented && context.rawEvent.cancelable) {
-				// Suppress native browser behavior for board-handled events.
-				context.rawEvent.preventDefault();
-			}
 		}
 	};
 }

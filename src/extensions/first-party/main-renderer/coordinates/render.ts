@@ -88,5 +88,10 @@ export function rendererCoordinatesRender(
 			'dominant-baseline': 'auto'
 		});
 		text.textContent = label;
+		// Keep coordinate labels visual-only so mobile browsers do not select them
+		// or treat them as pointer targets during board interaction.
+		text.style.setProperty('pointer-events', 'none');
+		text.style.setProperty('user-select', 'none');
+		text.style.setProperty('-webkit-user-select', 'none');
 	}
 }
