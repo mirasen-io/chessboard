@@ -1,5 +1,14 @@
 # @mirasen/chessboard
 
+## 1.0.5
+
+### Patch Changes
+
+- 0422020: Fix fast drag-and-drop sometimes leaving a stale drag visual due to an unsynced target square.
+- 0422020: Update dependencies
+- 0422020: Fix promotion extension to accept renderer-compatible piece URL maps without throwing on extra entries.
+- 0422020: Allow createBoard options to configure built-in extensions without direct factory calls.
+
 ## 1.0.4
 
 ### Patch Changes
