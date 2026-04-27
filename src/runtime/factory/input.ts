@@ -54,33 +54,32 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			const dragSession = interaction.dragSession;
-			assert(dragSession !== null, 'completeDragTo requires an active drag session');
+			interaction.updateDragSessionCurrentTarget(target, mutationSession);
+			const dragSession = interaction.dragSession!;
 			assert(
 				isDragSessionCoreOwned(dragSession),
 				'completeDragTo can only be called for core-owned drag sessions'
 			);
 
 			uiMoveCompleteTo(internalState, target);
-			mutationSession.addMutation('runtime.interaction.completeDragTo', true, dragSession);
+			mutationSession.addMutation('runtime.interaction.completeCoreDragTo', true, dragSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		completeExtensionDrag(target) {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			const dragSession = interaction.dragSession;
-			assert(dragSession !== null, 'completeExtensionDrag requires an active drag session');
+			interaction.updateDragSessionCurrentTarget(target, mutationSession);
+			const dragSession = interaction.dragSession!;
 			assert(
 				!isDragSessionCoreOwned(dragSession),
 				'completeExtensionDrag can only be called for extension-owned drag sessions'
 			);
-			assert(
-				dragSession.targetSquare === target,
-				'The target square in completeExtensionDrag must match the current target square of the drag session'
-			);
+
 			internalState.extensionSystem.completeDrag(dragSession);
 			internalState.state.interaction.setDragSession(null, mutationSession);
+			mutationSession.addMutation('runtime.interaction.completeExtensionDragTo', true, dragSession);
+			runtimeRunMutationPipeline(internalState);
 		},
 		startReleaseTargetingDrag(source, target): void {
 			const internalState = state();
@@ -119,12 +118,7 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			const interactionMutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			const currentDragSession = interaction.dragSession;
-			assert(currentDragSession !== null, 'No active drag session to update');
-			internalState.state.interaction.updateDragSessionCurrentTarget(
-				target,
-				interactionMutationSession
-			);
+			interaction.updateDragSessionCurrentTarget(target, interactionMutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		onEvent(context) {

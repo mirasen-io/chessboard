@@ -22,19 +22,16 @@ function assertPieceUrlsComplete(
 	}
 }
 
-function assertPieceCodeIsPromotionPieceCode(
-	pieceCode: PieceCode
-): asserts pieceCode is PromotionPieceCode {
-	assert(
+function isPromotionPieceCode(pieceCode: PieceCode): pieceCode is PromotionPieceCode {
+	return (
 		pieceCode === PieceCode.WhiteQueen ||
-			pieceCode === PieceCode.WhiteRook ||
-			pieceCode === PieceCode.WhiteBishop ||
-			pieceCode === PieceCode.WhiteKnight ||
-			pieceCode === PieceCode.BlackQueen ||
-			pieceCode === PieceCode.BlackRook ||
-			pieceCode === PieceCode.BlackBishop ||
-			pieceCode === PieceCode.BlackKnight,
-		`Invalid promotion piece code: ${pieceCode}`
+		pieceCode === PieceCode.WhiteRook ||
+		pieceCode === PieceCode.WhiteBishop ||
+		pieceCode === PieceCode.WhiteKnight ||
+		pieceCode === PieceCode.BlackQueen ||
+		pieceCode === PieceCode.BlackRook ||
+		pieceCode === PieceCode.BlackBishop ||
+		pieceCode === PieceCode.BlackKnight
 	);
 }
 
@@ -42,7 +39,9 @@ function normalizePromotionPieceUrls(input: PromotionPieceUrlsInput): PromotionP
 	const normalized: Partial<PromotionPieceUrls> = {};
 	for (const [key, url] of Object.entries(input) as [PromotionPieceString, string][]) {
 		const pieceCode = normalizePiece(key);
-		assertPieceCodeIsPromotionPieceCode(pieceCode);
+		if (!isPromotionPieceCode(pieceCode)) {
+			continue;
+		}
 		normalized[pieceCode] = url;
 	}
 	assertPieceUrlsComplete(normalized);

@@ -145,3 +145,5 @@ rm -rf "$STAGING_DIR"
 echo
 echo "Archive created:"
 echo "  $ARCHIVE_PATH"
+
+open "$ARTIFACTS_DIR"

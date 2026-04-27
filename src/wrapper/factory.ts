@@ -1,9 +1,25 @@
+import type { AnyExtensionDefinition } from '../extensions/types/extension.js';
 import {
 	builtInExtensionFactoryMap,
 	DefaultBuiltinChessboardExtensions
 } from '../extensions/types/wrapper.js';
 import { createRuntime } from '../runtime/factory/main.js';
-import { Chessboard, ChessboardExtensionInput, ChessboardInitOptions } from './types.js';
+import {
+	type BuiltInExtensionInitOptions,
+	type Chessboard,
+	type ChessboardExtensionInput,
+	type ChessboardInitOptions
+} from './types.js';
+
+function resolveBuiltInExtensionWithOptions(
+	input: BuiltInExtensionInitOptions
+): AnyExtensionDefinition {
+	const factory = builtInExtensionFactoryMap[input.builtin] as (
+		options: typeof input.options
+	) => AnyExtensionDefinition;
+
+	return factory(input.options);
+}
 
 export function createBoard<
 	TExtensions extends readonly ChessboardExtensionInput[] = DefaultBuiltinChessboardExtensions
@@ -14,6 +30,10 @@ export function createBoard<
 		if (typeof ext === 'string') {
 			// built-in extension, convert to definition
 			return builtInExtensionFactoryMap[ext]();
+		}
+		if ('builtin' in ext) {
+			// built-in extension with options, convert to definition
+			return resolveBuiltInExtensionWithOptions(ext);
 		}
 		// assume it's already a definition
 		return ext;

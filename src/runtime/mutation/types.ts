@@ -3,11 +3,15 @@ import type { MutationSession, ReadonlyMutationSession } from '../../mutation/ty
 import type { BoardStateMutationPayloadByCause } from '../../state/board/mutation.js';
 import type { ChangeStateMutationPayloadByCause } from '../../state/change/mutation.js';
 import type { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation.js';
-import type { DragSessionCoreOwnedSnapshot } from '../../state/interaction/types/internal.js';
+import type {
+	DragSessionCoreOwnedSnapshot,
+	DragSessionExtensionOwnedSnapshot
+} from '../../state/interaction/types/internal.js';
 import type { ViewStateMutationPayloadByCause } from '../../state/view/mutation.js';
 
 type RuntimeOwnMutationPayloadByCause = {
-	'runtime.interaction.completeDragTo': DragSessionCoreOwnedSnapshot;
+	'runtime.interaction.completeCoreDragTo': DragSessionCoreOwnedSnapshot;
+	'runtime.interaction.completeExtensionDragTo': DragSessionExtensionOwnedSnapshot;
 	'runtime.interaction.resolveDeferredUIMoveRequest': undefined;
 	'runtime.interaction.cancelDeferredUIMoveRequest': undefined;
 };

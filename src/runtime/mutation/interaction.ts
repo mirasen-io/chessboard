@@ -11,7 +11,7 @@ export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutation
 	if (
 		!mutationSession.hasMutation({ prefixes: ['state.board.'] }) ||
 		mutationSession.hasMutation({
-			causes: ['state.interaction.clear', 'runtime.interaction.completeDragTo']
+			causes: ['state.interaction.clear', 'runtime.interaction.completeCoreDragTo']
 		})
 	) {
 		return;
