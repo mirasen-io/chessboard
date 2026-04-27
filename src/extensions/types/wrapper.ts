@@ -1,7 +1,3 @@
-/**
- * Public built-in extension ids accepted by createBoard({ extensions })
- */
-
 import { createActiveTarget } from '../first-party/active-target/factory.js';
 import { EXTENSION_ID as EXTENSION_ID_ACTIVE_TARGET } from '../first-party/active-target/types.js';
 import { createAutoPromote } from '../first-party/auto-promote/factory.js';

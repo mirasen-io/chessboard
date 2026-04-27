@@ -1,4 +1,9 @@
 export {
+	cleanAnimationPlan,
+	prepareAnimationPlan,
+	renderAnimationPlan
+} from '../../animation/render/plan.js';
+export {
 	clearElementChildren,
 	createSvgElement,
 	updateElementAttributes

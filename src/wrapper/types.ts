@@ -4,26 +4,52 @@ import type {
 	ExtensionDefinitionPublicApi
 } from '../extensions/types/extension.js';
 import {
-	BuiltInExtensionDefinitionMap,
-	BuiltInExtensionId,
-	DefaultBuiltinChessboardExtensions
+	type BuiltInExtensionDefinitionMap,
+	type BuiltInExtensionId,
+	type DefaultBuiltinChessboardExtensions,
+	builtInExtensionFactoryMap
 } from '../extensions/types/wrapper.js';
-import { Runtime } from '../runtime/types/main.js';
-import { RuntimeStateInitOptions } from '../state/types.js';
+import type { Runtime } from '../runtime/types/main.js';
+import type { RuntimeStateInitOptions } from '../state/types.js';
 
 /**
  * What createBoard accepts in options.extensions
  */
-export type ChessboardExtensionInput = BuiltInExtensionId | AnyExtensionDefinition;
+export type BuiltInExtensionFactoryInitOptions<TId extends BuiltInExtensionId> =
+	Parameters<(typeof builtInExtensionFactoryMap)[TId]> extends []
+		? never
+		: NonNullable<Parameters<(typeof builtInExtensionFactoryMap)[TId]>[0]>;
+
+type BuiltInExtensionIdsWithOptions = {
+	[TId in BuiltInExtensionId]: [BuiltInExtensionFactoryInitOptions<TId>] extends [never]
+		? never
+		: TId;
+}[BuiltInExtensionId];
+
+export type BuiltInExtensionInitOptions = {
+	[TId in BuiltInExtensionIdsWithOptions]: {
+		builtin: TId;
+		options: BuiltInExtensionFactoryInitOptions<TId>;
+	};
+}[BuiltInExtensionIdsWithOptions];
+
+export type ChessboardExtensionInput =
+	| BuiltInExtensionId
+	| BuiltInExtensionInitOptions
+	| AnyExtensionDefinition;
 
 /**
  * Resolve one public input item into a concrete extension definition type
  */
 export type ResolveChessboardExtensionInput<T> = T extends keyof BuiltInExtensionDefinitionMap
 	? BuiltInExtensionDefinitionMap[T]
-	: T extends AnyExtensionDefinition
-		? T
-		: never;
+	: T extends BuiltInExtensionInitOptions
+		? T['builtin'] extends keyof BuiltInExtensionDefinitionMap
+			? BuiltInExtensionDefinitionMap[T['builtin']]
+			: never
+		: T extends AnyExtensionDefinition
+			? T
+			: never;
 
 /**
  * Resolve an input tuple into a tuple of concrete extension definitions
