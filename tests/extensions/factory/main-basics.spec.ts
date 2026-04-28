@@ -101,7 +101,6 @@ describe('createExtensionSystem', () => {
 			const recA = shared.extensions.get('ext-a')!;
 			const recB = shared.extensions.get('ext-b')!;
 
-			// They should be distinct instances
 			recA.invalidation.markDirty(1);
 			expect(recA.invalidation.dirtyLayers).toBe(1);
 			expect(recB.invalidation.dirtyLayers).toBe(0);
@@ -213,7 +212,6 @@ describe('createExtensionSystem', () => {
 			const system = createExtensionSystem(createExtensionSystemOptions([definition]));
 			const shared = system.getSharedDataForRenderSystem();
 
-			// Submit a session on the extension's animation controller
 			shared.extensions.get('ext-a')!.animation.submit({ duration: 200 });
 
 			expect(system.hasSubmittedAnimations).toBe(true);
