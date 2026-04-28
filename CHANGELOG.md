@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.0.6
+
+### Patch Changes
+
+- e81b3fd: Fix scheduler `flushNow()` so pending frames flush synchronously.
+
 ## 1.0.5
 
 ### Patch Changes
