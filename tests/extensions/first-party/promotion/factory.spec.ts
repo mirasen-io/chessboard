@@ -207,4 +207,80 @@ describe('createPromotion', () => {
 			expect(surface.events.unsubscribeEvent).toHaveBeenCalledWith('pointerdown');
 		});
 	});
+
+	describe('onUIMoveRequest', () => {
+		function createFakeRequest(opts: { status?: string; canBeAutoResolved?: boolean }) {
+			const defer = vi.fn();
+			return {
+				context: {
+					request: {
+						status: opts.status ?? 'unresolved',
+						canBeAutoResolved: opts.canBeAutoResolved ?? false,
+						defer
+					}
+				} as never,
+				defer
+			};
+		}
+
+		it('calls defer when request is unresolved and cannot be auto-resolved', () => {
+			const def = createPromotion();
+			const surface = createMockRuntimeSurface();
+			const instance = def.createInstance({ runtimeSurface: surface });
+
+			const { context, defer } = createFakeRequest({
+				status: 'unresolved',
+				canBeAutoResolved: false
+			});
+
+			instance.onUIMoveRequest!(context);
+
+			expect(defer).toHaveBeenCalledTimes(1);
+		});
+
+		it('does not call defer when request status is already deferred', () => {
+			const def = createPromotion();
+			const surface = createMockRuntimeSurface();
+			const instance = def.createInstance({ runtimeSurface: surface });
+
+			const { context, defer } = createFakeRequest({
+				status: 'deferred',
+				canBeAutoResolved: false
+			});
+
+			instance.onUIMoveRequest!(context);
+
+			expect(defer).not.toHaveBeenCalled();
+		});
+
+		it('does not call defer when request status is resolved', () => {
+			const def = createPromotion();
+			const surface = createMockRuntimeSurface();
+			const instance = def.createInstance({ runtimeSurface: surface });
+
+			const { context, defer } = createFakeRequest({
+				status: 'resolved',
+				canBeAutoResolved: false
+			});
+
+			instance.onUIMoveRequest!(context);
+
+			expect(defer).not.toHaveBeenCalled();
+		});
+
+		it('does not call defer when request can be auto-resolved', () => {
+			const def = createPromotion();
+			const surface = createMockRuntimeSurface();
+			const instance = def.createInstance({ runtimeSurface: surface });
+
+			const { context, defer } = createFakeRequest({
+				status: 'unresolved',
+				canBeAutoResolved: true
+			});
+
+			instance.onUIMoveRequest!(context);
+
+			expect(defer).not.toHaveBeenCalled();
+		});
+	});
 });
