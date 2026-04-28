@@ -47,6 +47,7 @@ Mirasen Chessboard provides a complete modern interaction and visual baseline ou
 
 - Real built-in chess interaction
 - Easy game/rules layer integration
+- State-diff animation beyond simple move events
 - Extension-driven architecture
 - First-party baseline extensions
 - Explicit SVG slot ownership
