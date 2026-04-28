@@ -7,16 +7,14 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 	let runId = 0;
 	let rafHandle: number | null = null;
 
-	const flushCore = () => {
-		if (!scheduled && rafHandle == null) {
+	const flushCore = (force = false) => {
+		if (!force && !scheduled && rafHandle == null) {
 			// Maybe was cancelled after the rAF callback was scheduled but before it fired.
 			return;
 		}
 		// Reset scheduled flags first to allow schedule() during render to queue the next frame.
 		scheduled = false;
-		if (rafHandle != null) {
-			rafHandle = null;
-		}
+		rafHandle = null;
 
 		render();
 	};
@@ -33,17 +31,18 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 			});
 		},
 		flushNow() {
+			if (!scheduled && rafHandle == null) return;
+
 			// Invalidate any pending rAF render immediately.
-			if (scheduled) {
-				runId++;
-				scheduled = false;
-			}
+			runId++;
+
 			if (rafHandle != null) {
 				const caf = globalThis.cancelAnimationFrame;
 				caf(rafHandle);
 				rafHandle = null;
 			}
-			flushCore();
+
+			flushCore(true);
 		},
 		cancel() {
 			scheduled = false;
