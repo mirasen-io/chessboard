@@ -1,5 +1,7 @@
 [![NPM Version](https://img.shields.io/npm/v/%40mirasen%2Fchessboard)](https://www.npmjs.com/package/@mirasen/chessboard)
 [![CI](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
 [![License](https://img.shields.io/npm/l/@mirasen/chessboard)](./LICENSE)
 
 # @mirasen/chessboard
@@ -37,9 +39,15 @@ The default first-party extension baseline includes rendering, events, selection
 
 That means the board already covers a meaningful baseline chess UX instead of stopping at “draw squares and pieces”.
 
+### Built-in chessboard behavior
+
+Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, promotion, auto-promotion, and state-diff animation. Moves are resolved on release rather than committed immediately on press, giving users a more forgiving interaction flow. Because animation is driven by board-state transitions, pieces can move, appear, disappear, promote, or return smoothly without app-level glue code.
+
 ## Highlights
 
 - Real built-in chess interaction
+- Easy game/rules layer integration
+- State-diff animation beyond simple move events
 - Extension-driven architecture
 - First-party baseline extensions
 - Explicit SVG slot ownership
