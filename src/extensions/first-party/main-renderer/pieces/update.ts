@@ -18,7 +18,7 @@ export function rendererPiecesOnUpdate(
 	if (
 		!isUpdateContextRenderable(context) ||
 		!context.mutation.hasMutation({
-			prefixes: ['state.board.', 'state.interaction.'],
+			prefixes: ['state.'],
 			causes: ['layout.refreshGeometry']
 		})
 	) {
