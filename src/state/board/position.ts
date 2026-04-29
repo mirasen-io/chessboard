@@ -1,11 +1,10 @@
-import { parse } from '@echecs/fen';
+import { parseFen } from './fen/main.js';
 import { normalizeColor, normalizePiece, normalizeSquare } from './normalize.js';
 import {
 	FenString,
 	PieceInput,
 	PiecePositionInput,
 	PiecePositionInputRecord,
-	PiecePositionRecord,
 	PiecePositionRecordString,
 	PositionInput,
 	PositionInputObject,
@@ -80,18 +79,7 @@ function isPositionInputObject(input: PositionInput): input is PositionInputObje
 }
 
 function boardParsePositionInputFen(input: FenString): ParsedPosition {
-	const position = parse(input);
-	if (!position) {
-		throw new Error('Failed to parse FEN string');
-	}
-	const piecePositionRecord: PiecePositionRecord = {};
-	for (const [square, piece] of position.board) {
-		piecePositionRecord[square] = { role: piece.type, color: piece.color };
-	}
-	return {
-		pieces: boardParsePositionInputRecord(piecePositionRecord),
-		turn: normalizeColor(position.turn)
-	};
+	return parseFen(input);
 }
 
 export function boardParsePosition(input: PositionInput): ParsedPosition {
