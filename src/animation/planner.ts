@@ -9,10 +9,12 @@ import {
 	SQUARE_COUNT
 } from '../state/board/types/internal.js';
 import { BoardStateSnapshot } from '../state/board/types/main.js';
+import { baseMovesEqual } from '../state/change/helpers.js';
 import { ChangeStateSnapshot } from '../state/change/types/main.js';
 import type {
 	AnimationPlan,
 	AnimationPlanningInput,
+	AnimationPlanningInputSnapshot,
 	AnimationPlanningSnapshot,
 	AnimationTrack
 } from './types.js';
@@ -85,10 +87,10 @@ function buildExcludeForDrop(lastMove: MoveSnapshot): ExcludeSpec {
  * If there is no deferred request the snapshot is returned as-is.
  */
 function buildEffectiveAnimationPlanningSnapshot(
-	state: AnimationPlanningSnapshot
+	state: AnimationPlanningInputSnapshot
 ): AnimationPlanningSnapshot {
 	const request = state.change.deferredUIMoveRequest;
-	if (request === null) return state; // nothing to do
+	if (request === null) return { ...state, lastMoveSource: 'state' }; // nothing to do
 	const newPieces = new Uint8Array(state.board.pieces);
 	const from = request.sourceSquare;
 	const to = request.destination.to;
@@ -109,45 +111,52 @@ function buildEffectiveAnimationPlanningSnapshot(
 		piece: pieceCode
 	};
 	const newChange: ChangeStateSnapshot = {
+		...state.change,
 		deferredUIMoveRequest: null,
 		lastMove: newLastMove
 	};
 	return {
 		...state,
 		board: newBoard,
-		change: newChange
+		change: newChange,
+		lastMoveSource: 'projected-deferred-ui-move'
 	};
 }
 
-/**
- * When a promotion was already auto-resolved/auto-promoted (no deferredUIMoveRequest but
- * lastMove.promotedTo is set), the current board already contains the promoted
- * piece (e.g. queen) on the target square.  For animation planning we
- * temporarily replace it with the original piece (pawn) so that the greedy
- * matching can build a proper move track from→to instead of separate fades.
- *
- * After the animation finishes the promoted piece will "snap" into view on
- * the next render frame.
- */
-function buildPromotionEffectiveCurrent(
-	state: AnimationPlanningSnapshot
+function normalizePromotionEffectiveCurrent(
+	previous: AnimationPlanningSnapshot,
+	current: AnimationPlanningSnapshot
 ): AnimationPlanningSnapshot {
-	const lastMove = state.change.lastMove;
+	const lastMove = current.change.lastMove;
+
 	if (
-		state.change.deferredUIMoveRequest !== null ||
+		current.change.deferredUIMoveRequest !== null ||
 		lastMove === null ||
 		lastMove.promotedTo === undefined
 	) {
-		return state; // not an auto-resolved/auto-promoted move — nothing to do
+		return current;
 	}
-	const newPieces = new Uint8Array(state.board.pieces);
+
+	if (previous.lastMoveSource === 'projected-deferred-ui-move') {
+		const previousLastMove = previous.change.lastMove;
+
+		if (previousLastMove === null || !baseMovesEqual(previousLastMove, lastMove)) {
+			return current;
+		}
+	} else if (previous.board.pieces[lastMove.from] !== lastMove.piece) {
+		return current;
+	}
+
+	const newPieces = new Uint8Array(current.board.pieces);
 	newPieces[lastMove.to] = lastMove.piece;
+
 	const newBoard: BoardStateSnapshot = {
-		...state.board,
+		...current.board,
 		pieces: newPieces
 	};
+
 	return {
-		...state,
+		...current,
 		board: newBoard
 	};
 }
@@ -282,8 +291,8 @@ export function calculateAnimationPlan(input: AnimationPlanningInput): Animation
 	const droppedMove = detectLiftedPieceDrop(effectivePrevious, effectiveCurrent);
 	const exclude = droppedMove !== null ? buildExcludeForDrop(droppedMove) : EMPTY_EXCLUDE;
 
-	// 3) Normalize current for auto-resolved/auto-promoted move (pawn→queen on target square)
-	const planningCurrent = buildPromotionEffectiveCurrent(effectiveCurrent);
+	// 3) Normalize current promoted piece when the promoted move belongs to this transition
+	const planningCurrent = normalizePromotionEffectiveCurrent(effectivePrevious, effectiveCurrent);
 
 	// 4) Calculate tracks
 	const tracks = calculateTracks(effectivePrevious.board, planningCurrent.board, exclude);

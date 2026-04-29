@@ -9,7 +9,7 @@ import { MoveDestinationSnapshot } from '../interaction/types/internal.js';
 import { ChangeStateSnapshot } from './types/main.js';
 import { PendingUIMoveRequestSnapshot } from './types/ui-move.js';
 
-function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
+export function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
 	const diffs: boolean[] = [
 		moveA.from !== moveB.from,
 		moveA.to !== moveB.to,

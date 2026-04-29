@@ -69,7 +69,8 @@
 							if (source === 'e2')
 								return [
 									{ to: 'e8', promotedTo: ['B', 'N'] },
-									{ to: 'd8', promotedTo: ['R', 'N', 'Q'] }
+									{ to: 'd8', promotedTo: ['R', 'N', 'Q'] },
+                  { to: 'f8', promotedTo: ['R', 'N', 'Q'] }
 								];
 							if (source === 'f7')
 								return [

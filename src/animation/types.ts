@@ -37,15 +37,19 @@ export interface AnimationSession {
 
 export type AnimationSessionSnapshot = ReadonlyDeep<AnimationSession>;
 
-export interface AnimationPlanningSnapshot {
+export interface AnimationPlanningInputSnapshot {
 	readonly board: BoardStateSnapshot;
 	readonly change: ChangeStateSnapshot;
 	readonly interaction: InteractionStateSnapshot;
 }
 
+export interface AnimationPlanningSnapshot extends AnimationPlanningInputSnapshot {
+	readonly lastMoveSource: 'state' | 'projected-deferred-ui-move';
+}
+
 export interface AnimationPlanningInput {
-	previous: AnimationPlanningSnapshot;
-	current: AnimationPlanningSnapshot;
+	previous: AnimationPlanningInputSnapshot;
+	current: AnimationPlanningInputSnapshot;
 }
 
 export interface AnimationPlan {
