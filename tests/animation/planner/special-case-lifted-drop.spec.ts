@@ -10,8 +10,12 @@ import {
 	makeSnapshot
 } from '../../test-utils/animation/fixtures.js';
 
+const e1 = normalizeSquare('e1');
 const e2 = normalizeSquare('e2');
 const e4 = normalizeSquare('e4');
+const f1 = normalizeSquare('f1');
+const g1 = normalizeSquare('g1');
+const h1 = normalizeSquare('h1');
 
 function findMoveTrack(
 	tracks: readonly AnimationTrack[],
@@ -83,6 +87,48 @@ describe('calculateAnimationPlan — special cases', () => {
 			};
 			const plan = calculateAnimationPlan(input);
 			expect(findMoveTrack(plan.tracks, e2, e4)).toBeDefined();
+		});
+
+		it('keeps dropped castling king visible while rook animates', () => {
+			const input: AnimationPlanningInput = {
+				previous: makeSnapshot({
+					board: makeBoardSnapshot([
+						[e1, PieceCode.WhiteKing],
+						[h1, PieceCode.WhiteRook]
+					]),
+					interaction: makeInteractionSnapshot({
+						dragSession: {
+							owner: 'core' as const,
+							type: 'lifted-piece-drag' as const,
+							sourceSquare: e1,
+							sourcePieceCode: PieceCode.WhiteKing,
+							targetSquare: g1
+						}
+					})
+				}),
+				current: makeSnapshot({
+					board: makeBoardSnapshot([
+						[g1, PieceCode.WhiteKing],
+						[f1, PieceCode.WhiteRook]
+					]),
+					change: makeChangeSnapshot({
+						lastMove: {
+							from: e1,
+							to: g1,
+							piece: PieceCode.WhiteKing,
+							secondary: { from: h1, to: f1, piece: PieceCode.WhiteRook }
+						}
+					}),
+					interaction: makeInteractionSnapshot({ dragSession: null })
+				})
+			};
+			const plan = calculateAnimationPlan(input);
+			expect(findMoveTrack(plan.tracks, h1, f1, PieceCode.WhiteRook)).toBeDefined();
+			expect(findMoveTrack(plan.tracks, e1, g1, PieceCode.WhiteKing)).toBeUndefined();
+			expect(plan.suppressedSquares.has(h1)).toBe(true);
+			expect(plan.suppressedSquares.has(f1)).toBe(true);
+			expect(plan.suppressedSquares.has(e1)).toBe(false);
+			expect(plan.suppressedSquares.has(g1)).toBe(false);
 		});
 
 		it('does not suppress when current still has a drag session', () => {
