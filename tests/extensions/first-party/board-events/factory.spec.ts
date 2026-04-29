@@ -116,7 +116,7 @@ describe('createBoardEvents', () => {
 	});
 
 	describe('onUIMove callback', () => {
-		it('is called when mutation includes setLastMove and lastMove exists', () => {
+		it('is called when mutation includes completeCoreDragTo and setLastMove', () => {
 			const def = createBoardEvents();
 			const instance = def.createInstance({ runtimeSurface: {} as never });
 			const pub = (
@@ -128,7 +128,7 @@ describe('createBoardEvents', () => {
 
 			// e2 (12) -> e4 (28) with white pawn (PieceCode.WhitePawn = 1)
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove'],
+				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
 
@@ -139,6 +139,103 @@ describe('createBoardEvents', () => {
 			expect(move.from).toBe('e2');
 			expect(move.to).toBe('e4');
 			expect(move.piece).toBe('wP');
+		});
+
+		it('calls onUIMove for completeExtensionDragTo + setLastMove', () => {
+			const def = createBoardEvents();
+			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const pub = (
+				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
+			).getPublic();
+
+			const callback = vi.fn();
+			pub.setOnUIMove(callback);
+
+			const context = createFakeUpdateContext({
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.completeExtensionDragTo'
+				],
+				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
+			});
+
+			instance.onUpdate!(context);
+
+			expect(callback).toHaveBeenCalledTimes(1);
+			const move = callback.mock.calls[0][0];
+			expect(move.from).toBe('e2');
+			expect(move.to).toBe('e4');
+			expect(move.piece).toBe('wP');
+		});
+
+		it('calls onUIMove for resolveDeferredUIMoveRequest + setLastMove', () => {
+			const def = createBoardEvents();
+			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const pub = (
+				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
+			).getPublic();
+
+			const callback = vi.fn();
+			pub.setOnUIMove(callback);
+
+			const context = createFakeUpdateContext({
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.resolveDeferredUIMoveRequest'
+				],
+				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
+			});
+
+			instance.onUpdate!(context);
+
+			expect(callback).toHaveBeenCalledTimes(1);
+			const move = callback.mock.calls[0][0];
+			expect(move.from).toBe('e2');
+			expect(move.to).toBe('e4');
+			expect(move.piece).toBe('wP');
+		});
+
+		it('does not call onUIMove for setLastMove alone', () => {
+			const def = createBoardEvents();
+			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const pub = (
+				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
+			).getPublic();
+
+			const callback = vi.fn();
+			pub.setOnUIMove(callback);
+
+			const context = createFakeUpdateContext({
+				hasMutationCauses: ['state.change.setLastMove'],
+				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
+			});
+
+			instance.onUpdate!(context);
+
+			expect(callback).not.toHaveBeenCalled();
+		});
+
+		it('does not call onUIMove for setLastMove + cancelDeferredUIMoveRequest', () => {
+			const def = createBoardEvents();
+			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const pub = (
+				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
+			).getPublic();
+
+			const callback = vi.fn();
+			pub.setOnUIMove(callback);
+
+			const context = createFakeUpdateContext({
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.cancelDeferredUIMoveRequest'
+				],
+				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
+			});
+
+			instance.onUpdate!(context);
+
+			expect(callback).not.toHaveBeenCalled();
 		});
 
 		it('is not called when mutation does not include setLastMove', () => {
@@ -172,7 +269,7 @@ describe('createBoardEvents', () => {
 			pub.setOnUIMove(callback);
 
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove'],
+				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
 				lastMove: null
 			});
 
@@ -186,7 +283,7 @@ describe('createBoardEvents', () => {
 			const instance = def.createInstance({ runtimeSurface: {} as never });
 
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove'],
+				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
 
@@ -205,7 +302,10 @@ describe('createBoardEvents', () => {
 
 			// e7 (52) -> e8 (60) with white pawn promoting to queen
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove'],
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.resolveDeferredUIMoveRequest'
+				],
 				lastMove: { from: 52, to: 60, piece: PieceCode.WhitePawn, promotedTo: RoleCode.Queen }
 			});
 
@@ -231,7 +331,7 @@ describe('createBoardEvents', () => {
 			pub.setOnUIMove(callback2);
 
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove'],
+				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
 

@@ -18,7 +18,8 @@
 	},
 	"dependencies": {
 		"@ktarmyshov/assert": "^0.1.9",
-		"@mirasen/chessboard": "file:../.."
+		"@mirasen/chessboard": "file:../..",
+		"chess.js": "^1.4.0"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",

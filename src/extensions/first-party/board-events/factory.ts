@@ -52,10 +52,18 @@ function createBoardEventsInstance(): BoardEventsInstance {
 					currentFrame: context.currentFrame
 				});
 			}
-			if (
-				context.mutation.hasMutation({ causes: ['state.change.setLastMove'] }) &&
-				context.currentFrame.state.change.lastMove
-			) {
+			const lastMoveChanged = context.mutation.hasMutation({
+				causes: ['state.change.setLastMove']
+			});
+			const interactionCompleted = context.mutation.hasMutation({
+				causes: [
+					'runtime.interaction.completeCoreDragTo',
+					'runtime.interaction.completeExtensionDragTo',
+					'runtime.interaction.resolveDeferredUIMoveRequest'
+				]
+			});
+
+			if (interactionCompleted && lastMoveChanged && context.currentFrame.state.change.lastMove) {
 				internalState.onUIMove?.(denormalizeMove(context.currentFrame.state.change.lastMove));
 			}
 		},

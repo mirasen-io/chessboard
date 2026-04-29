@@ -37,16 +37,22 @@ The default first-party extension baseline includes rendering, events, selection
 - `promotion`
 - `autoPromote`
 
+The package also includes `chess.js` adapter helpers for connecting legal destinations, UI moves, external moves, promotion, castling, and en passant without writing special-move glue code by hand.
+
 That means the board already covers a meaningful baseline chess UX instead of stopping at “draw squares and pieces”.
 
 ### Built-in chessboard behavior
 
-Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, promotion, auto-promotion, and state-diff animation. Moves are resolved on release rather than committed immediately on press, giving users a more forgiving interaction flow. Because animation is driven by board-state transitions, pieces can move, appear, disappear, promote, or return smoothly without app-level glue code.
+Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, promotion, auto-promotion, and state-diff animation.
+
+Moves are resolved on release rather than committed immediately on press, giving users a more forgiving interaction flow. Because animation is driven by board-state transitions, pieces can move, appear, disappear, promote, castle, or return smoothly without app-level rendering glue code.
+
+Rules and legality still belong to your game layer. Use the built-in `chess.js` adapter when you want a ready-made bridge from `chess.js` legal moves and move results into the board.
 
 ## Highlights
 
 - Real built-in chess interaction
-- Easy game/rules layer integration
+- **Easy game/rules integration** — connect your own game model, or use the built-in `chess.js` adapter
 - Works on desktop and mobile out of the box, with pointer-based mouse and touch interaction
 - State-diff animation beyond simple move events
 - Extension-driven architecture
@@ -68,8 +74,8 @@ Interactive examples are available on the Mirasen website:
 
 - [Examples overview](https://mirasen.io/chessboard/examples/)
 - [Minimal interactive example](https://mirasen.io/chessboard/examples/minimal.html)
-- [Legal moves example](https://mirasen.io/chessboard/examples/legal-moves.html)
 - [Promotion example](https://mirasen.io/chessboard/examples/promotion.html)
+- [chess.js game example](https://mirasen.io/chessboard/examples/chessjs.html)
 
 ## Usage
 
@@ -95,40 +101,25 @@ board.setMovability({
 });
 ```
 
-### Connect to a game/rules layer
+### Connect to chess.js
 
-`@mirasen/chessboard` handles board interaction and move intent. Your application can keep chess rules and game state in its own game/rules layer.
+`@mirasen/chessboard` owns board interaction, rendering, promotion UI, and animation.  
+Your game/rules layer owns legality and game state.
 
-A typical integration uses a small adapter between your game move format and the board move format. The `game` object below represents your own chess rules layer, such as chess.js, a server-backed game model, or a custom engine.
+For `chess.js`, use the built-in adapter:
+
+```bash
+npm install chess.js
+```
 
 ```ts
+import { createBoard } from '@mirasen/chessboard';
 import {
-	createBoard,
-	type MoveDestinationInput,
-	type MoveOutput,
-	type MoveRequestInput
-} from '@mirasen/chessboard';
-
-type GameMove = {
-	from: string;
-	to: string;
-	capturedSquare?: string;
-	secondary?: {
-		from: string;
-		to: string;
-	};
-	promotedTo?: 'queen' | 'rook' | 'bishop' | 'knight';
-};
-
-type GameDestination = {
-	to: string;
-	capturedSquare?: string;
-	secondary?: {
-		from: string;
-		to: string;
-	};
-	promotedTo?: ('queen' | 'rook' | 'bishop' | 'knight')[];
-};
+	toBoardMove,
+	toBoardMoveDestinations,
+	toGameMove
+} from '@mirasen/chessboard/adapters/chessjs';
+import { Chess } from 'chess.js';
 
 const element = document.getElementById('board');
 
@@ -136,70 +127,76 @@ if (!element) {
 	throw new Error('Missing board element');
 }
 
-const game = createYourGameEngine(); // Your app/game layer.
+const chess = new Chess();
 const board = createBoard({
 	element
 });
 
-board.setPosition(game.getPosition());
+// Let the user play white in this example.
+const playerColor = 'w';
 
-function toBoardDestination(gameDestination: GameDestination): MoveDestinationInput {
-	return {
-		to: gameDestination.to,
-		capturedSquare: gameDestination.capturedSquare,
-		secondary: gameDestination.secondary, // e.g. castling.
-		promotedTo: gameDestination.promotedTo
-	};
-}
-
-function toBoardMoveRequest(gameMove: GameMove): MoveRequestInput {
-	return {
-		from: gameMove.from,
-		to: gameMove.to,
-		capturedSquare: gameMove.capturedSquare,
-		secondary: gameMove.secondary,
-		promotedTo: gameMove.promotedTo
-	};
-}
-
-function toGameMove(move: MoveOutput): GameMove {
-	return {
-		from: move.from,
-		to: move.to,
-		capturedSquare: move.capturedSquare,
-		secondary: move.secondary,
-		promotedTo: move.promotedTo
-	};
-}
+board.setPosition(chess.fen());
 
 board.setMovability({
 	mode: 'strict',
-	destinations: (source): MoveDestinationInput[] | undefined => {
-		const gameDestinations = game.getDestinationsFor(source);
+	destinations: (source) => {
+		// During the computer's turn, do not allow user moves.
+		if (chess.turn() !== playerColor) {
+			return undefined;
+		}
 
-		return gameDestinations.length > 0 ? gameDestinations.map(toBoardDestination) : undefined;
+		const moves = chess.moves({ square: source, verbose: true });
+		const destinations = toBoardMoveDestinations(moves);
+
+		return destinations.length > 0 ? destinations : undefined;
 	}
 });
 
 board.extensions.events.setOnUIMove((move) => {
-	// The board accepted and applied this UI move.
-	// Keep your game/rules layer in sync.
-	game.move(toGameMove(move));
+	// The board has already accepted and applied this UI move.
+	// Keep chess.js in sync.
+	chess.move(toGameMove(move));
+
+	if (!chess.isGameOver()) {
+		makeRandomComputerMove();
+	}
 });
 
-function applyExternalMove(gameMove: GameMove) {
-	// Apply moves that come from outside the board UI:
-	// server, engine, opponent, imported game, replay, etc.
-	game.move(gameMove);
+function makeRandomComputerMove() {
+	const moves = chess.moves({ verbose: true });
+	const randomMove = moves[Math.floor(Math.random() * moves.length)];
 
-	// Then animate/apply the same move on the board.
-	board.move(toBoardMoveRequest(gameMove));
+	if (!randomMove) {
+		return;
+	}
+
+	// Apply the move to chess.js first.
+	const appliedMove = chess.move(randomMove);
+
+	// Then apply and animate the same move on the board.
+	board.move(toBoardMove(appliedMove));
+}
+
+function resetGame() {
+	chess.reset();
+	board.setPosition(chess.fen());
 }
 ```
 
-`MoveDestinationInput` can describe more than a target square. For example, `secondary` can represent paired piece movement (e.g. castling), `capturedSquare` can represent captures away from the destination square (e.g. en passant), and `promotedTo` can represent promotion choices.
+The adapter exposes three small conversion helpers:
 
-This lets your game/rules layer own chess legality and game state while the board owns interaction, selection, targeting, visual feedback, promotion UI, animation, and its own displayed position.
+- `toGameMove` converts a board UI move into a move accepted by `chess.move(...)`.
+- `toBoardMove` converts a `chess.js` move result into a board move request for external or computer moves.
+- `toBoardMoveDestinations` converts verbose legal `chess.js` moves into strict board destinations.
+
+This keeps the boundary explicit:
+
+- `chess.js` decides which moves are legal.
+- The board handles interaction, legal targets, promotion UI, castling/en-passant board updates, and animation.
+- User moves flow from the board into `chess.js`.
+- External moves flow from `chess.js` back into the board.
+
+`toBoardMoveDestinations` preserves special move information such as promotion choices, en passant capture squares, and castling secondary rook movement, so those flows work through the normal board pipeline.
 
 ### Promotion and auto-promotion
 
@@ -326,3 +323,7 @@ For details, see:
 
 - [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
 - [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)
+
+```
+
+```

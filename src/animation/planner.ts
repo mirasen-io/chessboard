@@ -299,12 +299,11 @@ export function calculateAnimationPlan(input: AnimationPlanningInput): Animation
 
 	// 5) Build suppressedSquares: track-derived + excluded drop endpoints
 	const suppressed = collectSuppressedSquaresFromTracks(tracks);
-	if (droppedMove !== null) {
-		// The dropped move was intentionally suppressed (no move track emitted),
-		// but the base render must still hide both endpoints.
-		suppressed.add(droppedMove.from);
-		suppressed.add(droppedMove.to);
-	}
 
-	return { tracks, suppressedSquares: suppressed };
+	const result: AnimationPlan = {
+		tracks,
+		suppressedSquares: suppressed
+	};
+
+	return result;
 }

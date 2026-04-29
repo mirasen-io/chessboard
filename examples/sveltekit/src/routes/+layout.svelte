@@ -9,7 +9,8 @@
 		{ href: '/', label: 'Debug' },
 		{ href: '/free', label: 'Free' },
 		{ href: '/2-custom-ext-list', label: 'Custom Extension List' },
-		{ href: '/promotion', label: 'Promotion' }
+		{ href: '/promotion', label: 'Promotion' },
+		{ href: '/chessjs', label: 'Chess.js Adapter' }
 		// { href: '/castle', label: 'Castle' }
 	] as const;
 </script>
