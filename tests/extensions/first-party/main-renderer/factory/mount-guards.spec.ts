@@ -16,11 +16,12 @@ import {
 	mountMainRenderer
 } from '../../../../test-utils/extensions/first-party/main-renderer/factory.js';
 import { createPiecesRenderContext } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../../test-utils/extensions/factory.js';
 
 function createInstance() {
 	const { surface } = createMainRendererRuntimeSurface();
 	const def = createMainRenderer();
-	return def.createInstance({ runtimeSurface: surface });
+	return def.createInstance(createMockExtensionCreateInstanceOptions({ runtimeSurface: surface }));
 }
 
 describe('main-renderer – mount guards: before mount', () => {

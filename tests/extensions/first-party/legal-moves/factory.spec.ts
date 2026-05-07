@@ -4,6 +4,7 @@ import { EXTENSION_ID } from '../../../../src/extensions/first-party/legal-moves
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
 import { PieceCode } from '../../../../src/state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../../src/state/interaction/types/internal.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(
 	opts: { causes?: string[]; prefixes?: string[] } = {}
@@ -115,7 +116,9 @@ describe('createLegalMoves', () => {
 
 	it('createInstance returns an instance with expected hooks', () => {
 		const def = createLegalMoves();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.mount).toBeDefined();
 		expect(instance.unmount).toBeDefined();
@@ -127,7 +130,9 @@ describe('createLegalMoves', () => {
 	describe('onUpdate invalidation', () => {
 		it('marks dirty when interaction prefix mutation occurs and frame is renderable', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -141,7 +146,9 @@ describe('createLegalMoves', () => {
 
 		it('marks dirty on layout.refreshGeometry', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -155,7 +162,9 @@ describe('createLegalMoves', () => {
 
 		it('does not mark dirty when no relevant mutation occurs', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -171,7 +180,9 @@ describe('createLegalMoves', () => {
 	describe('render', () => {
 		it('renders nothing when there are no active destinations', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -187,7 +198,9 @@ describe('createLegalMoves', () => {
 
 		it('renders nothing when movability mode is not Strict', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -205,7 +218,9 @@ describe('createLegalMoves', () => {
 
 		it('renders nothing when no square is selected', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -222,7 +237,9 @@ describe('createLegalMoves', () => {
 
 		it('renders circles for empty-square destinations', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -254,7 +271,9 @@ describe('createLegalMoves', () => {
 
 		it('renders capture-style circles when target has opponent piece', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -281,7 +300,9 @@ describe('createLegalMoves', () => {
 
 		it('clears previous circles on re-render', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -312,7 +333,9 @@ describe('createLegalMoves', () => {
 	describe('lifecycle', () => {
 		it('unmount clears slot root children', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -334,7 +357,9 @@ describe('createLegalMoves', () => {
 
 		it('destroy clears slot root children', () => {
 			const def = createLegalMoves();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 

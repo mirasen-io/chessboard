@@ -16,11 +16,14 @@ import {
 	mountMainRenderer
 } from '../../../../test-utils/extensions/first-party/main-renderer/factory.js';
 import { createPiecesRenderContext } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../../test-utils/extensions/factory.js';
 
 function createMountedInstance() {
 	const mocks = createMainRendererRuntimeSurface();
 	const def = createMainRenderer();
-	const instance = def.createInstance({ runtimeSurface: mocks.surface });
+	const instance = def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: mocks.surface })
+	);
 	const slotRoots = mountMainRenderer(instance);
 	return { instance, slotRoots, ...mocks };
 }

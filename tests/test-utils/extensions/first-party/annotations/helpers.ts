@@ -4,6 +4,7 @@ import { DirtyLayer } from '../../../../../src/extensions/first-party/annotation
 import type { ExtensionRenderContext } from '../../../../../src/extensions/types/context/render.js';
 import type { ExtensionRuntimeSurface } from '../../../../../src/extensions/types/surface/main.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../../src/runtime/mutation/types.js';
+import { createMockExtensionCreateInstanceOptions } from '../../factory.js';
 
 export const SQUARE_SIZE = 50;
 
@@ -95,7 +96,9 @@ export function createRenderableUpdateContext(opts: { causes?: string[] }) {
 export function setupMountedInstance() {
 	const def = createAnnotations();
 	const surface = createMockRuntimeSurface();
-	const instance = def.createInstance({ runtimeSurface: surface });
+	const instance = def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+	);
 	const api = instance.getPublic();
 	const roots = createSlotRoots();
 	instance.mount!({ slotRoots: roots } as never);

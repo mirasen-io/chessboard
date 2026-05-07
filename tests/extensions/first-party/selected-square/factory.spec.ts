@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createSelectedSquare } from '../../../../src/extensions/first-party/selected-square/factory.js';
 import { EXTENSION_ID } from '../../../../src/extensions/first-party/selected-square/types.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(hasCauses: string[] = []): RuntimeReadonlyMutationSession {
 	return {
@@ -90,7 +91,9 @@ describe('createSelectedSquare', () => {
 
 	it('createInstance returns an instance with expected hooks', () => {
 		const def = createSelectedSquare();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.mount).toBeDefined();
 		expect(instance.unmount).toBeDefined();
@@ -102,7 +105,9 @@ describe('createSelectedSquare', () => {
 	describe('onUpdate invalidation', () => {
 		it('marks dirty when selected square mutation occurs and frame is renderable', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -117,7 +122,9 @@ describe('createSelectedSquare', () => {
 
 		it('marks dirty on state.interaction.clear', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -132,7 +139,9 @@ describe('createSelectedSquare', () => {
 
 		it('marks dirty on layout.refreshGeometry', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -147,7 +156,9 @@ describe('createSelectedSquare', () => {
 
 		it('does not mark dirty when no relevant mutation occurs', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -164,7 +175,9 @@ describe('createSelectedSquare', () => {
 	describe('render', () => {
 		it('renders nothing when there is no selected square', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -175,7 +188,9 @@ describe('createSelectedSquare', () => {
 
 		it('renders a rect when selected square exists', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -189,7 +204,9 @@ describe('createSelectedSquare', () => {
 
 		it('removes the rect when selected square becomes null', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -202,7 +219,9 @@ describe('createSelectedSquare', () => {
 
 		it('updates the rect position when selected square changes', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -218,7 +237,9 @@ describe('createSelectedSquare', () => {
 	describe('lifecycle', () => {
 		it('unmount clears slot root children', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({ selectedSquare: 4 }));
@@ -230,7 +251,9 @@ describe('createSelectedSquare', () => {
 
 		it('destroy clears slot root children', () => {
 			const def = createSelectedSquare();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({ selectedSquare: 4 }));

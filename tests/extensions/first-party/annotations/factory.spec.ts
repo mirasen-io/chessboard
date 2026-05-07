@@ -3,6 +3,7 @@ import { DEFAULT_CONFIG } from '../../../../src/extensions/first-party/annotatio
 import { createAnnotations } from '../../../../src/extensions/first-party/annotations/factory.js';
 import { normalizeAnnotationsConfig } from '../../../../src/extensions/first-party/annotations/normalize.js';
 import { EXTENSION_ID } from '../../../../src/extensions/first-party/annotations/types/main.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMinimalMockSurface() {
 	return {
@@ -33,7 +34,9 @@ describe('createAnnotations', () => {
 
 		it('createInstance returns an instance with expected hooks', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			expect(instance.id).toBe(EXTENSION_ID);
 			expect(instance.mount).toBeDefined();
 			expect(instance.unmount).toBeDefined();
@@ -74,7 +77,9 @@ describe('createAnnotations', () => {
 	describe('default normalized config via public API', () => {
 		it('getClearOnCoreInteraction returns false by default', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 			expect(api.getClearOnCoreInteraction()).toBe(false);
 		});
@@ -83,7 +88,9 @@ describe('createAnnotations', () => {
 	describe('config override merge', () => {
 		it('clearOnCoreInteraction override is reflected in public API', () => {
 			const def = createAnnotations({ config: { clearOnCoreInteraction: true } });
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 			expect(api.getClearOnCoreInteraction()).toBe(true);
 		});
@@ -94,7 +101,9 @@ describe('createAnnotations', () => {
 			const def = createAnnotations({
 				annotations: { circles: [{ square: 'e4', color: '#ff0000' }] }
 			});
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 			expect(api.getCircles()).toEqual([{ square: 'e4', color: '#ff0000' }]);
 		});
@@ -103,7 +112,9 @@ describe('createAnnotations', () => {
 			const def = createAnnotations({
 				annotations: { arrows: [{ from: 'e2', to: 'e4', color: '#00ff00' }] }
 			});
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 			expect(api.getArrows()).toEqual([{ from: 'e2', to: 'e4', color: '#00ff00' }]);
 		});
@@ -115,7 +126,9 @@ describe('createAnnotations', () => {
 					arrows: [{ from: 'a1', to: 'h8', color: '#0f0' }]
 				}
 			});
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 			expect(api.getCircles()).toHaveLength(1);
 			expect(api.getArrows()).toHaveLength(1);
@@ -123,7 +136,9 @@ describe('createAnnotations', () => {
 
 		it('returns empty arrays when no annotations provided', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 			expect(api.getCircles()).toEqual([]);
 			expect(api.getArrows()).toEqual([]);
@@ -133,7 +148,9 @@ describe('createAnnotations', () => {
 	describe('public API — circles', () => {
 		it('circle() adds a circle annotation', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.circle('a1', { color: '#ff0000' });
@@ -143,7 +160,9 @@ describe('createAnnotations', () => {
 
 		it('circle() replaces an existing circle on the same square', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.circle('a1', { color: '#ff0000' });
@@ -156,7 +175,9 @@ describe('createAnnotations', () => {
 
 		it('circle() with null removes the circle', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.circle('a1', { color: '#ff0000' });
@@ -167,7 +188,9 @@ describe('createAnnotations', () => {
 
 		it('setCircles() replaces all circles', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.circle('a1', { color: '#ff0000' });
@@ -184,7 +207,9 @@ describe('createAnnotations', () => {
 	describe('public API — arrows', () => {
 		it('arrow() adds an arrow annotation', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.arrow('e2', 'e4', { color: '#ff0000' });
@@ -194,7 +219,9 @@ describe('createAnnotations', () => {
 
 		it('arrow() replaces an existing arrow with same from/to', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.arrow('e2', 'e4', { color: '#ff0000' });
@@ -207,7 +234,9 @@ describe('createAnnotations', () => {
 
 		it('arrow() with null removes the arrow', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.arrow('e2', 'e4', { color: '#ff0000' });
@@ -218,7 +247,9 @@ describe('createAnnotations', () => {
 
 		it('setArrows() replaces all arrows', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.arrow('e2', 'e4', { color: '#ff0000' });
@@ -235,7 +266,9 @@ describe('createAnnotations', () => {
 	describe('public API — clear', () => {
 		it('clear() removes all circles and arrows', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.circle('a1', { color: '#f00' });
@@ -252,7 +285,9 @@ describe('createAnnotations', () => {
 	describe('public API — clearOnCoreInteraction config', () => {
 		it('setClearOnCoreInteraction changes the value', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 
 			expect(api.getClearOnCoreInteraction()).toBe(false);
@@ -266,13 +301,17 @@ describe('createAnnotations', () => {
 	describe('lifecycle', () => {
 		it('mount succeeds', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			expect(() => instance.mount!({ slotRoots: createSlotRoots() } as never)).not.toThrow();
 		});
 
 		it('unmount clears slot root children', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			// Add a child to simulate rendered content
 			roots.overPieces.appendChild(
@@ -288,7 +327,9 @@ describe('createAnnotations', () => {
 
 		it('unmount preserves annotation state', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 			const api = instance.getPublic();
 
 			api.circle('e4', { color: '#ff0000' });
@@ -303,7 +344,9 @@ describe('createAnnotations', () => {
 
 		it('unmount preserves config', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const api = instance.getPublic();
 
 			api.setClearOnCoreInteraction(true);
@@ -316,7 +359,9 @@ describe('createAnnotations', () => {
 
 		it('re-mount after unmount succeeds', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 			instance.unmount!();
@@ -325,7 +370,9 @@ describe('createAnnotations', () => {
 
 		it('destroy after mount clears slot root children', () => {
 			const def = createAnnotations();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			roots.overPieces.appendChild(
 				document.createElementNS('http://www.w3.org/2000/svg', 'circle')
@@ -344,8 +391,12 @@ describe('createAnnotations', () => {
 				annotations: { circles: [{ square: 'e4', color: '#ff0000' }] }
 			});
 
-			const instanceA = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
-			const instanceB = def.createInstance({ runtimeSurface: createMinimalMockSurface() });
+			const instanceA = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
+			const instanceB = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
 
 			const apiA = instanceA.getPublic();
 			const apiB = instanceB.getPublic();
@@ -362,8 +413,12 @@ describe('createAnnotations', () => {
 		it('multiple instances do not share mutable config', () => {
 			const def = createAnnotations();
 
-			const instanceA = def.createInstance({ runtimeSurface: {} as never });
-			const instanceB = def.createInstance({ runtimeSurface: {} as never });
+			const instanceA = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
+			const instanceB = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 
 			const apiA = instanceA.getPublic();
 			const apiB = instanceB.getPublic();

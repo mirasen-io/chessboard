@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createAnnotations } from '../../../../src/extensions/first-party/annotations/factory.js';
 import { DirtyLayer } from '../../../../src/extensions/first-party/annotations/types/internal.js';
 import type { ExtensionRuntimeSurface } from '../../../../src/extensions/types/surface/main.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockRuntimeSurface() {
 	const markDirty = vi.fn();
@@ -51,7 +52,9 @@ function createMockRuntimeSurface() {
 function createAnnotationsWithMockSurface() {
 	const def = createAnnotations();
 	const { surface, markDirty, requestRender } = createMockRuntimeSurface();
-	const instance = def.createInstance({ runtimeSurface: surface });
+	const instance = def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+	);
 	const api = instance.getPublic();
 	return { instance, api, markDirty, requestRender };
 }

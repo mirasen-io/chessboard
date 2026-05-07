@@ -3,6 +3,7 @@ import { createBoardEvents } from '../../../../src/extensions/first-party/board-
 import { EXTENSION_ID } from '../../../../src/extensions/first-party/board-events/types.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
 import { PieceCode, RoleCode } from '../../../../src/state/board/types/internal.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(hasCauses: string[] = []): RuntimeReadonlyMutationSession {
 	return {
@@ -52,7 +53,9 @@ describe('createBoardEvents', () => {
 
 	it('createInstance returns an instance with onUpdate and getPublic', () => {
 		const def = createBoardEvents();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.onUpdate).toBeDefined();
 		expect((instance as { getPublic: () => unknown }).getPublic).toBeDefined();
@@ -61,7 +64,9 @@ describe('createBoardEvents', () => {
 	describe('public API', () => {
 		it('exposes setOnUIMove and setOnRawUpdate', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: unknown; setOnRawUpdate: unknown } }
 			).getPublic();
@@ -73,7 +78,9 @@ describe('createBoardEvents', () => {
 	describe('onRawUpdate callback', () => {
 		it('is called on every onUpdate when registered', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnRawUpdate: (cb: unknown) => void } }
 			).getPublic();
@@ -93,14 +100,18 @@ describe('createBoardEvents', () => {
 
 		it('is not called when not registered', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 
 			expect(() => instance.onUpdate!(createFakeUpdateContext({}))).not.toThrow();
 		});
 
 		it('can be cleared by setting to null', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnRawUpdate: (cb: unknown) => void } }
 			).getPublic();
@@ -118,7 +129,9 @@ describe('createBoardEvents', () => {
 	describe('onUIMove callback', () => {
 		it('is called when mutation includes completeCoreDragTo and setLastMove', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -143,7 +156,9 @@ describe('createBoardEvents', () => {
 
 		it('calls onUIMove for completeExtensionDragTo + setLastMove', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -170,7 +185,9 @@ describe('createBoardEvents', () => {
 
 		it('calls onUIMove for resolveDeferredUIMoveRequest + setLastMove', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -197,7 +214,9 @@ describe('createBoardEvents', () => {
 
 		it('does not call onUIMove for setLastMove alone', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -217,7 +236,9 @@ describe('createBoardEvents', () => {
 
 		it('does not call onUIMove for setLastMove + cancelDeferredUIMoveRequest', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -240,7 +261,9 @@ describe('createBoardEvents', () => {
 
 		it('is not called when mutation does not include setLastMove', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -260,7 +283,9 @@ describe('createBoardEvents', () => {
 
 		it('is not called when lastMove is null even with correct mutation', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -280,7 +305,9 @@ describe('createBoardEvents', () => {
 
 		it('is not called when callback is not registered', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 
 			const context = createFakeUpdateContext({
 				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
@@ -292,7 +319,9 @@ describe('createBoardEvents', () => {
 
 		it('includes promotedTo in the denormalized move when present', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();
@@ -320,7 +349,9 @@ describe('createBoardEvents', () => {
 
 		it('can be replaced by calling setOnUIMove again', () => {
 			const def = createBoardEvents();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (
 				instance as { getPublic: () => { setOnUIMove: (cb: unknown) => void } }
 			).getPublic();

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createPromotion } from '../../../../src/extensions/first-party/promotion/factory.js';
 import type { ExtensionRuntimeSurface } from '../../../../src/extensions/types/surface/main.js';
 import { RoleCode } from '../../../../src/state/board/types/internal.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockRuntimeSurface() {
 	return {
@@ -87,7 +88,9 @@ const BLACK_PROMO_REQUEST = {
 function createMountedInstance() {
 	const def = createPromotion();
 	const surface = createMockRuntimeSurface();
-	const instance = def.createInstance({ runtimeSurface: surface });
+	const instance = def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+	);
 	const roots = createSlotRoots();
 	instance.mount!({ slotRoots: roots } as never);
 	return { instance, surface, roots };

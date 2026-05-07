@@ -92,8 +92,11 @@ export function createFakeExtensionDefinition(opts: FakeExtensionDefinitionOptio
 
 /**
  * Creates a mock ExtensionCreateInstanceOptions for use in tests.
+ * Accepts optional overrides to replace default fields (e.g. runtimeSurface).
  */
-export function createMockExtensionCreateInstanceOptions(): ExtensionCreateInstanceOptions {
+export function createMockExtensionCreateInstanceOptions(
+	overrides?: Partial<ExtensionCreateInstanceOptions>
+): ExtensionCreateInstanceOptions {
 	return {
 		runtimeSurface: {
 			commands: createMockCommands(),
@@ -101,7 +104,8 @@ export function createMockExtensionCreateInstanceOptions(): ExtensionCreateInsta
 			transientVisuals: { subscribe: vi.fn(), unsubscribe: vi.fn() },
 			events: { subscribeEvent: vi.fn(), unsubscribeEvent: vi.fn() },
 			invalidation: { dirtyLayers: 0, markDirty: vi.fn(), clearDirty: vi.fn(), clear: vi.fn() }
-		},
-		svgIds: createSvgIdResolver()
+		} as never,
+		svgIds: createSvgIdResolver(),
+		...overrides
 	};
 }

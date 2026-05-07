@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createAutoPromote } from '../../../../src/extensions/first-party/auto-promote/factory.js';
 import { EXTENSION_ID } from '../../../../src/extensions/first-party/auto-promote/types.js';
 import { RoleCode } from '../../../../src/state/board/types/internal.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createFakeUIMoveRequestContext(opts: {
 	sourceSquare?: number;
@@ -33,21 +34,27 @@ describe('createAutoPromote', () => {
 
 	it('createInstance returns an instance with onUIMoveRequest', () => {
 		const def = createAutoPromote();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.onUIMoveRequest).toBeDefined();
 	});
 
 	it('exposes public API with toQueen defaulting to false', () => {
 		const def = createAutoPromote();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		const pub = (instance as { getPublic: () => { toQueen: boolean } }).getPublic();
 		expect(pub.toQueen).toBe(false);
 	});
 
 	it('public API toQueen can be set to true', () => {
 		const def = createAutoPromote();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		const pub = (instance as { getPublic: () => { toQueen: boolean } }).getPublic();
 		pub.toQueen = true;
 		expect(pub.toQueen).toBe(true);
@@ -56,7 +63,9 @@ describe('createAutoPromote', () => {
 	describe('onUIMoveRequest behavior', () => {
 		it('does not resolve when disabled (toQueen = false)', () => {
 			const def = createAutoPromote();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const { context, resolve } = createFakeUIMoveRequestContext({
 				promotedTo: [RoleCode.Queen, RoleCode.Rook, RoleCode.Bishop, RoleCode.Knight]
 			});
@@ -68,7 +77,9 @@ describe('createAutoPromote', () => {
 
 		it('resolves to queen when enabled and queen is in promotedTo', () => {
 			const def = createAutoPromote();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (instance as { getPublic: () => { toQueen: boolean } }).getPublic();
 			pub.toQueen = true;
 
@@ -90,7 +101,9 @@ describe('createAutoPromote', () => {
 
 		it('does not resolve when enabled but queen is not in promotedTo', () => {
 			const def = createAutoPromote();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (instance as { getPublic: () => { toQueen: boolean } }).getPublic();
 			pub.toQueen = true;
 
@@ -105,7 +118,9 @@ describe('createAutoPromote', () => {
 
 		it('does not resolve when enabled but promotedTo is undefined', () => {
 			const def = createAutoPromote();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const pub = (instance as { getPublic: () => { toQueen: boolean } }).getPublic();
 			pub.toQueen = true;
 

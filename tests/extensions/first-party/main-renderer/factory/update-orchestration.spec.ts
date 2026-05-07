@@ -11,11 +11,14 @@ import {
 	createOnAnimationFinishedContext,
 	mountMainRenderer
 } from '../../../../test-utils/extensions/first-party/main-renderer/factory.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../../test-utils/extensions/factory.js';
 
 function createMountedInstance() {
 	const mocks = createMainRendererRuntimeSurface();
 	const def = createMainRenderer();
-	const instance = def.createInstance({ runtimeSurface: mocks.surface });
+	const instance = def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: mocks.surface })
+	);
 	mountMainRenderer(instance);
 	return { instance, ...mocks };
 }

@@ -7,6 +7,7 @@ import {
 	createRenderableUpdateContext,
 	setupMountedInstance
 } from '../../../test-utils/extensions/first-party/annotations/helpers.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 describe('annotations — onUpdate for layout geometry refresh', () => {
 	describe('marks COMMITTED dirty on layout.refreshGeometry', () => {
@@ -66,7 +67,9 @@ describe('annotations — onUpdate for layout geometry refresh', () => {
 		it('ignores layout.refreshGeometry when unmounted', () => {
 			const def = createAnnotations();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 
 			const markDirty = vi.fn();
 			const context = {

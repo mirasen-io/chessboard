@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createMainRenderer } from '../../../../../src/extensions/first-party/main-renderer/factory.js';
 import { createMainRendererRuntimeSurface } from '../../../../test-utils/extensions/first-party/main-renderer/factory.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../../test-utils/extensions/factory.js';
 
 describe('main-renderer definition shape', () => {
 	it('returns definition with id "renderer"', () => {
@@ -16,7 +17,9 @@ describe('main-renderer definition shape', () => {
 	it('createInstance returns an object with expected lifecycle methods', () => {
 		const { surface } = createMainRendererRuntimeSurface();
 		const def = createMainRenderer();
-		const instance = def.createInstance({ runtimeSurface: surface });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+		);
 
 		expect(instance.id).toBe('renderer');
 		expect(typeof instance.mount).toBe('function');

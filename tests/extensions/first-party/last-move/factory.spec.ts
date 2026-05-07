@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createLastMove } from '../../../../src/extensions/first-party/last-move/factory.js';
 import { EXTENSION_ID } from '../../../../src/extensions/first-party/last-move/types.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(hasCauses: string[] = []): RuntimeReadonlyMutationSession {
 	return {
@@ -93,7 +94,9 @@ describe('createLastMove', () => {
 
 	it('createInstance returns an instance with expected hooks', () => {
 		const def = createLastMove();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.mount).toBeDefined();
 		expect(instance.unmount).toBeDefined();
@@ -105,7 +108,9 @@ describe('createLastMove', () => {
 	describe('onUpdate invalidation', () => {
 		it('marks dirty when setLastMove mutation occurs and frame is renderable', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -120,7 +125,9 @@ describe('createLastMove', () => {
 
 		it('marks dirty on layout.refreshGeometry', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -135,7 +142,9 @@ describe('createLastMove', () => {
 
 		it('does not mark dirty when no relevant mutation occurs', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -152,7 +161,9 @@ describe('createLastMove', () => {
 	describe('render', () => {
 		it('renders nothing when there is no last move', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -163,7 +174,9 @@ describe('createLastMove', () => {
 
 		it('renders two rects when last move exists', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -181,7 +194,9 @@ describe('createLastMove', () => {
 
 		it('removes rects when last move becomes null', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -194,7 +209,9 @@ describe('createLastMove', () => {
 
 		it('updates rect positions when last move changes', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -212,7 +229,9 @@ describe('createLastMove', () => {
 	describe('lifecycle', () => {
 		it('unmount clears slot root children', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({ lastMove: { from: 12, to: 28 } }));
@@ -224,7 +243,9 @@ describe('createLastMove', () => {
 
 		it('destroy clears slot root children', () => {
 			const def = createLastMove();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({ lastMove: { from: 12, to: 28 } }));
