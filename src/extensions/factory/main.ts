@@ -1,4 +1,5 @@
 import assert from '@ktarmyshov/assert';
+import { createSvgIdResolver } from '../../render/svg/ids.js';
 import { createExtensionAnimationController } from '../animation/factory.js';
 import { createExtensionInvalidationState } from '../invalidation/factory.js';
 import {
@@ -14,6 +15,7 @@ function createExtensionSystemInternal(
 	getInternalState: () => ExtensionSystemInternal,
 	options: ExtensionSystemInitOptions
 ): ExtensionSystemInternal {
+	const svgIds = createSvgIdResolver();
 	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
 	const extensionsArray = options.extensions ?? [];
 	for (const extensionDef of extensionsArray) {
@@ -29,7 +31,8 @@ function createExtensionSystemInternal(
 				options.extensionRuntimeSurfaceCommands,
 				options.extensionRuntimeSurfaceEvents,
 				extensionDef
-			)
+			),
+			svgIds
 		});
 		const record: ExtensionSystemExtensionRecord = {
 			id: extensionDef.id,

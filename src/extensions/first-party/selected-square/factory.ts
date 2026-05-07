@@ -2,6 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
 import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -28,17 +29,18 @@ export function createSelectedSquare(
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createSelectedSquareInstance(mergedConfig);
+		createInstance(options) {
+			return createSelectedSquareInstance(options, mergedConfig);
 		}
 	};
 }
 
 function createSelectedSquareInternal(
+	options: ExtensionCreateInstanceOptions,
 	config: SelectedSquareConfig
 ): SelectedSquareInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgRect: null,
 		config
 	};
@@ -48,8 +50,11 @@ function extensionClean(state: SelectedSquareInstanceInternal) {
 	state.svgRect = null;
 }
 
-function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSquareInstance {
-	const internalState = createSelectedSquareInternal(config);
+function createSelectedSquareInstance(
+	options: ExtensionCreateInstanceOptions,
+	config: SelectedSquareConfig
+): SelectedSquareInstance {
+	const internalState = createSelectedSquareInternal(options, config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {

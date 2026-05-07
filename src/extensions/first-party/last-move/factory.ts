@@ -2,6 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
 import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -26,15 +27,18 @@ export function createLastMove(config: LastMoveInitConfig = {}): LastMoveDefinit
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createLastMoveInstance(mergedConfig);
+		createInstance(options) {
+			return createLastMoveInstance(options, mergedConfig);
 		}
 	};
 }
 
-function createLastMoveInternal(config: LastMoveConfig): LastMoveInstanceInternal {
+function createLastMoveInternal(
+	options: ExtensionCreateInstanceOptions,
+	config: LastMoveConfig
+): LastMoveInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgRectFrom: null,
 		svgRectTo: null,
 		config
@@ -46,8 +50,11 @@ function extensionClean(state: LastMoveInstanceInternal) {
 	state.svgRectTo = null;
 }
 
-function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
-	const internalState = createLastMoveInternal(config);
+function createLastMoveInstance(
+	options: ExtensionCreateInstanceOptions,
+	config: LastMoveConfig
+): LastMoveInstance {
+	const internalState = createLastMoveInternal(options, config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {

@@ -7,6 +7,7 @@ import type {
 import type { ExtensionSystemInitOptions } from '../../../src/extensions/types/main.js';
 import type { ExtensionRuntimeSurfaceCommandsInternalSurface } from '../../../src/extensions/types/surface/commands.js';
 import type { ExtensionRuntimeSurfaceEvents } from '../../../src/extensions/types/surface/events.js';
+import { createSvgIdResolver } from '../../../src/render/svg/ids.js';
 
 /**
  * Creates a minimal mock of ExtensionRuntimeSurfaceCommandsInternalSurface.
@@ -86,5 +87,21 @@ export function createFakeExtensionDefinition(opts: FakeExtensionDefinitionOptio
 	return {
 		definition,
 		getCapturedOptions: () => capturedOptions
+	};
+}
+
+/**
+ * Creates a mock ExtensionCreateInstanceOptions for use in tests.
+ */
+export function createMockExtensionCreateInstanceOptions(): ExtensionCreateInstanceOptions {
+	return {
+		runtimeSurface: {
+			commands: createMockCommands(),
+			animation: { submit: vi.fn(), cancel: vi.fn(), getAll: vi.fn(() => []) },
+			transientVisuals: { subscribe: vi.fn(), unsubscribe: vi.fn() },
+			events: { subscribeEvent: vi.fn(), unsubscribeEvent: vi.fn() },
+			invalidation: { dirtyLayers: 0, markDirty: vi.fn(), clearDirty: vi.fn(), clear: vi.fn() }
+		},
+		svgIds: createSvgIdResolver()
 	};
 }

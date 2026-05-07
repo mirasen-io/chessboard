@@ -2,6 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
 import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -26,15 +27,18 @@ export function createActiveTarget(config: ActiveTargetInitConfig = {}): ActiveT
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createActiveTargetInstance(mergedConfig);
+		createInstance(options) {
+			return createActiveTargetInstance(options, mergedConfig);
 		}
 	};
 }
 
-function createActiveTargetInternal(config: ActiveTargetConfig): ActiveTargetInstanceInternal {
+function createActiveTargetInternal(
+	options: ExtensionCreateInstanceOptions,
+	config: ActiveTargetConfig
+): ActiveTargetInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgRect: null,
 		svgCircle: null,
 		config
@@ -46,8 +50,11 @@ function extensionClean(state: ActiveTargetInstanceInternal) {
 	state.svgCircle = null;
 }
 
-function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetInstance {
-	const internalState = createActiveTargetInternal(config);
+function createActiveTargetInstance(
+	options: ExtensionCreateInstanceOptions,
+	config: ActiveTargetConfig
+): ActiveTargetInstance {
+	const internalState = createActiveTargetInternal(options, config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {

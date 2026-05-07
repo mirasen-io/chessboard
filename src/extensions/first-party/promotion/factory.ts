@@ -40,7 +40,7 @@ function createPromotionInternal(
 	config: PromotionConfig
 ): PromotionInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgPromotionPieces: new Map(),
 		activePromotionSquares: new Map(),
 		svgHoverRect: null,

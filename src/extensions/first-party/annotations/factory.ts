@@ -1,7 +1,7 @@
 import { cloneDeep } from 'es-toolkit';
 import { normalizeSquare } from '../../../state/board/normalize.js';
-import type { ExtensionCreateInstanceOptions } from '../../build/index.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -54,7 +54,7 @@ function createAnnotationsInternal(
 	};
 
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(runtimeOptions),
 		runtimeSurface: runtimeOptions.runtimeSurface,
 		svg: {
 			svgCircles: new Map(),

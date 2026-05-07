@@ -1,4 +1,5 @@
 import { RoleCode } from '../../../state/board/types/internal.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import { extensionCreateInternalBase } from '../common/helpers.js';
 import {
 	AutoPromoteDefinition,
@@ -14,15 +15,17 @@ export function createAutoPromote(): AutoPromoteDefinition {
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createAutoPromoteInstance();
+		createInstance(options) {
+			return createAutoPromoteInstance(options);
 		}
 	};
 }
 
-function createAutoPromoteInternal(): AutoPromoteInstanceInternal {
+function createAutoPromoteInternal(
+	options: ExtensionCreateInstanceOptions
+): AutoPromoteInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		toQueen: false
 	};
 }
@@ -38,8 +41,8 @@ function createAutoPromoteInstancePublic(state: AutoPromoteInstanceInternal): Au
 	};
 }
 
-function createAutoPromoteInstance(): AutoPromoteInstance {
-	const internalState = createAutoPromoteInternal();
+function createAutoPromoteInstance(options: ExtensionCreateInstanceOptions): AutoPromoteInstance {
+	const internalState = createAutoPromoteInternal(options);
 	const publicInterface = createAutoPromoteInstancePublic(internalState);
 	return {
 		id: EXTENSION_ID,

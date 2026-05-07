@@ -3,6 +3,7 @@ import { createVisualSvgElement, updateSvgElementAttributes } from '../../../ren
 import type { Square } from '../../../state/board/types/internal.js';
 import { ColorCode } from '../../../state/board/types/internal.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -23,15 +24,17 @@ export function createWatermark(): WatermarkDefinition {
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createWatermarkInstance();
+		createInstance(options) {
+			return createWatermarkInstance(options);
 		}
 	};
 }
 
-function createWatermarkInternal(): WatermarkInstanceInternal {
+function createWatermarkInternal(
+	options: ExtensionCreateInstanceOptions
+): WatermarkInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgWatermark: null
 	};
 }
@@ -47,8 +50,8 @@ const watermarkUrl = new URL(
 const squareRatio = 0.8; // watermark size relative to square size
 const opacity = '0.3';
 
-function createWatermarkInstance(): WatermarkInstance {
-	const internalState = createWatermarkInternal();
+function createWatermarkInstance(options: ExtensionCreateInstanceOptions): WatermarkInstance {
+	const internalState = createWatermarkInternal(options);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {

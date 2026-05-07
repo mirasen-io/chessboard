@@ -49,7 +49,7 @@ function createMainRendererInternal(
 	const drag = createMainRendererDrag(options.runtimeSurface, pieceSymbolResolver);
 	const animation = createMainRendererAnimation(options.runtimeSurface, pieceSymbolResolver);
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		board,
 		coordinates,
 		pieces,

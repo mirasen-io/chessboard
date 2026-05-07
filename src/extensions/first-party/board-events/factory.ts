@@ -1,4 +1,5 @@
 import { denormalizeMove } from '../../../state/board/denormalize.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import { extensionCreateInternalBase } from '../common/helpers.js';
 import {
 	BoardEventsDefinition,
@@ -14,15 +15,17 @@ export function createBoardEvents(): BoardEventsDefinition {
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createBoardEventsInstance();
+		createInstance(options) {
+			return createBoardEventsInstance(options);
 		}
 	};
 }
 
-function createBoardEventsInternal(): BoardEventsInstanceInternal {
+function createBoardEventsInternal(
+	options: ExtensionCreateInstanceOptions
+): BoardEventsInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		onUIMove: null,
 		onRawUpdate: null
 	};
@@ -39,8 +42,8 @@ function createBoardEventsInstancePublic(state: BoardEventsInstanceInternal): Bo
 	};
 }
 
-function createBoardEventsInstance(): BoardEventsInstance {
-	const internalState = createBoardEventsInternal();
+function createBoardEventsInstance(options: ExtensionCreateInstanceOptions): BoardEventsInstance {
+	const internalState = createBoardEventsInternal(options);
 	const publicInterface = createBoardEventsInstancePublic(internalState);
 	return {
 		id: EXTENSION_ID,

@@ -4,14 +4,16 @@ import {
 	clearVisualSlotChildren
 } from '../../../render/svg/helpers.js';
 import { ExtensionSlotName } from '../../types/basic/mount.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import { ExtensionInternalBase } from './types.js';
 
-export function extensionCreateInternalBase<
-	TSlots extends readonly ExtensionSlotName[]
->(): ExtensionInternalBase<TSlots> {
+export function extensionCreateInternalBase<TSlots extends readonly ExtensionSlotName[]>(
+	options: ExtensionCreateInstanceOptions
+): ExtensionInternalBase<TSlots> {
 	return {
 		slotRoots: null,
-		destroyed: false
+		destroyed: false,
+		svgIds: options.svgIds
 	};
 }
 

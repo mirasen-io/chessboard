@@ -9,13 +9,14 @@ import {
 } from '../../../../src/extensions/first-party/common/helpers.js';
 import type { ExtensionInternalBase } from '../../../../src/extensions/first-party/common/types.js';
 import { SVG_NS } from '../../../../src/render/svg/helpers.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 type TestSlots = readonly ['underPieces'];
 
 const TEST_EXT_ID = 'test-ext';
 
 function createBase(): ExtensionInternalBase<TestSlots> {
-	return extensionCreateInternalBase<TestSlots>();
+	return extensionCreateInternalBase<TestSlots>(createMockExtensionCreateInstanceOptions());
 }
 
 function createSlotRoots(): { underPieces: SVGGElement } {
@@ -27,6 +28,12 @@ describe('extensionCreateInternalBase', () => {
 		const base = createBase();
 		expect(base.slotRoots).toBeNull();
 		expect(base.destroyed).toBe(false);
+	});
+
+	it('stores the exact svgIds resolver from options', () => {
+		const options = createMockExtensionCreateInstanceOptions();
+		const base = extensionCreateInternalBase<TestSlots>(options);
+		expect(base.svgIds).toBe(options.svgIds);
 	});
 });
 
@@ -116,16 +123,14 @@ describe('extensionUnmountBase – defs cleanup', () => {
 	}
 
 	it('removes only definitions with matching data-chessboard-extension-id', () => {
-		const base = extensionCreateInternalBase<DefsSlots>();
+		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
 		const roots = createDefsSlotRoots();
 
-		// Add definitions for ext-a
 		const defA = document.createElementNS(SVG_NS, 'pattern');
 		defA.setAttribute('data-chessboard-extension-id', EXT_A);
 		defA.setAttribute('data-chessboard-id', 'pattern-a');
 		roots.defs.appendChild(defA);
 
-		// Add definitions for ext-b
 		const defB = document.createElementNS(SVG_NS, 'pattern');
 		defB.setAttribute('data-chessboard-extension-id', EXT_B);
 		defB.setAttribute('data-chessboard-id', 'pattern-b');
@@ -134,14 +139,12 @@ describe('extensionUnmountBase – defs cleanup', () => {
 		extensionMountBase<DefsSlots>(base, roots);
 		extensionUnmountBase<DefsSlots>(base, EXT_A);
 
-		// ext-a definition removed
 		expect(roots.defs.querySelector('[data-chessboard-extension-id="ext-a"]')).toBeNull();
-		// ext-b definition still present
 		expect(roots.defs.querySelector('[data-chessboard-extension-id="ext-b"]')).not.toBeNull();
 	});
 
 	it('leaves defs intact when no definitions match the extension id', () => {
-		const base = extensionCreateInternalBase<DefsSlots>();
+		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
 		const roots = createDefsSlotRoots();
 
 		const defOther = document.createElementNS(SVG_NS, 'linearGradient');
@@ -156,14 +159,12 @@ describe('extensionUnmountBase – defs cleanup', () => {
 	});
 
 	it('clears visual slots fully while only selectively cleaning defs', () => {
-		const base = extensionCreateInternalBase<DefsSlots>();
+		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
 		const roots = createDefsSlotRoots();
 
-		// Visual slot child
 		const visualChild = document.createElementNS(SVG_NS, 'rect');
 		roots.underPieces.appendChild(visualChild);
 
-		// Defs: one owned, one not
 		const ownedDef = document.createElementNS(SVG_NS, 'marker');
 		ownedDef.setAttribute('data-chessboard-extension-id', EXT_A);
 		ownedDef.setAttribute('data-chessboard-id', 'marker-a');
@@ -177,9 +178,7 @@ describe('extensionUnmountBase – defs cleanup', () => {
 		extensionMountBase<DefsSlots>(base, roots);
 		extensionUnmountBase<DefsSlots>(base, EXT_A);
 
-		// Visual slot fully cleared
 		expect(roots.underPieces.children.length).toBe(0);
-		// Only other extension's defs remain
 		expect(roots.defs.children.length).toBe(1);
 		expect(roots.defs.children[0].getAttribute('data-chessboard-extension-id')).toBe(EXT_B);
 	});

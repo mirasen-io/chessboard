@@ -1,3 +1,4 @@
+import type { SvgIdResolver } from '../../render/svg/ids.js';
 import { ExtensionDragSessionSnapshot } from './basic/interaction.js';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount.js';
 import {
@@ -52,6 +53,7 @@ export type AnyExtensionInstance = ExtensionInstance<string, readonly ExtensionS
 
 export interface ExtensionCreateInstanceOptions {
 	runtimeSurface: ExtensionRuntimeSurface;
+	svgIds: SvgIdResolver;
 }
 export interface ExtensionDefinition<
 	TId extends string,
