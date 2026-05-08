@@ -1,7 +1,7 @@
 import type { AnnotationsConfig, VisualConfig } from './types/internal.js';
 
 export const DEFAULT_CONFIG: AnnotationsConfig = {
-	clearOnCoreInteraction: false,
+	clearOnCoreInteraction: true,
 	colors: {
 		none: '#15781B',
 		ctrl: '#882020',

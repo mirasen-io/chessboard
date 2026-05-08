@@ -8,6 +8,7 @@ import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/ex
 function createMinimalMockSurface() {
 	return {
 		commands: { requestRender: vi.fn(() => true) },
+		events: { subscribeEvent: vi.fn(), unsubscribeEvent: vi.fn() },
 		invalidation: { dirtyLayers: 0, markDirty: vi.fn(), clearDirty: vi.fn(), clear: vi.fn() }
 	} as never;
 }
@@ -367,7 +368,7 @@ describe('createAnnotations', () => {
 		it('mount succeeds', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
-				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
 			);
 			expect(() => instance.mount!({ slotRoots: createSlotRoots() } as never)).not.toThrow();
 		});
@@ -375,7 +376,7 @@ describe('createAnnotations', () => {
 		it('unmount clears slot root children', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
-				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
 			);
 			const roots = createSlotRoots();
 			// Add a child to simulate rendered content
@@ -410,7 +411,7 @@ describe('createAnnotations', () => {
 		it('unmount preserves config', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
-				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
 			);
 			const api = instance.getPublic();
 
@@ -425,7 +426,7 @@ describe('createAnnotations', () => {
 		it('re-mount after unmount succeeds', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
-				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
 			);
 
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
@@ -436,7 +437,7 @@ describe('createAnnotations', () => {
 		it('destroy after mount clears slot root children', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
-				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
 			);
 			const roots = createSlotRoots();
 			roots.overPieces.appendChild(

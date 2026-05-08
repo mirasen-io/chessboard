@@ -29,6 +29,8 @@ import type {
 import { EXTENSION_ID, EXTENSION_SLOTS } from './types/main.js';
 import type { AnnotationsInitOptions, AnnotationsPublicAPI } from './types/public.js';
 
+const ANNOTATIONS_IDLE_CLEAR_DRAG_TYPE = 'ext:idle-clear' as const;
+
 export function createAnnotations(options?: AnnotationsInitOptions): AnnotationsDefinition {
 	const normalizedConfig = normalizeAnnotationsConfig(options?.config);
 	const normalizedAnnotations = normalizeInitialAnnotations(options?.annotations);
@@ -74,6 +76,10 @@ function extensionCleanSvg(state: AnnotationsStateInternal): void {
 function markDirtyAndRequestRender(state: AnnotationsStateInternal, layers: number): void {
 	state.runtimeSurface.invalidation.markDirty(layers);
 	state.runtimeSurface.commands.requestRender({ state: true });
+}
+
+function hasCommittedAnnotations(state: AnnotationsStateInternal): boolean {
+	return state.annotations.circles.size > 0 || state.annotations.arrows.size > 0;
 }
 
 function createAnnotationsPublicAPI(state: AnnotationsStateInternal): AnnotationsPublicAPI {
@@ -158,6 +164,7 @@ function createAnnotationsInstance(
 		id: EXTENSION_ID,
 		mount(env) {
 			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
+			internalState.runtimeSurface.events.subscribeEvent('pointerdown');
 		},
 		onUpdate(context) {
 			const needsRender =
@@ -175,7 +182,37 @@ function createAnnotationsInstance(
 			renderCommittedCircles(internalState, context.currentFrame.layout.geometry);
 			renderCommittedArrows(internalState, context.currentFrame.layout.geometry);
 		},
+		onEvent(context) {
+			if (context.rawEvent.type !== 'pointerdown') return;
+			const rawEvent = context.rawEvent as PointerEvent;
+			if (rawEvent.button !== 0) return;
+			if (!context.sceneEvent?.targetSquare) return;
+			if (context.runtimeInteractionActionPreview !== null) return;
+			if (!internalState.config.clearOnCoreInteraction) return;
+			if (!hasCommittedAnnotations(internalState)) return;
+
+			const success = internalState.runtimeSurface.commands.startDrag({
+				type: ANNOTATIONS_IDLE_CLEAR_DRAG_TYPE,
+				sourceSquare: context.sceneEvent.targetSquare,
+				sourcePieceCode: null,
+				targetSquare: context.sceneEvent.targetSquare
+			});
+
+			if (success) {
+				context.rawEvent.preventDefault();
+			}
+		},
+		completeDrag(session) {
+			if (session.type !== ANNOTATIONS_IDLE_CLEAR_DRAG_TYPE) return;
+			if (session.targetSquare === null) return;
+			if (!hasCommittedAnnotations(internalState)) return;
+
+			internalState.annotations.circles.clear();
+			internalState.annotations.arrows.clear();
+			markDirtyAndRequestRender(internalState, DirtyLayer.COMMITTED);
+		},
 		unmount() {
+			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
 			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionCleanSvg(internalState);
 		},
