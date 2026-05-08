@@ -66,7 +66,10 @@ function createActiveTargetInstance(
 					causes: ['layout.refreshGeometry'],
 					// we really need almost all: setDrag, updateTarget, clear, clearActive, so just take all interaction mutations
 					prefixes: ['state.interaction.']
-				}) && isUpdateContextRenderable(context);
+				}) &&
+				isUpdateContextRenderable(context) &&
+				(context.currentFrame.state.interaction.dragSession?.type === 'lifted-piece-drag' ||
+					context.currentFrame.state.interaction.dragSession?.type === 'release-targeting');
 			if (!needsRender) {
 				return; // no-op
 			}
