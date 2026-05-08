@@ -50,13 +50,13 @@ describe('createAnnotations', () => {
 	describe('normalizeAnnotationsConfig', () => {
 		it('returns default config when no input provided', () => {
 			const config = normalizeAnnotationsConfig();
-			expect(config.clearOnCoreInteraction).toBe(false);
+			expect(config.clearOnCoreInteraction).toBe(true);
 			expect(config.colors).toEqual(DEFAULT_CONFIG.colors);
 		});
 
 		it('merges clearOnCoreInteraction override', () => {
-			const config = normalizeAnnotationsConfig({ clearOnCoreInteraction: true });
-			expect(config.clearOnCoreInteraction).toBe(true);
+			const config = normalizeAnnotationsConfig({ clearOnCoreInteraction: false });
+			expect(config.clearOnCoreInteraction).toBe(false);
 			expect(config.colors).toEqual(DEFAULT_CONFIG.colors);
 		});
 
@@ -77,24 +77,24 @@ describe('createAnnotations', () => {
 	});
 
 	describe('default normalized config via public API', () => {
-		it('getClearOnCoreInteraction returns false by default', () => {
+		it('getClearOnCoreInteraction returns true by default', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
 			);
 			const api = instance.getPublic();
-			expect(api.getClearOnCoreInteraction()).toBe(false);
+			expect(api.getClearOnCoreInteraction()).toBe(true);
 		});
 	});
 
 	describe('config override merge', () => {
 		it('clearOnCoreInteraction override is reflected in public API', () => {
-			const def = createAnnotations({ config: { clearOnCoreInteraction: true } });
+			const def = createAnnotations({ config: { clearOnCoreInteraction: false } });
 			const instance = def.createInstance(
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
 			);
 			const api = instance.getPublic();
-			expect(api.getClearOnCoreInteraction()).toBe(true);
+			expect(api.getClearOnCoreInteraction()).toBe(false);
 		});
 	});
 
@@ -356,11 +356,11 @@ describe('createAnnotations', () => {
 			);
 			const api = instance.getPublic();
 
-			expect(api.getClearOnCoreInteraction()).toBe(false);
-			api.setClearOnCoreInteraction(true);
 			expect(api.getClearOnCoreInteraction()).toBe(true);
 			api.setClearOnCoreInteraction(false);
 			expect(api.getClearOnCoreInteraction()).toBe(false);
+			api.setClearOnCoreInteraction(true);
+			expect(api.getClearOnCoreInteraction()).toBe(true);
 		});
 	});
 
@@ -489,9 +489,9 @@ describe('createAnnotations', () => {
 			const apiA = instanceA.getPublic();
 			const apiB = instanceB.getPublic();
 
-			apiA.setClearOnCoreInteraction(true);
+			apiA.setClearOnCoreInteraction(false);
 
-			expect(apiB.getClearOnCoreInteraction()).toBe(false);
+			expect(apiB.getClearOnCoreInteraction()).toBe(true);
 		});
 	});
 });

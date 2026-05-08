@@ -66,7 +66,11 @@ function createActiveTargetInstance(
 					causes: ['layout.refreshGeometry'],
 					// we really need almost all: setDrag, updateTarget, clear, clearActive, so just take all interaction mutations
 					prefixes: ['state.interaction.']
-				}) && isUpdateContextRenderable(context);
+				}) &&
+				isUpdateContextRenderable(context) &&
+				(context.currentFrame.state.interaction.dragSession?.type === 'lifted-piece-drag' ||
+					context.currentFrame.state.interaction.dragSession?.type === 'release-targeting' ||
+					context.currentFrame.state.interaction.dragSession === null);
 			if (!needsRender) {
 				return; // no-op
 			}
@@ -80,7 +84,11 @@ function createActiveTargetInstance(
 
 			// For AI: `release-targeting` is also represented by `dragSession`.
 			// `dragSession` here is the active interaction session, not only lifted-piece drag.
-			const square = context.currentFrame.state.interaction.dragSession?.targetSquare;
+			const square =
+				context.currentFrame.state.interaction.dragSession?.type === 'lifted-piece-drag' ||
+				context.currentFrame.state.interaction.dragSession?.type === 'release-targeting'
+					? context.currentFrame.state.interaction.dragSession.targetSquare
+					: null;
 			if (square === undefined || square === null) {
 				if (internalState.svgRect !== null) {
 					internalState.svgRect.remove();
