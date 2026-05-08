@@ -189,6 +189,128 @@ describe('annotations public API – render invalidation', () => {
 		});
 	});
 
+	describe('clearOnCoreInteraction on successful core move completion', () => {
+		function createUpdateContext(causes: string[]) {
+			const markDirty = vi.fn();
+			return {
+				context: {
+					previousFrame: null,
+					mutation: {
+						hasMutation(match?: { causes?: Iterable<string> }) {
+							if (!match || !match.causes) return causes.length > 0;
+							for (const cause of match.causes) {
+								if (causes.includes(cause)) return true;
+							}
+							return false;
+						},
+						getPayloads: vi.fn(() => undefined),
+						getAll: vi.fn(() => new Map())
+					},
+					currentFrame: {
+						isMounted: true,
+						state: {},
+						layout: {
+							sceneSize: { width: 400, height: 400 },
+							orientation: 0,
+							geometry: null,
+							layoutEpoch: 1
+						}
+					},
+					invalidation: { dirtyLayers: 0, markDirty, clearDirty: vi.fn(), clear: vi.fn() }
+				} as never,
+				markDirty
+			};
+		}
+
+		it('clears annotations and marks dirty on completeCoreDragTo when clearOnCoreInteraction=true and annotations exist', () => {
+			const def = createAnnotations({
+				annotations: {
+					circles: [{ square: 'e4', color: '#ff0000' }],
+					arrows: [{ from: 'a1', to: 'h8', color: '#00ff00' }]
+				}
+			});
+			const { surface } = createMockRuntimeSurface();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
+			const api = instance.getPublic();
+
+			// Default is clearOnCoreInteraction=true
+			expect(api.getClearOnCoreInteraction()).toBe(true);
+			expect(api.getCircles()).toHaveLength(1);
+			expect(api.getArrows()).toHaveLength(1);
+
+			const { context, markDirty } = createUpdateContext([
+				'runtime.interaction.completeCoreDragTo'
+			]);
+			instance.onUpdate!(context);
+
+			expect(api.getCircles()).toEqual([]);
+			expect(api.getArrows()).toEqual([]);
+			expect(markDirty).toHaveBeenCalledWith(DirtyLayer.COMMITTED);
+		});
+
+		it('does not clear annotations on completeCoreDragTo when clearOnCoreInteraction=false', () => {
+			const def = createAnnotations({
+				config: { clearOnCoreInteraction: false },
+				annotations: {
+					circles: [{ square: 'e4', color: '#ff0000' }],
+					arrows: [{ from: 'a1', to: 'h8', color: '#00ff00' }]
+				}
+			});
+			const { surface } = createMockRuntimeSurface();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
+			const api = instance.getPublic();
+
+			const { context, markDirty } = createUpdateContext([
+				'runtime.interaction.completeCoreDragTo'
+			]);
+			instance.onUpdate!(context);
+
+			expect(api.getCircles()).toHaveLength(1);
+			expect(api.getArrows()).toHaveLength(1);
+			expect(markDirty).not.toHaveBeenCalled();
+		});
+
+		it('does not mark dirty on completeCoreDragTo when annotations are empty', () => {
+			const def = createAnnotations();
+			const { surface } = createMockRuntimeSurface();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
+
+			const { context, markDirty } = createUpdateContext([
+				'runtime.interaction.completeCoreDragTo'
+			]);
+			instance.onUpdate!(context);
+
+			expect(markDirty).not.toHaveBeenCalled();
+		});
+
+		it('does not clear annotations on unrelated interaction mutations', () => {
+			const def = createAnnotations({
+				annotations: {
+					circles: [{ square: 'e4', color: '#ff0000' }],
+					arrows: [{ from: 'a1', to: 'h8', color: '#00ff00' }]
+				}
+			});
+			const { surface } = createMockRuntimeSurface();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
+			const api = instance.getPublic();
+
+			const { context, markDirty } = createUpdateContext(['state.interaction.setDragSession']);
+			instance.onUpdate!(context);
+
+			expect(api.getCircles()).toHaveLength(1);
+			expect(api.getArrows()).toHaveLength(1);
+			expect(markDirty).not.toHaveBeenCalled();
+		});
+	});
+
 	describe('annotations do not guard mounted state', () => {
 		it('public API mutations unconditionally delegate markDirty and requestRender without a mounted-state guard', () => {
 			// This test proves only that the annotations layer itself does NOT add

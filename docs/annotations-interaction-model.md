@@ -512,7 +512,13 @@ When `clearOnCoreInteraction` is disabled:
 
 When `clearOnCoreInteraction` is enabled:
 
-- the annotations extension may clear annotation state on configured core board interaction cleanup paths.
+- the annotations extension may clear annotation state on configured core board interaction cleanup paths;
+- clearing is intentionally limited to explicit cleanup paths, not every core interaction event.
+
+The configured cleanup paths are:
+
+1. idle primary clear gesture;
+2. successful core move completion.
 
 ### Idle primary clear gesture
 
@@ -523,7 +529,8 @@ Start this annotation-owned gesture only when:
 - event is primary-button `pointerdown`;
 - the pointer is on a board square;
 - `runtimeInteractionActionPreview === null`;
-- `clearOnCoreInteraction === true`.
+- `clearOnCoreInteraction === true`;
+- committed annotations are non-empty.
 
 Then:
 
@@ -536,6 +543,36 @@ Important:
 - if `runtimeInteractionActionPreview !== null`, the annotations extension must pass through;
 - normal piece selection, reselection, release targeting, and lifted drag remain core-owned;
 - the annotations extension must not duplicate the core chess interaction model.
+
+### Successful core move completion
+
+Successful core move completion clears annotations when `clearOnCoreInteraction === true`.
+
+This cleanup is update-driven, not event-ownership-driven.
+
+The annotations extension should clear committed annotations when the runtime mutation session contains a successful core move completion cause, such as `runtime.interaction.completeCoreDragTo`.
+
+This path applies after a move has actually been completed by core interaction, including:
+
+- lifted drag-and-drop move completion;
+- release-targeting / click-to-move completion.
+
+This path must not clear annotations on:
+
+- selecting a source square;
+- reselecting a source square;
+- starting lifted drag;
+- starting release targeting;
+- updating the active target during drag;
+- cancelling interaction;
+- invalid move resolution that does not complete a move.
+
+Important:
+
+- this cleanup must not consume or prevent the core interaction event;
+- this cleanup does not use `runtimeInteractionActionPreview` as its trigger;
+- this cleanup should use the mutation/update signal that confirms the move was completed;
+- if committed annotations are already empty, this cleanup should be a no-op.
 
 ---
 

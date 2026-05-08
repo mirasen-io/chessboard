@@ -18,6 +18,7 @@ import {
 	annotationsSetCircles,
 	annotationsSetClearOnCoreInteraction
 } from './api.js';
+import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
 import { completeAnnotationsDrag, handleAnnotationsEvent } from './interaction.js';
 import { normalizeAnnotationsConfig, normalizeInitialAnnotations } from './normalize.js';
 import { renderCommittedArrows } from './render-arrows.js';
@@ -126,13 +127,25 @@ function createAnnotationsInstance(
 			internalState.runtimeSurface.events.subscribeEvent('pointerdown');
 		},
 		onUpdate(context) {
-			const needsRender =
-				context.mutation.hasMutation({ causes: ['layout.refreshGeometry'] }) &&
-				isUpdateContextRenderable(context);
-			if (!needsRender) {
-				return;
+			if (
+				internalState.config.clearOnCoreInteraction &&
+				hasCommittedAnnotations(internalState) &&
+				context.mutation.hasMutation({
+					causes: ['runtime.interaction.completeCoreDragTo']
+				})
+			) {
+				clearCommittedAnnotations(internalState);
+				context.invalidation.markDirty(DirtyLayer.COMMITTED);
 			}
-			context.invalidation.markDirty(DirtyLayer.COMMITTED);
+
+			if (
+				context.mutation.hasMutation({
+					causes: ['layout.refreshGeometry']
+				}) &&
+				isUpdateContextRenderable(context)
+			) {
+				context.invalidation.markDirty(DirtyLayer.COMMITTED);
+			}
 		},
 		render(context) {
 			if (!(context.invalidation.dirtyLayers & DirtyLayer.COMMITTED)) {
