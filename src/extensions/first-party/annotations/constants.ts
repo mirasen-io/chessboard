@@ -3,11 +3,11 @@ import type { AnnotationsConfig, VisualConfig } from './types/internal.js';
 export const DEFAULT_CONFIG: AnnotationsConfig = {
 	clearOnCoreInteraction: false,
 	colors: {
-		none: '#22c55e',
-		ctrl: '#ef4444',
-		shift: '#f97316',
-		alt: '#3b82f6',
-		meta: '#a855f7'
+		none: '#15781B',
+		ctrl: '#882020',
+		shift: '#e68f00',
+		alt: '#003088',
+		meta: '#6f2da8'
 	}
 };
 
