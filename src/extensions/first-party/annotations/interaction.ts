@@ -13,16 +13,17 @@ export function handleAnnotationsEvent(
 	if (context.rawEvent.type !== 'pointerdown') return;
 	const rawEvent = context.rawEvent as PointerEvent;
 	if (rawEvent.button !== 0) return;
-	if (!context.sceneEvent?.targetSquare) return;
+	const targetSquare = context.sceneEvent?.targetSquare;
+	if (targetSquare === undefined || targetSquare === null) return;
 	if (context.runtimeInteractionActionPreview !== null) return;
 	if (!state.config.clearOnCoreInteraction) return;
 	if (!hasCommittedAnnotations(state)) return;
 
 	const success = state.runtimeSurface.commands.startDrag({
 		type: ANNOTATIONS_IDLE_CLEAR_DRAG_TYPE,
-		sourceSquare: context.sceneEvent.targetSquare,
+		sourceSquare: targetSquare,
 		sourcePieceCode: null,
-		targetSquare: context.sceneEvent.targetSquare
+		targetSquare: targetSquare
 	});
 
 	if (success) {
