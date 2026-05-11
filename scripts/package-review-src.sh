@@ -60,6 +60,7 @@ fi
 cp -R "$ROOT_DIR/src" "$STAGING_DIR/src"
 copy_if_exists "tests"
 copy_if_exists "scripts"
+copy_if_exists "docs"
 
 copy_if_exists "src-old"
 copy_if_exists "tests-old"
@@ -83,7 +84,6 @@ copy_if_exists ".npmignore"
 if [[ "$FULL_MODE" == "true" ]]; then
   copy_if_exists "scripts"
   copy_if_exists "examples"
-  copy_if_exists "docs"
   copy_if_exists ".github"
   copy_if_exists "CHANGELOG.md"
 fi
