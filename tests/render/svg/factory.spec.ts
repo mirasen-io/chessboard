@@ -21,7 +21,6 @@ describe('createSvgRoots', () => {
 		const roots = makeSvgRoots();
 		const expectedKeys = [
 			'svgRoot',
-			'defs',
 			'board',
 			'coordinates',
 			'underPieces',
@@ -56,7 +55,6 @@ describe('createSvgRoots', () => {
 	it('all layer elements are children of svgRoot', () => {
 		const roots = makeSvgRoots();
 		const layers = [
-			roots.defs,
 			roots.board,
 			roots.coordinates,
 			roots.underPieces,
@@ -76,7 +74,6 @@ describe('createSvgRoots', () => {
 		const roots = makeSvgRoots();
 		const children = Array.from(roots.svgRoot.children);
 		const expectedOrder = [
-			'defs-root',
 			'board-root',
 			'coordinates-root',
 			'under-pieces-root',
@@ -93,7 +90,6 @@ describe('createSvgRoots', () => {
 
 	it('each layer has its expected data-chessboard-id', () => {
 		const roots = makeSvgRoots();
-		expect(roots.defs.getAttribute('data-chessboard-id')).toBe('defs-root');
 		expect(roots.board.getAttribute('data-chessboard-id')).toBe('board-root');
 		expect(roots.pieces.getAttribute('data-chessboard-id')).toBe('pieces-root');
 		expect(roots.drag.getAttribute('data-chessboard-id')).toBe('drag-root');
@@ -133,9 +129,34 @@ describe('allocateExtensionSlotRoots', () => {
 		expect(roots.board.children).toHaveLength(2);
 	});
 
-	it('defs slot returns the shared defs element directly', () => {
+	it('defs slot creates a per-extension <defs> element under svgRoot', () => {
 		const roots = makeSvgRoots();
 		const allocated = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
-		expect(allocated.defs).toBe(roots.defs);
+		expect(allocated.defs).toBeDefined();
+		expect(allocated.defs!.tagName.toLowerCase()).toBe('defs');
+		expect(allocated.defs!.parentNode).toBe(roots.svgRoot);
+	});
+
+	it('defs slot element has data-chessboard-id containing extension id', () => {
+		const roots = makeSvgRoots();
+		const allocated = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		const id = allocated.defs!.getAttribute('data-chessboard-id');
+		expect(id).toContain('ext-a');
+	});
+
+	it('defs slot element is inserted before the first non-defs child', () => {
+		const roots = makeSvgRoots();
+		allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		const firstChild = roots.svgRoot.children[0];
+		expect(firstChild.tagName.toLowerCase()).toBe('defs');
+	});
+
+	it('multiple extensions each get their own separate defs element', () => {
+		const roots = makeSvgRoots();
+		const allocA = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		const allocB = allocateExtensionSlotRoots(roots, 'ext-b', ['defs']);
+		expect(allocA.defs).not.toBe(allocB.defs);
+		expect(allocA.defs!.parentNode).toBe(roots.svgRoot);
+		expect(allocB.defs!.parentNode).toBe(roots.svgRoot);
 	});
 });

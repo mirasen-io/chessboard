@@ -3,7 +3,7 @@ import {
 	createPieceSymbolResolver,
 	ensurePieceSymbolsDefined
 } from '../../../../src/extensions/first-party/main-renderer/piece-symbols.js';
-import { clearDefinitionSlotChildren, SVG_NS } from '../../../../src/render/svg/helpers.js';
+import { clearSvgElementChildren, SVG_NS } from '../../../../src/render/svg/helpers.js';
 import { createSvgIdResolver } from '../../../../src/render/svg/ids.js';
 import {
 	ALL_NON_EMPTY_PIECE_CODES,
@@ -101,13 +101,13 @@ describe('ensurePieceSymbolsDefined', () => {
 		}
 	});
 
-	it('each symbol has data-chessboard-extension-id="renderer"', () => {
+	it('symbols do not carry data-chessboard-extension-id (per-extension defs owns them)', () => {
 		const defs = createDefs();
 		const svgIds = createSvgIdResolver();
 		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const child of Array.from(defs.children)) {
-			expect(child.getAttribute('data-chessboard-extension-id')).toBe('renderer');
+			expect(child.hasAttribute('data-chessboard-extension-id')).toBe(false);
 		}
 	});
 
@@ -181,14 +181,14 @@ describe('ensurePieceSymbolsDefined', () => {
 		expect(defs.children).toHaveLength(12);
 	});
 
-	it('clearDefinitionSlotChildren removes renderer-owned symbols', () => {
+	it('clearSvgElementChildren removes all symbols from defs', () => {
 		const defs = createDefs();
 		const svgIds = createSvgIdResolver();
 		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		expect(defs.children).toHaveLength(12);
 
-		clearDefinitionSlotChildren(defs, 'renderer');
+		clearSvgElementChildren(defs);
 		expect(defs.children).toHaveLength(0);
 	});
 });

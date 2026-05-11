@@ -46,14 +46,16 @@ describe('annotations — committed arrow DOM rendering', () => {
 			expect(line.getAttribute('marker-end')).toBe(`url(#${markerId})`);
 		});
 
-		it('marker has data-chessboard-extension-id="annotations"', () => {
+		it('renders marker inside the annotations defs root', () => {
 			const { instance, api, roots } = setupMountedInstance();
 
 			api.arrow('e2', 'e4', { color: '#ef4444' });
 			instance.render!(createRenderContext());
 
-			const marker = roots.defs.children[0];
-			expect(marker.getAttribute('data-chessboard-extension-id')).toBe('annotations');
+			const marker = roots.defs.querySelector('marker')!;
+			expect(marker).not.toBeNull();
+			expect(marker.parentElement).toBe(roots.defs);
+			expect(roots.defs.tagName.toLowerCase()).toBe('defs');
 		});
 
 		it('marker has expected structural attributes', () => {

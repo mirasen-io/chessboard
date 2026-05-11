@@ -13,8 +13,6 @@ import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/ex
 
 type TestSlots = readonly ['underPieces'];
 
-const TEST_EXT_ID = 'test-ext';
-
 function createBase(): ExtensionInternalBase<TestSlots> {
 	return extensionCreateInternalBase<TestSlots>(createMockExtensionCreateInstanceOptions());
 }
@@ -56,7 +54,7 @@ describe('extensionIsDestroyedBase', () => {
 
 	it('returns true after destroy', () => {
 		const base = createBase();
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionDestroyBase<TestSlots>(base);
 		expect(extensionIsDestroyedBase(base)).toBe(true);
 	});
 });
@@ -77,7 +75,7 @@ describe('extensionMountBase', () => {
 
 	it('throws if destroyed', () => {
 		const base = createBase();
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionDestroyBase<TestSlots>(base);
 		expect(() => extensionMountBase<TestSlots>(base, createSlotRoots())).toThrow();
 	});
 });
@@ -86,7 +84,7 @@ describe('extensionUnmountBase', () => {
 	it('sets slotRoots to null', () => {
 		const base = createBase();
 		extensionMountBase<TestSlots>(base, createSlotRoots());
-		extensionUnmountBase<TestSlots>(base, TEST_EXT_ID);
+		extensionUnmountBase<TestSlots>(base);
 		expect(base.slotRoots).toBeNull();
 	});
 
@@ -97,21 +95,19 @@ describe('extensionUnmountBase', () => {
 		roots.underPieces.appendChild(child);
 		extensionMountBase<TestSlots>(base, roots);
 
-		extensionUnmountBase<TestSlots>(base, TEST_EXT_ID);
+		extensionUnmountBase<TestSlots>(base);
 
 		expect(roots.underPieces.childNodes.length).toBe(0);
 	});
 
 	it('throws if not mounted', () => {
 		const base = createBase();
-		expect(() => extensionUnmountBase<TestSlots>(base, TEST_EXT_ID)).toThrow();
+		expect(() => extensionUnmountBase<TestSlots>(base)).toThrow();
 	});
 });
 
-describe('extensionUnmountBase – defs cleanup', () => {
+describe('extensionUnmountBase – per-extension defs ownership', () => {
 	type DefsSlots = readonly ['defs', 'underPieces'];
-	const EXT_A = 'ext-a';
-	const EXT_B = 'ext-b';
 
 	function createDefsSlotRoots(): { defs: SVGDefsElement; underPieces: SVGGElement } {
 		const svg = document.createElementNS(SVG_NS, 'svg');
@@ -122,87 +118,80 @@ describe('extensionUnmountBase – defs cleanup', () => {
 		return { defs, underPieces };
 	}
 
-	it('removes only definitions with matching data-chessboard-extension-id', () => {
+	it('clears all children from the per-extension defs root', () => {
 		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
 		const roots = createDefsSlotRoots();
 
-		const defA = document.createElementNS(SVG_NS, 'pattern');
-		defA.setAttribute('data-chessboard-extension-id', EXT_A);
-		defA.setAttribute('data-chessboard-id', 'pattern-a');
-		roots.defs.appendChild(defA);
+		const def1 = document.createElementNS(SVG_NS, 'pattern');
+		def1.setAttribute('data-chessboard-id', 'pattern-a');
+		roots.defs.appendChild(def1);
 
-		const defB = document.createElementNS(SVG_NS, 'pattern');
-		defB.setAttribute('data-chessboard-extension-id', EXT_B);
-		defB.setAttribute('data-chessboard-id', 'pattern-b');
-		roots.defs.appendChild(defB);
+		const def2 = document.createElementNS(SVG_NS, 'linearGradient');
+		def2.setAttribute('data-chessboard-id', 'grad-b');
+		roots.defs.appendChild(def2);
 
 		extensionMountBase<DefsSlots>(base, roots);
-		extensionUnmountBase<DefsSlots>(base, EXT_A);
+		extensionUnmountBase<DefsSlots>(base);
 
-		expect(roots.defs.querySelector('[data-chessboard-extension-id="ext-a"]')).toBeNull();
-		expect(roots.defs.querySelector('[data-chessboard-extension-id="ext-b"]')).not.toBeNull();
+		expect(roots.defs.children.length).toBe(0);
 	});
 
-	it('leaves defs intact when no definitions match the extension id', () => {
+	it('clears both defs and visual slots fully on unmount', () => {
 		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
 		const roots = createDefsSlotRoots();
 
-		const defOther = document.createElementNS(SVG_NS, 'linearGradient');
-		defOther.setAttribute('data-chessboard-extension-id', 'other-ext');
-		defOther.setAttribute('data-chessboard-id', 'grad-1');
-		roots.defs.appendChild(defOther);
+		roots.defs.appendChild(document.createElementNS(SVG_NS, 'marker'));
+		roots.underPieces.appendChild(document.createElementNS(SVG_NS, 'rect'));
 
 		extensionMountBase<DefsSlots>(base, roots);
-		extensionUnmountBase<DefsSlots>(base, EXT_A);
+		extensionUnmountBase<DefsSlots>(base);
 
-		expect(roots.defs.children.length).toBe(1);
-	});
-
-	it('clears visual slots fully while only selectively cleaning defs', () => {
-		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
-		const roots = createDefsSlotRoots();
-
-		const visualChild = document.createElementNS(SVG_NS, 'rect');
-		roots.underPieces.appendChild(visualChild);
-
-		const ownedDef = document.createElementNS(SVG_NS, 'marker');
-		ownedDef.setAttribute('data-chessboard-extension-id', EXT_A);
-		ownedDef.setAttribute('data-chessboard-id', 'marker-a');
-		roots.defs.appendChild(ownedDef);
-
-		const otherDef = document.createElementNS(SVG_NS, 'marker');
-		otherDef.setAttribute('data-chessboard-extension-id', EXT_B);
-		otherDef.setAttribute('data-chessboard-id', 'marker-b');
-		roots.defs.appendChild(otherDef);
-
-		extensionMountBase<DefsSlots>(base, roots);
-		extensionUnmountBase<DefsSlots>(base, EXT_A);
-
+		expect(roots.defs.children.length).toBe(0);
 		expect(roots.underPieces.children.length).toBe(0);
-		expect(roots.defs.children.length).toBe(1);
-		expect(roots.defs.children[0].getAttribute('data-chessboard-extension-id')).toBe(EXT_B);
+	});
+
+	it('does not affect another extension defs root outside state.slotRoots', () => {
+		const base = extensionCreateInternalBase<DefsSlots>(createMockExtensionCreateInstanceOptions());
+		const svg = document.createElementNS(SVG_NS, 'svg');
+
+		const ownDefs = document.createElementNS(SVG_NS, 'defs');
+		svg.appendChild(ownDefs);
+		ownDefs.appendChild(document.createElementNS(SVG_NS, 'pattern'));
+
+		const otherDefs = document.createElementNS(SVG_NS, 'defs');
+		svg.appendChild(otherDefs);
+		otherDefs.appendChild(document.createElementNS(SVG_NS, 'linearGradient'));
+
+		const underPieces = document.createElementNS(SVG_NS, 'g');
+		svg.appendChild(underPieces);
+
+		extensionMountBase<DefsSlots>(base, { defs: ownDefs, underPieces });
+		extensionUnmountBase<DefsSlots>(base);
+
+		expect(ownDefs.children.length).toBe(0);
+		expect(otherDefs.children.length).toBe(1);
 	});
 });
 
 describe('extensionDestroyBase', () => {
 	it('marks base as destroyed', () => {
 		const base = createBase();
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionDestroyBase<TestSlots>(base);
 		expect(base.destroyed).toBe(true);
 	});
 
 	it('auto-unmounts if currently mounted', () => {
 		const base = createBase();
 		extensionMountBase<TestSlots>(base, createSlotRoots());
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionDestroyBase<TestSlots>(base);
 		expect(extensionIsMountedBase(base)).toBe(false);
 		expect(base.destroyed).toBe(true);
 	});
 
 	it('throws if already destroyed', () => {
 		const base = createBase();
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
-		expect(() => extensionDestroyBase<TestSlots>(base, TEST_EXT_ID)).toThrow();
+		extensionDestroyBase<TestSlots>(base);
+		expect(() => extensionDestroyBase<TestSlots>(base)).toThrow();
 	});
 });
 
@@ -210,8 +199,8 @@ describe('lifecycle interaction', () => {
 	it('mount -> unmount -> destroy works', () => {
 		const base = createBase();
 		extensionMountBase<TestSlots>(base, createSlotRoots());
-		extensionUnmountBase<TestSlots>(base, TEST_EXT_ID);
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionUnmountBase<TestSlots>(base);
+		extensionDestroyBase<TestSlots>(base);
 		expect(extensionIsMountedBase(base)).toBe(false);
 		expect(extensionIsDestroyedBase(base)).toBe(true);
 	});
@@ -219,20 +208,20 @@ describe('lifecycle interaction', () => {
 	it('mount -> destroy auto-unmounts then destroys', () => {
 		const base = createBase();
 		extensionMountBase<TestSlots>(base, createSlotRoots());
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionDestroyBase<TestSlots>(base);
 		expect(extensionIsMountedBase(base)).toBe(false);
 		expect(extensionIsDestroyedBase(base)).toBe(true);
 	});
 
 	it('cannot mount after destroy', () => {
 		const base = createBase();
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
+		extensionDestroyBase<TestSlots>(base);
 		expect(() => extensionMountBase<TestSlots>(base, createSlotRoots())).toThrow();
 	});
 
 	it('cannot unmount after destroy without being mounted', () => {
 		const base = createBase();
-		extensionDestroyBase<TestSlots>(base, TEST_EXT_ID);
-		expect(() => extensionUnmountBase<TestSlots>(base, TEST_EXT_ID)).toThrow();
+		extensionDestroyBase<TestSlots>(base);
+		expect(() => extensionUnmountBase<TestSlots>(base)).toThrow();
 	});
 });
