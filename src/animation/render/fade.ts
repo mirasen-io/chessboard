@@ -1,5 +1,5 @@
 import type { SceneRenderGeometry } from '../../layout/geometry/types.js';
-import { createVisualSvgElement, updateSvgElementAttributes } from '../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../render/svg/helpers.js';
 import type { AnimationTrackFade } from '../types.js';
 import type { PieceHrefResolver, PreparedFadeNode } from './types.js';
 
@@ -12,7 +12,7 @@ export function prepareFadeTrack(
 	const r = geometry.getSquareRect(track.sq);
 	const href = resolveHref(track.pieceCode);
 	const initialOpacity = track.effect === 'fade-in' ? '0' : '1';
-	const root = createVisualSvgElement(slot, 'use', {
+	const root = createSvgElement(slot, 'use', {
 		'data-chessboard-id': `animation-fade-${track.id}`,
 		'data-animation-effect': track.effect,
 		href,

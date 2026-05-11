@@ -1,5 +1,5 @@
-import { Square } from '../../../state/board/types/internal.js';
-import { ScenePoint } from '../basic/transient-visuals.js';
+import type { Square } from '../../../state/board/types/internal.js';
+import type { ScenePoint } from '../basic/transient-visuals.js';
 
 export interface ScenePointerEvent {
 	// DOM part

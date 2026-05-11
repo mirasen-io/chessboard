@@ -1,7 +1,7 @@
 import { cloneDeep, toMerged } from 'es-toolkit';
 import { normalizeSquare } from '../../../state/board/normalize.js';
 import type { SquareString } from '../../../state/board/types/input.js';
-import type { Square } from '../../build/index.js';
+import type { Square } from '../../../state/board/types/internal.js';
 import { DEFAULT_CONFIG } from './constants.js';
 import type {
 	AnnotationsConfig,

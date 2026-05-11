@@ -1,7 +1,4 @@
-import {
-	createVisualSvgElement,
-	updateSvgElementAttributes
-} from '../../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../../render/svg/helpers.js';
 import { ExtensionRenderTransientVisualsContext } from '../../../types/context/transient-visuals.js';
 import { MainRendererDragInternal } from './types.js';
 
@@ -18,7 +15,7 @@ export function rendererDragRenderTransientVisuals(
 	if (state.isDragActive && state.pieceCode && !state.pieceNode) {
 		// Ok this is first render pass, let's create the piece node
 		const href = state.resolver.getHref(state.pieceCode);
-		state.pieceNode = createVisualSvgElement(slot, 'use', {
+		state.pieceNode = createSvgElement(slot, 'use', {
 			'data-chessboard-id': 'dragged-piece',
 			width: squareSize,
 			height: squareSize,

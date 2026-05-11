@@ -127,11 +127,11 @@ function createMainRendererInstance(
 		},
 		unmount() {
 			extensionUnmountLocal(internalState);
-			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 		},
 		destroy() {
 			extensionUnmountLocal(internalState);
-			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 		}
 	};
 }

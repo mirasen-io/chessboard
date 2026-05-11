@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
 import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
@@ -101,24 +101,20 @@ function createSelectedSquareInstance(
 			};
 			if (internalState.svgRect === null) {
 				assert(internalState.slotRoots, 'Slot roots should be available when render is called');
-				internalState.svgRect = createVisualSvgElement(
-					internalState.slotRoots.underPieces,
-					'rect',
-					{
-						'data-chessboard-id': 'selected-square-highlight',
-						...rectAttributes
-					}
-				);
+				internalState.svgRect = createSvgElement(internalState.slotRoots.underPieces, 'rect', {
+					'data-chessboard-id': 'selected-square-highlight',
+					...rectAttributes
+				});
 			} else {
 				updateSvgElementAttributes(internalState.svgRect, rectAttributes);
 			}
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		}
 	};

@@ -1,14 +1,9 @@
 import assert from '@ktarmyshov/assert';
 import type { SceneRenderGeometry } from '../../../layout/geometry/types.js';
-import {
-	createDefinitionSvgElement,
-	createVisualSvgElement,
-	updateSvgElementAttributes
-} from '../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { VISUAL_CONFIG } from './constants.js';
 import type { ArrowAnnotationKey } from './types/internal.js';
 import type { AnnotationsStateInternal } from './types/main.js';
-import { EXTENSION_ID } from './types/main.js';
 
 /**
  * Reconciles committed arrow SVG elements against the current annotations state.
@@ -107,22 +102,20 @@ export function renderCommittedArrows(
 			});
 		} else {
 			// Create marker in defs
-			const marker = createDefinitionSvgElement(state.slotRoots.defs, 'marker', {
+			const marker = createSvgElement(state.slotRoots.defs, 'marker', {
 				'data-chessboard-id': `annotation-arrowhead-committed-${key}`,
-				'data-chessboard-extension-id': EXTENSION_ID,
 				...markerAttributes
 			});
 
 			// Create path inside marker
-			const markerPath = createDefinitionSvgElement(marker, 'path', {
+			const markerPath = createSvgElement(marker, 'path', {
 				'data-chessboard-id': `annotation-arrowhead-path-committed-${key}`,
-				'data-chessboard-extension-id': EXTENSION_ID,
 				d: committed.markerPathD,
 				fill: arrow.color
 			});
 
 			// Create line in overPieces
-			const line = createVisualSvgElement(state.slotRoots.overPieces, 'line', {
+			const line = createSvgElement(state.slotRoots.overPieces, 'line', {
 				'data-chessboard-id': `annotation-arrow-committed-${key}`,
 				...lineAttributes
 			});

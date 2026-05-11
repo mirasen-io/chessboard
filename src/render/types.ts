@@ -11,9 +11,14 @@ import {
 } from '../extensions/types/main.js';
 import { Scheduler } from './scheduler/types.js';
 
-export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLOTS> {
+export type RootExtensionSlotName = Exclude<(typeof ALL_EXTENSION_SLOTS)[number], 'defs'>;
+
+export const ROOT_EXTENSION_SLOTS = ALL_EXTENSION_SLOTS.filter(
+	(slot): slot is RootExtensionSlotName => slot !== 'defs'
+) as readonly RootExtensionSlotName[];
+
+export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ROOT_EXTENSION_SLOTS> {
 	readonly svgRoot: SVGSVGElement;
-	readonly defs: SVGDefsElement;
 }
 
 export interface RenderExtensionRecordRender {

@@ -1,5 +1,5 @@
 import type { SceneRenderGeometry } from '../../layout/geometry/types.js';
-import { createVisualSvgElement } from '../../render/svg/helpers.js';
+import { createSvgElement } from '../../render/svg/helpers.js';
 import type { AnimationTrackStatic } from '../types.js';
 import type { PieceHrefResolver, PreparedStaticNode } from './types.js';
 
@@ -11,7 +11,7 @@ export function prepareStaticTrack(
 ): PreparedStaticNode {
 	const r = geometry.getSquareRect(track.sq);
 	const href = resolveHref(track.pieceCode);
-	const root = createVisualSvgElement(slot, 'use', {
+	const root = createSvgElement(slot, 'use', {
 		'data-chessboard-id': `animation-static-${track.id}`,
 		'data-animation-effect': 'static',
 		href,

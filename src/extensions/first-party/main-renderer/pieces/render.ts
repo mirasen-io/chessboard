@@ -1,7 +1,4 @@
-import {
-	createVisualSvgElement,
-	updateSvgElementAttributes
-} from '../../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../../render/svg/helpers.js';
 import { isNonEmptyPieceCode } from '../../../../state/board/check.js';
 import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal.js';
 import { ExtensionRenderContext } from '../../../types/context/render.js';
@@ -38,7 +35,7 @@ export function rendererPiecesRender(
 				});
 			} else {
 				state.pieceNodes.set(sq, {
-					root: createVisualSvgElement(slot, 'use', {
+					root: createSvgElement(slot, 'use', {
 						'data-chessboard-id': `piece-${pieceCode}-${sq}`,
 						href,
 						x: r.x.toString(),

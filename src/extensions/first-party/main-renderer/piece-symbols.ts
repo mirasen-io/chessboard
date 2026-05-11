@@ -1,4 +1,4 @@
-import { SVG_NS } from '../../../render/svg/helpers.js';
+import { createSvgElement } from '../../../render/svg/helpers.js';
 import type { SvgIdResolver } from '../../../render/svg/ids.js';
 import {
 	ALL_NON_EMPTY_PIECE_CODES,
@@ -46,8 +46,6 @@ export function ensurePieceSymbolsDefined(
 	config: PieceUrls,
 	resolver: PieceSymbolResolver
 ): void {
-	const doc = defs.ownerDocument;
-
 	for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
 		const symbolId = resolver.getId(pieceCode);
 
@@ -56,20 +54,19 @@ export function ensurePieceSymbolsDefined(
 			continue;
 		}
 
-		const symbol = doc.createElementNS(SVG_NS, 'symbol');
-		symbol.setAttribute('id', symbolId);
-		symbol.setAttribute('data-chessboard-extension-id', 'renderer');
-		symbol.setAttribute('data-chessboard-id', getSymbolDataId(pieceCode));
-		symbol.setAttribute('viewBox', '0 0 1 1');
+		const symbol = createSvgElement(defs, 'symbol', {
+			id: symbolId,
+			'data-chessboard-id': getSymbolDataId(pieceCode),
+			viewBox: '0 0 1 1'
+		});
 
-		const image = doc.createElementNS(SVG_NS, 'image');
-		image.setAttribute('href', config[pieceCode]);
-		image.setAttribute('x', '0');
-		image.setAttribute('y', '0');
-		image.setAttribute('width', '1');
-		image.setAttribute('height', '1');
-
-		symbol.appendChild(image);
-		defs.appendChild(symbol);
+		createSvgElement(symbol, 'image', {
+			'data-chessboard-id': `piece-symbol-image-${pieceCode}`,
+			href: config[pieceCode],
+			x: '0',
+			y: '0',
+			width: '1',
+			height: '1'
+		});
 	}
 }

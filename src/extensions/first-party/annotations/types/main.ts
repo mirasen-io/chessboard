@@ -1,10 +1,7 @@
-import type {
-	ExtensionDefinition,
-	ExtensionInstance,
-	ExtensionInternalBase,
-	ExtensionRuntimeSurface,
-	ExtensionSlotName
-} from '../../../build/index.js';
+import type { ExtensionSlotName } from '../../../types/basic/mount.js';
+import type { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
+import type { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
+import type { ExtensionInternalBase } from '../../common/types.js';
 import type {
 	AnnotationsConfig,
 	ArrowAnnotation,

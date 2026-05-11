@@ -1,5 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { fileOf, rankOf, squareOf } from '../../../state/board/coords.js';
 import { toPieceCode } from '../../../state/board/piece.js';
 import { ColorCode, RolePromotionCode, SquareRank } from '../../../state/board/types/internal.js';
@@ -189,11 +189,11 @@ function createPromotionInstance(
 					updateSvgElementAttributes(existing.rect, rectAttrs);
 					updateSvgElementAttributes(existing.svg, imageAttrs);
 				} else {
-					const rect = createVisualSvgElement(slot, 'rect', {
+					const rect = createSvgElement(slot, 'rect', {
 						'data-chessboard-id': `promotion-bg-${roleCode}`,
 						...rectAttrs
 					});
-					const svg = createVisualSvgElement(slot, 'image', {
+					const svg = createSvgElement(slot, 'image', {
 						'data-chessboard-id': `promotion-piece-${roleCode}`,
 						...imageAttrs
 					});
@@ -224,7 +224,7 @@ function createPromotionInstance(
 						'Slot roots should be available when renderTransientVisuals is called'
 					);
 					const slot = internalState.slotRoots.animation;
-					internalState.svgHoverRect = createVisualSvgElement(slot, 'rect', {
+					internalState.svgHoverRect = createSvgElement(slot, 'rect', {
 						'data-chessboard-id': 'promotion-hover',
 						...attrs
 					});
@@ -253,11 +253,11 @@ function createPromotionInstance(
 			internalState.runtimeSurface.commands.cancelDeferredUIMoveRequest();
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		}
 	};

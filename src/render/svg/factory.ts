@@ -4,16 +4,11 @@ import {
 	ExtensionSlotName
 } from '../../extensions/types/basic/mount.js';
 import { RenderSystemInitOptionsInternal, SvgRoots } from '../types.js';
-import {
-	createDefinitionSvgRootElement,
-	createVisualSvgElement,
-	createVisualSvgGroupRootElement,
-	createVisualSvgRootElement
-} from './helpers.js';
+import { createSvgDefsElement, createSvgElement, createSvgRootElement } from './helpers.js';
 
 export function createSvgRoots(options: RenderSystemInitOptionsInternal): SvgRoots {
 	const { element } = options;
-	const svgRoot = createVisualSvgRootElement(element, { 'data-chessboard-id': 'svg-root' });
+	const svgRoot = createSvgRootElement(element, { 'data-chessboard-id': 'svg-root' });
 	svgRoot.style.setProperty('user-select', 'none');
 	svgRoot.style.setProperty('-webkit-user-select', 'none');
 	svgRoot.style.setProperty('touch-action', 'pinch-zoom');
@@ -21,34 +16,30 @@ export function createSvgRoots(options: RenderSystemInitOptionsInternal): SvgRoo
 	svgRoot.style.setProperty('-webkit-tap-highlight-color', 'transparent');
 
 	// Create children in the correct order
-	const defs = createDefinitionSvgRootElement(svgRoot, {
-		'data-chessboard-id': 'defs-root'
-	});
-	const board = createVisualSvgGroupRootElement(svgRoot, { 'data-chessboard-id': 'board-root' });
-	const coordinates = createVisualSvgGroupRootElement(svgRoot, {
+	const board = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'board-root' });
+	const coordinates = createSvgElement(svgRoot, 'g', {
 		'data-chessboard-id': 'coordinates-root'
 	});
-	const underPieces = createVisualSvgGroupRootElement(svgRoot, {
+	const underPieces = createSvgElement(svgRoot, 'g', {
 		'data-chessboard-id': 'under-pieces-root'
 	});
-	const pieces = createVisualSvgGroupRootElement(svgRoot, { 'data-chessboard-id': 'pieces-root' });
-	const overPieces = createVisualSvgGroupRootElement(svgRoot, {
+	const pieces = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'pieces-root' });
+	const overPieces = createSvgElement(svgRoot, 'g', {
 		'data-chessboard-id': 'over-pieces-root'
 	});
-	const animation = createVisualSvgGroupRootElement(svgRoot, {
+	const animation = createSvgElement(svgRoot, 'g', {
 		'data-chessboard-id': 'animation-root'
 	});
-	const underDrag = createVisualSvgGroupRootElement(svgRoot, {
+	const underDrag = createSvgElement(svgRoot, 'g', {
 		'data-chessboard-id': 'under-drag-root'
 	});
-	const drag = createVisualSvgGroupRootElement(svgRoot, { 'data-chessboard-id': 'drag-root' });
-	const overDrag = createVisualSvgGroupRootElement(svgRoot, {
+	const drag = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'drag-root' });
+	const overDrag = createSvgElement(svgRoot, 'g', {
 		'data-chessboard-id': 'over-drag-root'
 	});
 
 	const result: SvgRoots = {
 		svgRoot,
-		defs,
 		board,
 		coordinates,
 		underPieces,
@@ -70,11 +61,11 @@ export function allocateExtensionSlotRoots(
 ): ExtensionAllocatedSlotsInternal {
 	const result = {} as Writable<ExtensionAllocatedSlotsInternal>;
 	for (const slot of slots) {
+		const id = `extension-slot-root-${slot}-${extensionId}`;
 		if (slot === 'defs') {
-			result[slot] = svgRoots.defs;
+			result[slot] = createSvgDefsElement(svgRoots.svgRoot, { 'data-chessboard-id': id });
 		} else {
-			const id = `extension-slot-root-${slot}-${extensionId}`;
-			result[slot] = createVisualSvgElement(svgRoots[slot], 'g', { 'data-chessboard-id': id });
+			result[slot] = createSvgElement(svgRoots[slot], 'g', { 'data-chessboard-id': id });
 		}
 	}
 	return result;

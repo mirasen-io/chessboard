@@ -1,5 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import type { Square } from '../../../state/board/types/internal.js';
 import { ColorCode } from '../../../state/board/types/internal.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
@@ -93,24 +93,20 @@ function createWatermarkInstance(options: ExtensionCreateInstanceOptions): Water
 			};
 			if (internalState.svgWatermark === null) {
 				assert(internalState.slotRoots, 'Slot roots should be available when render is called');
-				internalState.svgWatermark = createVisualSvgElement(
-					internalState.slotRoots.board,
-					'image',
-					{
-						'data-chessboard-id': 'watermark',
-						...watermarkAttributes
-					}
-				);
+				internalState.svgWatermark = createSvgElement(internalState.slotRoots.board, 'image', {
+					'data-chessboard-id': 'watermark',
+					...watermarkAttributes
+				});
 			} else {
 				updateSvgElementAttributes(internalState.svgWatermark, watermarkAttributes);
 			}
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionClean(internalState);
 		}
 	};

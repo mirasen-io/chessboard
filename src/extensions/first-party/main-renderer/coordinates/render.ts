@@ -1,6 +1,6 @@
 import {
-	clearVisualSlotChildren,
-	createVisualSvgElement,
+	clearSvgElementChildren,
+	createSvgElement,
 	isLightSquare
 } from '../../../../render/svg/helpers.js';
 import { squareOf } from '../../../../state/board/coords.js';
@@ -28,7 +28,7 @@ export function rendererCoordinatesRender(
 	}
 
 	const geometry = context.currentFrame.layout.geometry;
-	clearVisualSlotChildren(slot);
+	clearSvgElementChildren(slot);
 
 	const coords = state.config;
 	const fontSize = geometry.squareSize * 0.12;
@@ -47,7 +47,7 @@ export function rendererCoordinatesRender(
 		const r = geometry.getSquareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
-		const text = createVisualSvgElement(slot, 'text', {
+		const text = createSvgElement(slot, 'text', {
 			'data-chessboard-id': `coord-rank-${label}`,
 			x: (r.x + offset).toString(),
 			y: (r.y + offset).toString(),
@@ -76,7 +76,7 @@ export function rendererCoordinatesRender(
 		const r = geometry.getSquareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
-		const text = createVisualSvgElement(slot, 'text', {
+		const text = createSvgElement(slot, 'text', {
 			'data-chessboard-id': `coord-file-${label}`,
 			x: (r.x + r.width - offset).toString(),
 			y: (r.y + r.height - offset).toString(),

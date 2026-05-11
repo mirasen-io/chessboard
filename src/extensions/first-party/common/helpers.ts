@@ -1,8 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import {
-	clearDefinitionSlotChildren,
-	clearVisualSlotChildren
-} from '../../../render/svg/helpers.js';
+import { clearSvgElementChildren } from '../../../render/svg/helpers.js';
 import { ExtensionSlotName } from '../../types/basic/mount.js';
 import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import { ExtensionInternalBase } from './types.js';
@@ -39,27 +36,21 @@ export function extensionMountBase<TSlots extends readonly ExtensionSlotName[]>(
 }
 
 export function extensionUnmountBase<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternalBase<TSlots>,
-	extensionId: string
+	state: ExtensionInternalBase<TSlots>
 ): void {
 	assert(extensionIsMountedBase(state), 'Extension is not mounted');
-	for (const [slotName, slotRoot] of Object.entries(state.slotRoots ?? {})) {
-		if (slotName === 'defs') {
-			clearDefinitionSlotChildren(slotRoot as SVGDefsElement, extensionId);
-		} else {
-			clearVisualSlotChildren(slotRoot as SVGGElement);
-		}
+	for (const [, slotRoot] of Object.entries(state.slotRoots ?? {})) {
+		clearSvgElementChildren(slotRoot as SVGElement);
 	}
 	state.slotRoots = null;
 }
 
 export function extensionDestroyBase<TSlots extends readonly ExtensionSlotName[]>(
-	state: ExtensionInternalBase<TSlots>,
-	extensionId: string
+	state: ExtensionInternalBase<TSlots>
 ): void {
 	assert(!extensionIsDestroyedBase(state), 'Extension is already destroyed');
 	if (extensionIsMountedBase(state)) {
-		extensionUnmountBase(state, extensionId);
+		extensionUnmountBase(state);
 	}
 	state.destroyed = true;
 }

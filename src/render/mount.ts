@@ -1,6 +1,6 @@
 import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../extensions/types/basic/mount.js';
 import { validateIsMounted, validateIsNotMounted } from './rendering/helpers.js';
-import { clearDefinitionSlotChildren, clearVisualSlotChildren } from './svg/helpers.js';
+import { clearSvgElementChildren } from './svg/helpers.js';
 import { RenderSystemInternal } from './types.js';
 
 export function renderMount(state: RenderSystemInternal, element: HTMLElement): void {
@@ -22,12 +22,8 @@ export function renderUnmount(state: RenderSystemInternal): void {
 	for (const extensionRec of state.extensions.values()) {
 		extensionRec.extension.instance.unmount?.();
 		// clear the slot roots
-		for (const [slotName, slotRoot] of Object.entries(extensionRec.render.slots)) {
-			if (slotName === 'defs') {
-				clearDefinitionSlotChildren(slotRoot as SVGDefsElement, extensionRec.extension.id);
-			} else {
-				clearVisualSlotChildren(slotRoot as SVGGElement);
-			}
+		for (const [, slotRoot] of Object.entries(extensionRec.render.slots)) {
+			clearSvgElementChildren(slotRoot);
 		}
 	}
 	// remove our svg root from the container

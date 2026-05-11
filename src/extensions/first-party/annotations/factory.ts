@@ -162,11 +162,11 @@ function createAnnotationsInstance(
 		},
 		unmount() {
 			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
-			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionCleanSvg(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
+			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionCleanSvg(internalState);
 		},
 		getPublic() {

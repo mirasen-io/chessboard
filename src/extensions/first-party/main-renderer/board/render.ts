@@ -1,6 +1,6 @@
 import {
-	clearVisualSlotChildren,
-	createVisualSvgElement,
+	clearSvgElementChildren,
+	createSvgElement,
 	isLightSquare
 } from '../../../../render/svg/helpers.js';
 import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal.js';
@@ -18,13 +18,13 @@ export function rendererBoardRender(
 		return; // no-op
 	}
 	const geometry = context.currentFrame.layout.geometry;
-	clearVisualSlotChildren(slot);
+	clearSvgElementChildren(slot);
 
 	const { light, dark } = state.config;
 
 	for (let sq = 0 as Square; sq < SQUARE_COUNT; sq++) {
 		const r = geometry.getSquareRect(sq);
-		createVisualSvgElement(slot, 'rect', {
+		createSvgElement(slot, 'rect', {
 			'data-chessboard-id': `square-${sq}`,
 			x: r.x.toString(),
 			y: r.y.toString(),

@@ -1,4 +1,4 @@
-import { Square } from '../../../state/board/types/internal.js';
+import type { Square } from '../../../state/board/types/internal.js';
 
 export interface ScenePoint {
 	readonly x: number;

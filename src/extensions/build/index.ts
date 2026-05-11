@@ -4,10 +4,9 @@ export {
 	renderAnimationPlan
 } from '../../animation/render/plan.js';
 export {
-	clearDefinitionSlotChildren,
-	clearVisualSlotChildren,
-	createDefinitionSvgElement,
-	createVisualSvgElement,
+	clearSvgElementChildren,
+	createSvgElement,
+	createSvgRootElement,
 	updateSvgElementAttributes
 } from '../../render/svg/helpers.js';
 export type { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types.js';
@@ -27,7 +26,6 @@ export type {
 	SquareFile,
 	SquareRank
 } from '../../state/board/types/internal.js';
-export type { MoveOutput } from '../../state/board/types/output.js';
 export type { MovabilityModeCode } from '../../state/interaction/types/internal.js';
 export {
 	extensionCreateInternalBase,
