@@ -49,6 +49,7 @@ export interface ExtensionSystem {
 	onUIMoveRequest(context: ExtensionPendingUIMoveRequestContext): void;
 	onEvent(context: ExtensionOnEventContext): void;
 	completeDrag(session: DragSessionExtensionOwned): void;
+	cancelDrag(session: DragSessionExtensionOwned): void;
 	onUnmount(): void;
 	onDestroy(): void;
 }

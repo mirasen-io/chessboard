@@ -159,3 +159,49 @@ describe('createExtensionSystem – completeDrag dispatch', () => {
 		expect(() => system.completeDrag(session as never)).toThrow();
 	});
 });
+
+describe('createExtensionSystem – cancelDrag dispatch', () => {
+	it('calls cancelDrag on the owning extension', () => {
+		const cancelDrag = vi.fn();
+		const def: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () =>
+				({ id: 'ext-a', completeDrag: vi.fn(), cancelDrag }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([def]));
+
+		const session = {
+			owner: 'ext-a',
+			type: 'ext:draw' as const,
+			sourceSquare: 0,
+			sourcePieceCode: null,
+			targetSquare: 0
+		};
+		system.cancelDrag(session as never);
+
+		expect(cancelDrag).toHaveBeenCalledTimes(1);
+		expect(cancelDrag).toHaveBeenCalledWith(session);
+	});
+
+	it('does not throw if the owning extension has no cancelDrag handler', () => {
+		const def: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () =>
+				({ id: 'ext-a', completeDrag: vi.fn() }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([def]));
+
+		const session = { owner: 'ext-a', type: 'ext:draw' };
+		expect(() => system.cancelDrag(session as never)).not.toThrow();
+	});
+
+	it('throws if the owning extension record does not exist', () => {
+		const { definition } = createFakeExtensionDefinition({ id: 'ext-a' });
+		const system = createExtensionSystem(createExtensionSystemOptions([definition]));
+
+		const session = { owner: 'nonexistent', type: 'ext:draw' };
+		expect(() => system.cancelDrag(session as never)).toThrow();
+	});
+});

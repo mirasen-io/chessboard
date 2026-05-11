@@ -19,7 +19,7 @@ import {
 	annotationsSetClearOnCoreInteraction
 } from './api.js';
 import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
-import { completeAnnotationsDrag, handleAnnotationsEvent } from './interaction.js';
+import { cancelAnnotationsDrag, completeAnnotationsDrag, handleAnnotationsEvent } from './interaction.js';
 import { normalizeAnnotationsConfig, normalizeInitialAnnotations } from './normalize.js';
 import { renderCommittedArrows } from './render-arrows.js';
 import { renderCommittedCircles } from './render-circles.js';
@@ -67,7 +67,8 @@ function createAnnotationsInternal(
 			svgArrows: new Map()
 		},
 		annotations,
-		config
+		config,
+		activeDrawGesture: null
 	};
 }
 
@@ -160,14 +161,19 @@ function createAnnotationsInstance(
 		completeDrag(session) {
 			completeAnnotationsDrag(internalState, session);
 		},
+		cancelDrag(session) {
+			cancelAnnotationsDrag(internalState, session);
+		},
 		unmount() {
 			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
 			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionCleanSvg(internalState);
+			internalState.activeDrawGesture = null;
 		},
 		destroy() {
 			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionCleanSvg(internalState);
+			internalState.activeDrawGesture = null;
 		},
 		getPublic() {
 			return publicAPI;

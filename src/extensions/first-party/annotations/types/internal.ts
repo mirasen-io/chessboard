@@ -30,6 +30,12 @@ export interface AnnotationModifierColorConfig {
 export interface AnnotationsConfig {
 	clearOnCoreInteraction: boolean;
 	readonly colors: AnnotationModifierColorConfig;
+	readonly drawButton: number;
+}
+
+export interface ActiveDrawGesture {
+	readonly sourceSquare: Square;
+	readonly color: AnnotationColor;
 }
 
 export interface VisualConfigCircleAnnotation {

@@ -8,7 +8,8 @@ export const DEFAULT_CONFIG: AnnotationsConfig = {
 		shift: '#e68f00',
 		alt: '#003088',
 		meta: '#6f2da8'
-	}
+	},
+	drawButton: 2
 };
 
 export const VISUAL_CONFIG: VisualConfig = {

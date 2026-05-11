@@ -3,6 +3,7 @@ import type { ExtensionDefinition, ExtensionInstance } from '../../../types/exte
 import type { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
 import type { ExtensionInternalBase } from '../../common/types.js';
 import type {
+	ActiveDrawGesture,
 	AnnotationsConfig,
 	ArrowAnnotation,
 	ArrowAnnotationKey,
@@ -56,4 +57,5 @@ export interface AnnotationsStateInternal extends ExtensionInternalBase<Extensio
 	readonly svg: AnnotationsStateInternalSvg;
 	readonly annotations: AnnotationsStateInternalAnnotations;
 	readonly config: AnnotationsConfig;
+	activeDrawGesture: ActiveDrawGesture | null;
 }

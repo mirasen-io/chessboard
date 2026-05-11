@@ -30,6 +30,7 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	cleanAnimation?(context: ExtensionCleanAnimationContext): void;
 	// Interaction
 	completeDrag?(session: ExtensionDragSessionSnapshot): void;
+	cancelDrag?(session: ExtensionDragSessionSnapshot): void;
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events

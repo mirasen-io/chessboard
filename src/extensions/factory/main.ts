@@ -119,6 +119,14 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			);
 			extensionRec.instance.completeDrag(session);
 		},
+		cancelDrag(session) {
+			const extensionRec = internalState.extensions.get(session.owner);
+			assert(
+				extensionRec,
+				`Extension record not found for cancelling drag session with owner ${session.owner}`
+			);
+			extensionRec.instance.cancelDrag?.(session);
+		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();
 			internalState.eventSubscribers.clear();

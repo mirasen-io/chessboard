@@ -21,7 +21,7 @@ import type {
 	RuntimeStatus
 } from '../types/main.js';
 import { createExtensionRuntimeSurfaceEvents } from './events.js';
-import { createRuntimeInteractionSurface } from './input.js';
+import { createRuntimeInteractionSurface, notifyExtensionCancelDragIfOwned } from './input.js';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
 	const extensionSystem = createExtensionSystem(options);
@@ -135,6 +135,7 @@ function createExtensionRuntimeSurfaceCommandsInternalSurface(
 		clearActiveInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
+			notifyExtensionCancelDragIfOwned(state, state.state.interaction.dragSession);
 			const changed = state.state.interaction.clearActive(mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
@@ -142,6 +143,7 @@ function createExtensionRuntimeSurfaceCommandsInternalSurface(
 		clearInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
+			notifyExtensionCancelDragIfOwned(state, state.state.interaction.dragSession);
 			const changed = state.state.interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;

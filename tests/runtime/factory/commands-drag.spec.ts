@@ -5,6 +5,7 @@ import type {
 } from '../../../src/extensions/types/extension.js';
 import type { ExtensionRuntimeSurfaceCommands } from '../../../src/extensions/types/surface/commands.js';
 import { createRuntime } from '../../../src/runtime/factory/main.js';
+import { notifyExtensionCancelDragIfOwned } from '../../../src/runtime/factory/input.js';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
 import { PieceCode } from '../../../src/state/board/types/internal.js';
 
@@ -132,5 +133,84 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 				targetSquare: normalizeSquare('e4')
 			})
 		).toThrow(/completeDrag/);
+	});
+});
+
+describe('runtime cancelDrag notification on clearActiveInteraction', () => {
+	it('calls cancelDrag on the owning extension for extension-owned drag', () => {
+		const cancelDrag = vi.fn();
+		const ext: AnyExtensionDefinition = {
+			id: 'test-ext',
+			slots: [],
+			createInstance(options) {
+				capturedCommands = options.runtimeSurface.commands;
+				return {
+					id: 'test-ext',
+					completeDrag: vi.fn(),
+					cancelDrag
+				} as unknown as AnyExtensionInstance;
+			}
+		};
+		const { runtime, commands } = createTestRuntime(ext);
+
+		commands.startDrag({
+			type: 'ext:draw',
+			sourceSquare: normalizeSquare('e4'),
+			sourcePieceCode: null,
+			targetSquare: normalizeSquare('e4')
+		});
+
+		runtime.clearActiveInteraction();
+
+		expect(cancelDrag).toHaveBeenCalledTimes(1);
+		expect(cancelDrag).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: 'ext:draw',
+				owner: 'test-ext'
+			})
+		);
+	});
+
+	it('does not call cancelDrag for core-owned drag session', () => {
+		const cancelDrag = vi.fn();
+		const mockExtensionSystem = { cancelDrag } as never;
+
+		notifyExtensionCancelDragIfOwned(
+			{ extensionSystem: mockExtensionSystem } as never,
+			{
+				owner: 'core',
+				type: 'lifted-piece-drag',
+				sourceSquare: normalizeSquare('e2'),
+				sourcePieceCode: PieceCode.WhitePawn,
+				targetSquare: normalizeSquare('e4')
+			}
+		);
+
+		expect(cancelDrag).not.toHaveBeenCalled();
+	});
+
+	it('does not call cancelDrag when drag session is null', () => {
+		const cancelDrag = vi.fn();
+		const mockExtensionSystem = { cancelDrag } as never;
+
+		notifyExtensionCancelDragIfOwned(
+			{ extensionSystem: mockExtensionSystem } as never,
+			null
+		);
+
+		expect(cancelDrag).not.toHaveBeenCalled();
+	});
+
+	it('does not throw when extension has no cancelDrag handler', () => {
+		const { runtime, commands } = createTestRuntime();
+
+		commands.startDrag({
+			type: 'ext:test',
+			sourceSquare: normalizeSquare('a1'),
+			sourcePieceCode: null,
+			targetSquare: normalizeSquare('a1')
+		});
+
+		expect(() => runtime.clearActiveInteraction()).not.toThrow();
 	});
 });

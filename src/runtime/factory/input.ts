@@ -1,12 +1,21 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check.js';
 import { isDragSessionCoreOwned } from '../../state/interaction/helpers.js';
-import { DragSession } from '../../state/interaction/types/internal.js';
+import { DragSession, DragSessionSnapshot } from '../../state/interaction/types/internal.js';
 import { InteractionStateSelected } from '../../state/interaction/types/main.js';
 import { RuntimeInteractionSurface } from '../input/controller/types.js';
 import { runtimeRunMutationPipeline } from '../mutation/run.js';
-import { GetInternalState } from '../types/main.js';
+import { GetInternalState, RuntimeInternal } from '../types/main.js';
 import { uiMoveCompleteTo } from './helpers.js';
+
+export function notifyExtensionCancelDragIfOwned(
+	internalState: RuntimeInternal,
+	dragSession: DragSessionSnapshot | null
+): void {
+	if (dragSession && !isDragSessionCoreOwned(dragSession)) {
+		internalState.extensionSystem.cancelDrag(dragSession);
+	}
+}
 
 export function createRuntimeInteractionSurface(
 	state: GetInternalState
@@ -105,13 +114,17 @@ export function createRuntimeInteractionSurface(
 		cancelActiveInteraction() {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
-			internalState.state.interaction.clearActive(mutationSession);
+			const interaction = internalState.state.interaction;
+			notifyExtensionCancelDragIfOwned(internalState, interaction.dragSession);
+			interaction.clearActive(mutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		cancelInteraction() {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
-			internalState.state.interaction.clear(mutationSession);
+			const interaction = internalState.state.interaction;
+			notifyExtensionCancelDragIfOwned(internalState, interaction.dragSession);
+			interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		updateDragSessionCurrentTarget(target) {

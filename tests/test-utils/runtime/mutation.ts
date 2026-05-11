@@ -54,6 +54,7 @@ export function createMockExtensionSystem(
 		onUIMoveRequest: vi.fn(),
 		onEvent: vi.fn(),
 		completeDrag: vi.fn(),
+		cancelDrag: vi.fn(),
 		onUnmount: vi.fn(),
 		onDestroy: vi.fn()
 	};
