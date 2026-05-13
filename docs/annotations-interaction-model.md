@@ -8,7 +8,7 @@ The model covers visual annotations that belong to the board UI: circle markers,
 
 This document is the source of truth for the library annotation model. It does not attempt to mirror any external product exactly in every edge case.
 
-In this model, annotation changes are resolved on `pointerup`, not on `pointerdown`. `pointerdown` may start an annotation gesture and `pointermove` may update its preview, but the annotation state is not committed until the gesture resolves.
+In this model, annotation changes are resolved on `pointerup`, not on `pointerdown`. `pointerdown` may start an extension-owned annotation drag gesture. While that gesture is active, the runtime/controller owns pointer movement and updates the active drag session target. The annotations extension derives preview state from that drag session during update, but committed annotation state is not changed until the gesture resolves.
 
 In this model, annotation visuals are board-local UI state. The annotation model does not define persistence, serialization format, or domain-specific annotation semantics.
 
@@ -22,7 +22,7 @@ In scope:
 
 - circle annotations on board squares;
 - arrow annotations between board squares;
-- secondary-button annotation gestures;
+- configured-button annotation gestures;
 - annotation preview during active gestures;
 - add, replace, and remove behavior;
 - optional clearing on core board interaction;
@@ -33,7 +33,7 @@ Out of scope:
 
 - persistence and serialization;
 - keyboard-driven annotation interaction;
-- touch-specific annotation mode;
+- touch-specific annotation behavior beyond configurable draw input;
 - accessibility / focus behavior;
 - text labels;
 - square highlights;
@@ -51,7 +51,7 @@ This document exists to define predictable annotation interaction semantics.
 
 It should make it easy to answer:
 
-- what does a secondary pointer event mean in the current annotation state?
+- what does a configured draw-button pointer event mean in the current annotation state?
 - when does the annotations extension
   - start an annotation gesture?
   - show a circle preview?
@@ -151,7 +151,29 @@ These inputs affect event interpretation in this model.
 
 In the default annotation model, annotation drawing uses the secondary button.
 
-Primary-button input belongs to core chess interaction unless the annotations extension explicitly owns an idle clearing gesture.
+Primary-button input belongs to core chess interaction unless the annotations extension explicitly owns an idle clearing gesture or is configured to use the primary button for annotation drawing.
+
+### Configured draw input
+
+Annotation drawing is controlled by `drawButton`.
+
+In this model:
+
+- `drawButton` defines which pointer button starts an annotation draw gesture;
+- the default `drawButton` is the secondary button (`button === 2`);
+- `drawButton` may be configured to the primary button (`button === 0`) for touch/mobile-style annotation mode;
+- when the configured draw button matches the event, annotation drawing takes ownership before idle clearing behavior;
+- when `drawButton === 0`, primary-button annotation drawing is intentionally annotation-owned and does not belong to core chess interaction for that event.
+
+Annotation color may also be controlled by `drawModifier`.
+
+In this model:
+
+- `drawModifier === null` means the gesture color is resolved from the actual event modifier keys;
+- a non-null `drawModifier` value forces that modifier color role for new draw gestures;
+- when `drawModifier` is non-null, actual event modifier keys are ignored for annotation color resolution;
+- the resolved color is captured when the annotation gesture starts;
+- changing `drawModifier` during an active gesture does not change that gesture's color.
 
 ### Board ownership
 
@@ -172,7 +194,7 @@ Implications:
 
 ### Modifier keys
 
-Modifier keys may select the annotation color for user-created annotations.
+Modifier keys may select the annotation color for user-created annotations when `drawModifier === null`.
 
 The modifier names follow DOM event modifier fields:
 
@@ -244,26 +266,30 @@ These are the main interpretation outcomes the annotations extension may choose.
 
 ### `pointerdown`
 
-Responsible for interpreting the start of a possible annotation gesture.
+Responsible for interpreting the start of a possible annotation-owned gesture.
 
 Possible meanings:
 
-- start secondary-button annotation gesture;
+- start configured-button annotation draw gesture;
 - start primary-button idle clear gesture when allowed;
 - pass through to core chess interaction;
 - ignore / no-op.
 
+When a draw gesture starts, the annotations extension starts an extension-owned drag session. The annotation color is resolved at gesture start.
+
 ### `pointermove`
 
-Responsible for updating annotation preview inside an already active annotation gesture.
+`pointermove` is not handled by the annotations extension as a separate event subscription.
 
-Possible meanings:
+The runtime/controller owns pointer movement after an extension-owned drag session has started. Pointer movement updates the active drag session target. The annotations extension observes the resulting drag session state during update and derives preview state from it.
+
+Possible preview outcomes derived from the active draw drag session target:
 
 - keep circle preview on the source square;
 - switch to arrow preview when targeting another square;
 - update arrow preview target;
 - clear preview when no target square is resolved;
-- no-op.
+- no-op when no annotation draw gesture is active.
 
 ### `pointerup`
 
@@ -338,8 +364,18 @@ Preview visuals represent the active annotation gesture before commit.
 
 Expected layer ownership:
 
-- preview annotations render in the extension's active gesture layer;
+- preview circles render in the extension's active gesture layer;
+- preview arrow lines render in the extension's active gesture layer;
+- preview arrow markers render in the extension-owned defs layer;
 - preview visuals do not commit annotation state until `pointerup` resolves on the board.
+
+Preview rendering is derived from the active extension-owned draw drag session:
+
+- no active draw gesture or no resolved target square means no preview;
+- target square equal to the source square means circle preview;
+- target square different from the source square means arrow preview.
+
+The renderer owns preview SVG creation, update, and cleanup. Event handling and update logic must not directly mutate SVG nodes.
 
 ### Remove preview visuals
 
@@ -347,16 +383,19 @@ Remove previews communicate that releasing the current gesture would remove an e
 
 In this model:
 
-- circle remove preview uses the circle add-preview geometry with remove-preview opacity;
-- arrow remove preview uses committed arrow geometry with remove-preview opacity.
+- circle remove preview uses the circle preview geometry with remove-preview opacity;
+- arrow remove preview uses committed arrow geometry with remove-preview opacity;
+- the committed visual that would be removed is temporarily suppressed while the remove preview is active;
+- suppression affects only rendering, not committed annotation state;
+- if the preview target changes so the gesture no longer represents removal, the committed visual is rendered normally again.
 
 This asymmetry is intentional.
 
 ---
 
-## Secondary pointer annotation model
+## Draw annotation gesture model
 
-Use this section as the primary interpretation guide for secondary-button annotation gestures.
+Use this section as the primary interpretation guide for configured-button annotation draw gestures.
 
 ### Step 1 — Did the relevant press start on a board square?
 
@@ -368,29 +407,32 @@ Use this section as the primary interpretation guide for secondary-button annota
 - If yes:
   - continue.
 
-### Step 2 — Is the event a secondary-button `pointerdown`?
+### Step 2 — Is the event a configured draw-button `pointerdown`?
 
 - If no:
-  - do not start a secondary annotation gesture;
+  - do not start an annotation draw gesture;
   - pass through or ignore according to the relevant event path.
 
 - If yes:
-  - start an annotation gesture from the pressed square;
-  - resolve annotation color from modifier keys;
-  - show circle preview on the source square;
+  - resolve annotation color from `drawModifier` or event modifier keys;
+  - start an extension-owned annotation drag gesture from the pressed square;
+  - the initial drag target is the source square;
+  - show circle preview on the source square through the update/render cycle;
   - consume the event.
 
-### Step 3 — Does `pointermove` resolve to another board square?
+### Step 3 — Does the active draw drag session resolve to another board square?
 
-- If no square is resolved:
+The annotations extension does not separately own `pointermove`. Instead, the runtime/controller updates the active extension-owned drag session target, and the annotations extension derives preview from that target during update.
+
+- If no target square is resolved:
   - clear or hide the active preview;
   - keep the gesture active until `pointerup` or `pointercancel`.
 
-- If the resolved square is the source square:
+- If the resolved target square is the source square:
   - show circle preview.
 
-- If the resolved square differs from the source square:
-  - show arrow preview from source square to resolved square.
+- If the resolved target square differs from the source square:
+  - show arrow preview from source square to resolved target square.
 
 ### Step 4 — Does `pointerup` resolve on the board?
 
@@ -527,6 +569,7 @@ The idle primary clear gesture exists to support quick clearing without interfer
 Start this annotation-owned gesture only when:
 
 - event is primary-button `pointerdown`;
+- the event does not match the configured `drawButton`;
 - the pointer is on a board square;
 - `runtimeInteractionActionPreview === null`;
 - `clearOnCoreInteraction === true`;
@@ -540,6 +583,7 @@ Then:
 
 Important:
 
+- if the event matches `drawButton`, the draw gesture takes ownership before idle clearing;
 - if `runtimeInteractionActionPreview !== null`, the annotations extension must pass through;
 - normal piece selection, reselection, release targeting, and lifted drag remain core-owned;
 - the annotations extension must not duplicate the core chess interaction model.
@@ -590,6 +634,20 @@ In this model:
 - the same previewed action is executed by the controller if no extension consumes the event.
 
 This keeps annotation input ownership explicit while preserving core interaction ownership in the input controller.
+
+The annotations extension also uses extension-owned drag sessions for draw gestures.
+
+In this model:
+
+- annotation draw starts from annotation-owned `pointerdown`;
+- pointer movement is handled by the runtime/controller;
+- the runtime updates the active extension-owned drag session target;
+- the annotations extension observes that target during update;
+- annotation preview is derived from the current draw drag session target;
+- annotations do not subscribe to `pointermove` only to update preview;
+- committed annotation state is still resolved only by `pointerup` / drag completion.
+
+This keeps pointer movement centralized in the runtime/controller while allowing annotations to render live gesture previews.
 
 ---
 
