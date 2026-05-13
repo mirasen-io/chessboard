@@ -144,6 +144,72 @@ describe('annotations draw gesture — handleAnnotationsEvent', () => {
 	});
 });
 
+describe('annotations contextmenu suppression — handleAnnotationsEvent', () => {
+	function createContextMenuEvent(): Event {
+		const event = new Event('contextmenu', { cancelable: true });
+		vi.spyOn(event, 'preventDefault');
+		return event;
+	}
+
+	it('calls preventDefault on contextmenu', () => {
+		const state = createMockState();
+		const rawEvent = createContextMenuEvent();
+		const context = createEventContext(rawEvent, 28);
+
+		handleAnnotationsEvent(state, context);
+
+		expect(rawEvent.preventDefault).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not call startDrag', () => {
+		const state = createMockState();
+		const startDrag = state.runtimeSurface.commands.startDrag as ReturnType<typeof vi.fn>;
+		const rawEvent = createContextMenuEvent();
+		const context = createEventContext(rawEvent, 28);
+
+		handleAnnotationsEvent(state, context);
+
+		expect(startDrag).not.toHaveBeenCalled();
+	});
+
+	it('does not set activeDrawGesture', () => {
+		const state = createMockState();
+		const rawEvent = createContextMenuEvent();
+		const context = createEventContext(rawEvent, 28);
+
+		handleAnnotationsEvent(state, context);
+
+		expect(state.activeDrawGesture).toBeNull();
+	});
+
+	it('prevents default even without a target square', () => {
+		const state = createMockState();
+		const rawEvent = createContextMenuEvent();
+		const context: ExtensionOnEventContext = {
+			rawEvent,
+			sceneEvent: null,
+			runtimeInteractionActionPreview: null
+		} as unknown as ExtensionOnEventContext;
+
+		handleAnnotationsEvent(state, context);
+
+		expect(rawEvent.preventDefault).toHaveBeenCalledTimes(1);
+	});
+
+	it('prevents default when drawButton is 0', () => {
+		const state = createMockState({ config: { ...DEFAULT_CONFIG, drawButton: 0 } });
+		const rawEvent = createContextMenuEvent();
+		const context = createEventContext(rawEvent, 28);
+
+		handleAnnotationsEvent(state, context);
+
+		expect(rawEvent.preventDefault).toHaveBeenCalledTimes(1);
+		expect(
+			(state.runtimeSurface.commands.startDrag as ReturnType<typeof vi.fn>)
+		).not.toHaveBeenCalled();
+	});
+});
+
 describe('annotations draw gesture — idle clear remains unchanged', () => {
 	it('primary button with null preview and non-empty annotations starts idle-clear', () => {
 		const state = createMockState();

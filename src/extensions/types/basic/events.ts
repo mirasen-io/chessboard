@@ -12,7 +12,8 @@ export interface ScenePointerEvent {
 		| 'pointerout'
 		| 'pointerover'
 		| 'pointerrawupdate'
-		| 'pointerup';
+		| 'pointerup'
+		| 'contextmenu';
 	// Points in scene coordinates
 	readonly point: ScenePoint;
 	readonly clampedPoint: ScenePoint;
@@ -30,7 +31,8 @@ export const ALL_SCENE_POINTER_EVENT_TYPES: ReadonlySet<string> = new Set([
 	'pointerout',
 	'pointerover',
 	'pointerrawupdate',
-	'pointerup'
+	'pointerup',
+	'contextmenu'
 ]);
 
 export type SceneEvent = ScenePointerEvent;

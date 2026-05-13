@@ -28,15 +28,12 @@ export function handleAnnotationsEvent(
 ): void {
 	assert(context.rawEvent.type === 'pointerdown' || context.rawEvent.type === 'contextmenu');
 	if (context.rawEvent.type === 'contextmenu') {
-		const targetSquare = context.sceneEvent?.targetSquare;
-		if (targetSquare === undefined || targetSquare === null) return;
-		// Browser context menus are separate from pointerdown.
-		// Suppress them only when secondary button is configured for annotation drawing on the board.
-		if (state.config.drawButton === 2) {
-			context.rawEvent.preventDefault();
-		}
+		// Browser context menus are separate from the pointer drag lifecycle.
+		// The board owns secondary-button interaction, so suppress the browser menu.
+		context.rawEvent.preventDefault();
 		return;
 	}
+
 	const rawEvent = context.rawEvent as PointerEvent;
 
 	// The configured draw button owns annotation drawing gestures.
@@ -65,6 +62,7 @@ export function handleAnnotationsEvent(
 	// Drawing uses the configured draw button above.
 	// The remaining primary-button path is reserved for idle-clear.
 	if (rawEvent.button !== 0) return;
+
 	const targetSquare = context.sceneEvent?.targetSquare;
 	if (targetSquare === undefined || targetSquare === null) return;
 	if (context.runtimeInteractionActionPreview !== null) return;
