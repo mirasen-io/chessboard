@@ -1,5 +1,42 @@
 # @mirasen/chessboard
 
+## 1.2.0
+
+### Minor Changes
+
+- 101903a: Add board annotations with square markers, free arrows, live previews, and programmatic annotation APIs.
+- 101903a: Refines extension/rendering internals before third-party extension APIs stabilize.
+
+  Breaking for custom extension authors:
+  - SVG helper exports were simplified around generic SVG helpers: `createSvgElement`, `createSvgRootElement`, `createSvgDefsElement`, and `clearSvgElementChildren`.
+  - `defs` is now an extension-owned top-level `<defs>` slot under the root `<svg>`, instead of a shared `defs-root`.
+  - `extensionUnmountBase` now clears the extension-owned slot roots directly and no longer accepts an `extensionId`.
+
+  Board/runtime initialization is now element-first. Most consumers using direct container-based board creation should not need migration changes.
+
+### Patch Changes
+
+- 4ec620b: dependabot: directory '/', update @sveltejs/kit
+- 4ec620b: dependabot: directory '/', update eslint
+- 4ec620b: dependabot: directory '/', update globals
+- 4ec620b: dependabot: directory '/', update svelte-check
+- 49760cc: dependabot: directory '/', update @sveltejs/kit
+- 49760cc: dependabot: directory '/', update @types/node
+- 49760cc: dependabot: directory '/', update publint
+- 49760cc: dependabot: directory '/', update svelte-check
+- 49760cc: dependabot: directory '/', update typescript-eslint
+- 559677e: dependabot: directory '/', update @eslint/compat
+- 559677e: dependabot: directory '/', update publint
+- 72a1480: dependabot: directory '/', update @playwright/test
+- 72a1480: dependabot: directory '/', update @types/node
+- 72a1480: dependabot: directory '/', update @vitest/browser-playwright
+- 72a1480: dependabot: directory '/', update @vitest/coverage-istanbul
+- 72a1480: dependabot: directory '/', update playwright
+- 72a1480: dependabot: directory '/', update prettier-plugin-svelte
+- 72a1480: dependabot: directory '/', update publint
+- 72a1480: dependabot: directory '/', update typescript-eslint
+- 72a1480: dependabot: directory '/', update vitest
+
 ## 1.1.5
 
 ### Patch Changes
