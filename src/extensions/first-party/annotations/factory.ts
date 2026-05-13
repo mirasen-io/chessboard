@@ -1,4 +1,5 @@
 import { cloneDeep } from 'es-toolkit';
+import type { Square } from '../../../state/board/types/internal.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
 import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
@@ -29,8 +30,8 @@ import {
 	handleAnnotationsEvent
 } from './interaction.js';
 import { normalizeAnnotationsConfig, normalizeInitialAnnotations } from './normalize.js';
-import { renderCommittedArrows } from './render-arrows.js';
-import { renderCommittedCircles } from './render-circles.js';
+import { renderCommittedAnnotations } from './render/committed.js';
+import { renderPreviewAnnotations } from './render/preview.js';
 import { DirtyLayer, type AnnotationsConfig } from './types/internal.js';
 import type {
 	AnnotationsDefinition,
@@ -76,13 +77,28 @@ function createAnnotationsInternal(
 		},
 		annotations,
 		config,
-		activeDrawGesture: null
+		activeDrawGesture: null,
+		activeDrawPreviewTarget: null,
+		previewSvg: { circle: null, arrow: null }
 	};
 }
 
 function extensionCleanSvg(state: AnnotationsStateInternal): void {
 	state.svg.svgCircles.clear();
 	state.svg.svgArrows.clear();
+	if (state.previewSvg.arrow) {
+		state.previewSvg.arrow.marker.remove();
+	}
+	state.previewSvg.circle = null;
+	state.previewSvg.arrow = null;
+}
+
+function extensionClean(state: AnnotationsStateInternal): void {
+	state.runtimeSurface.events.unsubscribeEvent('pointerdown');
+	state.runtimeSurface.events.unsubscribeEvent('contextmenu');
+	state.activeDrawGesture = null;
+	state.activeDrawPreviewTarget = null;
+	extensionCleanSvg(state);
 }
 
 function createAnnotationsPublicAPI(state: AnnotationsStateInternal): AnnotationsPublicAPI {
@@ -167,14 +183,48 @@ function createAnnotationsInstance(
 				isUpdateContextRenderable(context)
 			) {
 				context.invalidation.markDirty(DirtyLayer.COMMITTED);
+				if (
+					internalState.activeDrawPreviewTarget !== null ||
+					internalState.previewSvg.circle !== null ||
+					internalState.previewSvg.arrow !== null
+				) {
+					context.invalidation.markDirty(DirtyLayer.PREVIEW);
+				}
+			}
+
+			// Preview target tracking from ext:draw drag session
+			let nextPreviewTarget: Square | null = null;
+			if (internalState.activeDrawGesture !== null) {
+				const dragSession = context.currentFrame.state.interaction.dragSession;
+				if (
+					dragSession &&
+					dragSession.type === 'ext:draw' &&
+					'owner' in dragSession &&
+					dragSession.owner === EXTENSION_ID
+				) {
+					nextPreviewTarget = dragSession.targetSquare;
+				}
+			}
+
+			if (nextPreviewTarget !== internalState.activeDrawPreviewTarget) {
+				internalState.activeDrawPreviewTarget = nextPreviewTarget;
+				context.invalidation.markDirty(DirtyLayer.PREVIEW);
+				context.invalidation.markDirty(DirtyLayer.COMMITTED);
+			} else if (
+				nextPreviewTarget === null &&
+				(internalState.previewSvg.circle !== null || internalState.previewSvg.arrow !== null)
+			) {
+				context.invalidation.markDirty(DirtyLayer.PREVIEW);
+				context.invalidation.markDirty(DirtyLayer.COMMITTED);
 			}
 		},
 		render(context) {
-			if (!(context.invalidation.dirtyLayers & DirtyLayer.COMMITTED)) {
-				return;
+			if (context.invalidation.dirtyLayers & DirtyLayer.COMMITTED) {
+				renderCommittedAnnotations(internalState, context.currentFrame.layout.geometry);
 			}
-			renderCommittedCircles(internalState, context.currentFrame.layout.geometry);
-			renderCommittedArrows(internalState, context.currentFrame.layout.geometry);
+			if (context.invalidation.dirtyLayers & DirtyLayer.PREVIEW) {
+				renderPreviewAnnotations(internalState, context.currentFrame.layout.geometry);
+			}
 		},
 		onEvent(context) {
 			handleAnnotationsEvent(internalState, context);
@@ -186,18 +236,12 @@ function createAnnotationsInstance(
 			cancelAnnotationsDrag(internalState, session);
 		},
 		unmount() {
-			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
-			internalState.runtimeSurface.events.unsubscribeEvent('contextmenu');
+			extensionClean(internalState);
 			extensionUnmountBase<ExtensionSlotsType>(internalState);
-			extensionCleanSvg(internalState);
-			internalState.activeDrawGesture = null;
 		},
 		destroy() {
-			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
-			internalState.runtimeSurface.events.unsubscribeEvent('contextmenu');
+			extensionClean(internalState);
 			extensionDestroyBase<ExtensionSlotsType>(internalState);
-			extensionCleanSvg(internalState);
-			internalState.activeDrawGesture = null;
 		},
 		getPublic() {
 			return publicAPI;

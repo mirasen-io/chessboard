@@ -22,7 +22,7 @@ export const VISUAL_CONFIG: VisualConfig = {
 		},
 		previewAdd: {
 			strokeWidth: 0.05,
-			radius: 0.34,
+			radius: 0.46875,
 			opacity: 0.8
 		},
 		previewRemoveOpacity: 0.25

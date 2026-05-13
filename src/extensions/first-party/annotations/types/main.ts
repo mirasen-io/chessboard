@@ -1,3 +1,4 @@
+import type { Square } from '../../../../state/board/types/internal.js';
 import type { ExtensionSlotName } from '../../../types/basic/mount.js';
 import type { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
 import type { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
@@ -32,15 +33,19 @@ export type AnnotationsInstance = ExtensionInstance<
 	AnnotationsPublicAPI
 >;
 
-export interface RenderedArrowSvg {
+export interface RenderedAnnotationCircleSvg {
+	readonly circle: SVGCircleElement;
+}
+
+export interface RenderedAnnotationArrowSvg {
 	readonly line: SVGLineElement;
 	readonly marker: SVGMarkerElement;
 	readonly markerPath: SVGPathElement;
 }
 
 export interface AnnotationsStateInternalSvg {
-	readonly svgCircles: Map<CircleAnnotationKey, SVGCircleElement>;
-	readonly svgArrows: Map<ArrowAnnotationKey, RenderedArrowSvg>;
+	readonly svgCircles: Map<CircleAnnotationKey, RenderedAnnotationCircleSvg>;
+	readonly svgArrows: Map<ArrowAnnotationKey, RenderedAnnotationArrowSvg>;
 }
 
 export interface AnnotationsStateInternalAnnotations {
@@ -48,14 +53,17 @@ export interface AnnotationsStateInternalAnnotations {
 	readonly arrows: Map<ArrowAnnotationKey, ArrowAnnotation>;
 }
 
+export interface AnnotationsStateInternalPreviewSvg {
+	circle: RenderedAnnotationCircleSvg | null;
+	arrow: RenderedAnnotationArrowSvg | null;
+}
+
 export interface AnnotationsStateInternal extends ExtensionInternalBase<ExtensionSlotsType> {
-	// Future render wiring:
-	// public API mutations will need to request a render, but we still need to decide
-	// which annotations-specific dirty/invalidation flag should be set before
-	// calling state.runtimeSurface.commands.requestRender().
 	readonly runtimeSurface: ExtensionRuntimeSurface;
 	readonly svg: AnnotationsStateInternalSvg;
 	readonly annotations: AnnotationsStateInternalAnnotations;
 	readonly config: AnnotationsConfig;
 	activeDrawGesture: ActiveDrawGesture | null;
+	activeDrawPreviewTarget: Square | null;
+	readonly previewSvg: AnnotationsStateInternalPreviewSvg;
 }

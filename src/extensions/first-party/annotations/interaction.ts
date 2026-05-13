@@ -45,6 +45,11 @@ export function handleAnnotationsEvent(
 		const targetSquare = context.sceneEvent?.targetSquare;
 		if (targetSquare === undefined || targetSquare === null) return;
 
+		state.activeDrawGesture = {
+			sourceSquare: targetSquare,
+			color: resolveAnnotationColor(state.config, rawEvent)
+		};
+
 		const success = state.runtimeSurface.commands.startDrag({
 			type: ANNOTATIONS_DRAW_DRAG_TYPE,
 			sourceSquare: targetSquare,
@@ -54,10 +59,8 @@ export function handleAnnotationsEvent(
 
 		if (success) {
 			rawEvent.preventDefault();
-			state.activeDrawGesture = {
-				sourceSquare: targetSquare,
-				color: resolveAnnotationColor(state.config, rawEvent)
-			};
+		} else {
+			state.activeDrawGesture = null;
 		}
 		return;
 	}
@@ -91,6 +94,7 @@ export function completeAnnotationsDrag(
 	if (session.type === ANNOTATIONS_DRAW_DRAG_TYPE) {
 		const gesture = state.activeDrawGesture;
 		state.activeDrawGesture = null;
+		state.activeDrawPreviewTarget = null;
 		if (!gesture) return;
 		if (session.targetSquare === null) return;
 
@@ -116,6 +120,7 @@ export function cancelAnnotationsDrag(
 ): void {
 	if (session.type === ANNOTATIONS_DRAW_DRAG_TYPE) {
 		state.activeDrawGesture = null;
+		state.activeDrawPreviewTarget = null;
 	}
 }
 

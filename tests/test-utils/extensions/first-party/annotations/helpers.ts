@@ -10,7 +10,7 @@ export const SQUARE_SIZE = 50;
 
 export function createMockRuntimeSurface(): ExtensionRuntimeSurface {
 	return {
-		commands: { requestRender: vi.fn(() => true) },
+		commands: { requestRender: vi.fn(() => true), startDrag: vi.fn(() => true) },
 		animation: {} as never,
 		events: { subscribeEvent: vi.fn(), unsubscribeEvent: vi.fn() },
 		transientVisuals: { subscribe: vi.fn(), unsubscribe: vi.fn() },
@@ -94,9 +94,9 @@ export function createRenderableUpdateContext(opts: { causes?: string[] }) {
 	};
 }
 
-export function setupMountedInstance() {
+export function setupMountedInstance(opts?: { surface?: ExtensionRuntimeSurface }) {
 	const def = createAnnotations();
-	const surface = createMockRuntimeSurface();
+	const surface = opts?.surface ?? createMockRuntimeSurface();
 	const instance = def.createInstance(
 		createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
 	);
