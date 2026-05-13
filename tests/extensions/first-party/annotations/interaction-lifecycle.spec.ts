@@ -43,11 +43,11 @@ describe('completeAnnotationsDrag — ext:draw', () => {
 		expect(state.activeDrawGesture).toBeNull();
 	});
 
-	it('does not mutate committed annotations', () => {
+	it('does not mutate committed annotations when activeDrawGesture is null', () => {
 		const state = createMockState();
 		state.annotations.circles.set(0, { key: 0, square: 0, color: '#ff0000' });
 		state.annotations.arrows.set(64, { key: 64, from: 1, to: 0, color: '#00ff00' });
-		state.activeDrawGesture = { sourceSquare: 10, color: '#ff0000' };
+		state.activeDrawGesture = null;
 
 		const session: ExtensionDragSessionSnapshot = {
 			type: 'ext:draw',
@@ -61,6 +61,25 @@ describe('completeAnnotationsDrag — ext:draw', () => {
 
 		expect(state.annotations.circles.size).toBe(1);
 		expect(state.annotations.arrows.size).toBe(1);
+	});
+
+	it('does not mutate committed annotations when targetSquare is null', () => {
+		const state = createMockState();
+		state.annotations.circles.set(0, { key: 0, square: 0, color: '#ff0000' });
+		state.activeDrawGesture = { sourceSquare: 10, color: '#ff0000' };
+
+		const session: ExtensionDragSessionSnapshot = {
+			type: 'ext:draw',
+			sourceSquare: 10,
+			sourcePieceCode: null,
+			targetSquare: null,
+			owner: 'annotations'
+		} as unknown as ExtensionDragSessionSnapshot;
+
+		completeAnnotationsDrag(state, session);
+
+		expect(state.annotations.circles.size).toBe(1);
+		expect(state.activeDrawGesture).toBeNull();
 	});
 });
 
