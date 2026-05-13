@@ -5,15 +5,20 @@
 	let boardEl: HTMLDivElement;
 	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
+	let orientation: 'white' | 'black' = $state('white');
+	let drawButton = $state(2);
 
-	function setWhite() {
+	function toggleOrientation() {
 		if (!board) return;
-		board.setOrientation('white');
+		orientation = orientation === 'white' ? 'black' : 'white';
+		board.setOrientation(orientation);
 	}
 
-	function setBlack() {
+	function toggleAnnotationsDrawButton() {
 		if (!board) return;
-		board.setOrientation('black');
+		const currentValue = board.extensions.annotations.drawButton;
+		drawButton = currentValue === 0 ? 2 : 0;
+		board.extensions.annotations.drawButton = drawButton;
 	}
 
 	function resetPosition() {
@@ -137,11 +142,13 @@
 		<p class="subtitle">Internal runtime smoke page · movable free · both colors</p>
 
 		<div class="controls">
-			<button onclick={setWhite}>Orientation: white</button>
-			<button onclick={setBlack}>Orientation: black</button>
+			<button onclick={toggleOrientation}>Orientation: {orientation}</button>
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={randomMove}>Random move</button>
+			<button onclick={toggleAnnotationsDrawButton}
+				>Annotation: {drawButton === 0 ? 'on' : 'off'}</button
+			>
 		</div>
 
 		<div class="board-wrap">

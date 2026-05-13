@@ -16,6 +16,21 @@
 	let status = $state('Your move');
 	let computerTimeout: ReturnType<typeof setTimeout> | null = null;
 	let gameVersion = 0;
+	let orientation: 'white' | 'black' = $state('white');
+	let drawButton = $state(2);
+
+	function toggleOrientation() {
+		if (!board) return;
+		orientation = orientation === 'white' ? 'black' : 'white';
+		board.setOrientation(orientation);
+	}
+
+	function toggleAnnotationsDrawButton() {
+		if (!board) return;
+		const currentValue = board.extensions.annotations.drawButton;
+		drawButton = currentValue === 0 ? 2 : 0;
+		board.extensions.annotations.drawButton = drawButton;
+	}
 
 	function getStatus(): string {
 		if (chess.isCheckmate()) return 'Checkmate';
@@ -103,7 +118,11 @@
 		<p class="subtitle">Play against a random-move computer · chess.js + adapter</p>
 
 		<div class="controls">
+			<button onclick={toggleOrientation}>Orientation: {orientation}</button>
 			<button onclick={resetGame}>Reset game</button>
+			<button onclick={toggleAnnotationsDrawButton}
+				>Annotation: {drawButton === 0 ? 'on' : 'off'}</button
+			>
 		</div>
 
 		<p class="status">{status}</p>

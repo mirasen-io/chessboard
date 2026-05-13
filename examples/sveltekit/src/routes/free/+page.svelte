@@ -4,17 +4,14 @@
 
 	let boardEl: HTMLDivElement;
 	let board: ReturnType<typeof createBoard> | null = null;
+	let orientation: 'white' | 'black' = $state('white');
 
 	// 1 - minimal example of chessboard runtime usage
 
-	function setWhite() {
+	function toggleOrientation() {
 		if (!board) return;
-		board.setOrientation('white');
-	}
-
-	function setBlack() {
-		if (!board) return;
-		board.setOrientation('black');
+		orientation = orientation === 'white' ? 'black' : 'white';
+		board.setOrientation(orientation);
 	}
 
 	function resetPosition() {
@@ -86,8 +83,7 @@
 		<p class="subtitle">Internal runtime smoke page · movable free · both colors</p>
 
 		<div class="controls">
-			<button onclick={setWhite}>Orientation: white</button>
-			<button onclick={setBlack}>Orientation: black</button>
+			<button onclick={toggleOrientation}>Orientation: {orientation}</button>
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={randomMove}>Random move</button>
