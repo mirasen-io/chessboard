@@ -29,8 +29,8 @@ export interface AnnotationModifierColorConfig {
 
 export interface AnnotationsConfig {
 	clearOnCoreInteraction: boolean;
+	drawButton: number;
 	readonly colors: AnnotationModifierColorConfig;
-	readonly drawButton: number;
 }
 
 export interface ActiveDrawGesture {

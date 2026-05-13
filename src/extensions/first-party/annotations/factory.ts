@@ -12,11 +12,13 @@ import {
 	annotationsGetArrows,
 	annotationsGetCircles,
 	annotationsGetClearOnCoreInteraction,
+	annotationsGetDrawButton,
 	annotationsSetArrow,
 	annotationsSetArrows,
 	annotationsSetCircle,
 	annotationsSetCircles,
-	annotationsSetClearOnCoreInteraction
+	annotationsSetClearOnCoreInteraction,
+	annotationsSetDrawButton
 } from './api.js';
 import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
 import {
@@ -38,9 +40,9 @@ import type {
 import { EXTENSION_ID, EXTENSION_SLOTS } from './types/main.js';
 import type { AnnotationsInitOptions, AnnotationsPublicAPI } from './types/public.js';
 
-export function createAnnotations(options?: AnnotationsInitOptions): AnnotationsDefinition {
-	const normalizedConfig = normalizeAnnotationsConfig(options?.config);
-	const normalizedAnnotations = normalizeInitialAnnotations(options?.annotations);
+export function createAnnotations(options: AnnotationsInitOptions = {}): AnnotationsDefinition {
+	const normalizedConfig = normalizeAnnotationsConfig(options.config);
+	const normalizedAnnotations = normalizeInitialAnnotations(options.annotations);
 
 	return {
 		id: EXTENSION_ID,
@@ -104,11 +106,17 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 		clear() {
 			annotationsClear(state);
 		},
-		setClearOnCoreInteraction(value) {
+		get clearOnCoreInteraction() {
+			return annotationsGetClearOnCoreInteraction(state);
+		},
+		set clearOnCoreInteraction(value) {
 			annotationsSetClearOnCoreInteraction(state, value);
 		},
-		getClearOnCoreInteraction() {
-			return annotationsGetClearOnCoreInteraction(state);
+		get drawButton() {
+			return annotationsGetDrawButton(state);
+		},
+		set drawButton(value) {
+			annotationsSetDrawButton(state, value);
 		}
 	};
 }
@@ -130,6 +138,7 @@ function createAnnotationsInstance(
 		mount(env) {
 			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
 			internalState.runtimeSurface.events.subscribeEvent('pointerdown');
+			internalState.runtimeSurface.events.subscribeEvent('contextmenu');
 		},
 		onUpdate(context) {
 			if (
@@ -170,11 +179,14 @@ function createAnnotationsInstance(
 		},
 		unmount() {
 			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
+			internalState.runtimeSurface.events.unsubscribeEvent('contextmenu');
 			extensionUnmountBase<ExtensionSlotsType>(internalState);
 			extensionCleanSvg(internalState);
 			internalState.activeDrawGesture = null;
 		},
 		destroy() {
+			internalState.runtimeSurface.events.unsubscribeEvent('pointerdown');
+			internalState.runtimeSurface.events.unsubscribeEvent('contextmenu');
 			extensionDestroyBase<ExtensionSlotsType>(internalState);
 			extensionCleanSvg(internalState);
 			internalState.activeDrawGesture = null;

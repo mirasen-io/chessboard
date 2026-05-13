@@ -102,3 +102,11 @@ export function annotationsSetClearOnCoreInteraction(
 export function annotationsGetClearOnCoreInteraction(state: AnnotationsStateInternal): boolean {
 	return state.config.clearOnCoreInteraction;
 }
+
+export function annotationsSetDrawButton(state: AnnotationsStateInternal, value: number): void {
+	state.config.drawButton = value;
+}
+
+export function annotationsGetDrawButton(state: AnnotationsStateInternal): number {
+	return state.config.drawButton;
+}

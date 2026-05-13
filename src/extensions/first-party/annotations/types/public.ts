@@ -24,6 +24,7 @@ export interface AnnotationsInitOptionsConfigModifierColor {
 
 export interface AnnotationsInitOptionsConfig {
 	clearOnCoreInteraction?: boolean;
+	drawButton?: number;
 	colors?: AnnotationsInitOptionsConfigModifierColor;
 }
 
@@ -53,6 +54,6 @@ export interface AnnotationsPublicAPI {
 
 	clear(): void;
 
-	setClearOnCoreInteraction(value: boolean): void;
-	getClearOnCoreInteraction(): boolean;
+	clearOnCoreInteraction: boolean;
+	drawButton: number;
 }

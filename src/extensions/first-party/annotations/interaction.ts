@@ -1,3 +1,4 @@
+import assert from '@ktarmyshov/assert';
 import type { Square } from '../../../state/board/types/internal.js';
 import type { ExtensionDragSessionSnapshot } from '../../types/basic/interaction.js';
 import type { ExtensionOnEventContext } from '../../types/context/events.js';
@@ -25,7 +26,17 @@ export function handleAnnotationsEvent(
 	state: AnnotationsStateInternal,
 	context: ExtensionOnEventContext
 ): void {
-	if (context.rawEvent.type !== 'pointerdown') return;
+	assert(context.rawEvent.type === 'pointerdown' || context.rawEvent.type === 'contextmenu');
+	if (context.rawEvent.type === 'contextmenu') {
+		const targetSquare = context.sceneEvent?.targetSquare;
+		if (targetSquare === undefined || targetSquare === null) return;
+		// Browser context menus are separate from pointerdown.
+		// Suppress them only when secondary button is configured for annotation drawing on the board.
+		if (state.config.drawButton === 2) {
+			context.rawEvent.preventDefault();
+		}
+		return;
+	}
 	const rawEvent = context.rawEvent as PointerEvent;
 
 	// The configured draw button owns annotation drawing gestures.

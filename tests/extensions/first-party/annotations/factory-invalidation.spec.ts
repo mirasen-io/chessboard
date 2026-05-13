@@ -170,19 +170,20 @@ describe('annotations public API – render invalidation', () => {
 	});
 
 	describe('behavioral config methods do not request render', () => {
-		it('setClearOnCoreInteraction does not mark dirty or request render', () => {
+		it('setter clearOnCoreInteraction does not mark dirty or request render', () => {
 			const { api, markDirty, requestRender } = createAnnotationsWithMockSurface();
 
-			api.setClearOnCoreInteraction(true);
+			api.clearOnCoreInteraction = true;
 
 			expect(markDirty).not.toHaveBeenCalled();
 			expect(requestRender).not.toHaveBeenCalled();
 		});
 
-		it('getClearOnCoreInteraction does not mark dirty or request render', () => {
+		it('getter clearOnCoreInteraction does not mark dirty or request render', () => {
 			const { api, markDirty, requestRender } = createAnnotationsWithMockSurface();
 
-			api.getClearOnCoreInteraction();
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const unused = api.clearOnCoreInteraction;
 
 			expect(markDirty).not.toHaveBeenCalled();
 			expect(requestRender).not.toHaveBeenCalled();
@@ -236,7 +237,7 @@ describe('annotations public API – render invalidation', () => {
 			const api = instance.getPublic();
 
 			// Default is clearOnCoreInteraction=true
-			expect(api.getClearOnCoreInteraction()).toBe(true);
+			expect(api.clearOnCoreInteraction).toBe(true);
 			expect(api.getCircles()).toHaveLength(1);
 			expect(api.getArrows()).toHaveLength(1);
 

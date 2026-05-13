@@ -83,7 +83,7 @@ describe('createAnnotations', () => {
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
 			);
 			const api = instance.getPublic();
-			expect(api.getClearOnCoreInteraction()).toBe(true);
+			expect(api.clearOnCoreInteraction).toBe(true);
 		});
 	});
 
@@ -94,7 +94,7 @@ describe('createAnnotations', () => {
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
 			);
 			const api = instance.getPublic();
-			expect(api.getClearOnCoreInteraction()).toBe(false);
+			expect(api.clearOnCoreInteraction).toBe(false);
 		});
 	});
 
@@ -349,18 +349,18 @@ describe('createAnnotations', () => {
 	});
 
 	describe('public API — clearOnCoreInteraction config', () => {
-		it('setClearOnCoreInteraction changes the value', () => {
+		it('setter clearOnCoreInteraction changes the value', () => {
 			const def = createAnnotations();
 			const instance = def.createInstance(
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
 			);
 			const api = instance.getPublic();
 
-			expect(api.getClearOnCoreInteraction()).toBe(true);
-			api.setClearOnCoreInteraction(false);
-			expect(api.getClearOnCoreInteraction()).toBe(false);
-			api.setClearOnCoreInteraction(true);
-			expect(api.getClearOnCoreInteraction()).toBe(true);
+			expect(api.clearOnCoreInteraction).toBe(true);
+			api.clearOnCoreInteraction = false;
+			expect(api.clearOnCoreInteraction).toBe(false);
+			api.clearOnCoreInteraction = true;
+			expect(api.clearOnCoreInteraction).toBe(true);
 		});
 	});
 
@@ -415,12 +415,12 @@ describe('createAnnotations', () => {
 			);
 			const api = instance.getPublic();
 
-			api.setClearOnCoreInteraction(true);
+			api.clearOnCoreInteraction = true;
 
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 			instance.unmount!();
 
-			expect(api.getClearOnCoreInteraction()).toBe(true);
+			expect(api.clearOnCoreInteraction).toBe(true);
 		});
 
 		it('re-mount after unmount succeeds', () => {
@@ -489,9 +489,9 @@ describe('createAnnotations', () => {
 			const apiA = instanceA.getPublic();
 			const apiB = instanceB.getPublic();
 
-			apiA.setClearOnCoreInteraction(false);
+			apiA.clearOnCoreInteraction = false;
 
-			expect(apiB.getClearOnCoreInteraction()).toBe(true);
+			expect(apiB.clearOnCoreInteraction).toBe(true);
 		});
 	});
 });
