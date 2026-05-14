@@ -1,5 +1,13 @@
 # @mirasen/chessboard
 
+## 1.2.1
+
+### Patch Changes
+
+- 7f5649f: Update README and documentation entry points for the built-in annotations release.
+
+  The README now describes annotations as part of the default first-party extension baseline, adds a short annotations section, updates the explicit extension-list example, and links to the new documentation hub.
+
 ## 1.2.0
 
 ### Minor Changes
