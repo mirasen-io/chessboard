@@ -13,6 +13,8 @@ Small and focused PRs are appreciated.
 
 For non-trivial features, please discuss a short implementation plan before opening a PR.
 
+Prefer the public API and extension system before changing core contracts. Core API, runtime, rendering, or architectural changes are welcome only when the extension path is insufficient and the change clearly improves long-term correctness, clarity, or maintainability.
+
 Generic issue-claiming comments without project-specific context may be hidden or reported as spam.
 
 Good first comments usually include at least one of:
