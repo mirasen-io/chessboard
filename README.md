@@ -329,6 +329,23 @@ If you want full control over the visual baseline, use an explicit extension lis
 
 See [Documentation](./documentation.md) for the documentation hub.
 
+## Versioning and breaking changes
+
+`@mirasen/chessboard` follows semantic versioning for public API changes.
+
+Breaking public API changes are released as major versions.
+
+We do not add backward-compatibility aliases or runtime compatibility bridges by default. When a public contract changes, the new API is kept explicit and clean, and the required migration is documented in the release notes / changelog.
+
+Migration notes for breaking changes are included directly in the corresponding changelog entry, so users can see:
+
+- what changed
+- why it changed
+- what old usage looked like
+- what new usage should look like
+
+See the [CHANGELOG](./CHANGELOG.md) for release history and migration notes.
+
 ## Architecture
 
 `@mirasen/chessboard` is built around explicit boundaries:
