@@ -16,8 +16,13 @@
 		"typescript",
 		"framework-agnostic",
 		"svg",
-		"extensions",
-		"chessboard-platform"
+		"drag-and-drop",
+		"click-to-move",
+		"animation",
+		"annotations",
+		"chessjs",
+		"legal-moves",
+		"touch"
 	],
 	"homepage": "https://mirasen.io/chessboard",
 	"repository": {
