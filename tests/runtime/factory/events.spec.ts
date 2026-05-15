@@ -58,6 +58,12 @@ describe('runtime factory events surface', () => {
 		it('throws when not mounted (inputAdapter is null)', () => {
 			expect(() => capturedEvents!.subscribeEvent('click')).toThrow();
 		});
+
+		it('throws after unmount (inputAdapter is null)', () => {
+			runtime.mount(container);
+			runtime.unmount();
+			expect(() => capturedEvents!.subscribeEvent('click')).toThrow();
+		});
 	});
 
 	describe('unsubscribeEvent', () => {
@@ -76,6 +82,13 @@ describe('runtime factory events surface', () => {
 			capturedEvents!.unsubscribeEvent('pointerdown');
 			expect(removeSpy).not.toHaveBeenCalled();
 			removeSpy.mockRestore();
+		});
+
+		it('does not throw after unmount (inputAdapter is null)', () => {
+			runtime.mount(container);
+			capturedEvents!.subscribeEvent('click');
+			runtime.unmount();
+			expect(() => capturedEvents!.unsubscribeEvent('click')).not.toThrow();
 		});
 	});
 });
