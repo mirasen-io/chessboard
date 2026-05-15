@@ -17,10 +17,7 @@ export function createExtensionRuntimeSurfaceEvents(
 		},
 		unsubscribeEvent<K extends keyof HTMLElementEventMap>(type: K): void {
 			const internalState = getInternalState();
-			assert(
-				internalState.inputAdapter,
-				'Input adapter not available in the current runtime state'
-			);
+			if (!internalState.inputAdapter) return;
 			if (!NEED_EVENT_TYPES.has(type)) {
 				internalState.inputAdapter.unsubscribeEvent(type);
 			}
