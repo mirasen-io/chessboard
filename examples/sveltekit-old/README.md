@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-npx sv@0.15.3 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" --install npm sveltekit
+npx sv@0.12.7 create --template minimal --types ts --add prettier eslint vitest="usages:component,unit" playwright mcp="ide:vscode+setup:remote" --install npm chessboard-test
 ```
 
 ## Developing

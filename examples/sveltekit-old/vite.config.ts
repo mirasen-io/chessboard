@@ -1,10 +1,14 @@
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vitest/config';
-import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { playwright } from '@vitest/browser-playwright';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	server: {
+		fs: {
+			allow: ['../..']
+		}
+	},
+	plugins: [sveltekit()],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

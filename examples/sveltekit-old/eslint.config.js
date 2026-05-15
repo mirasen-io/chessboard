@@ -35,10 +35,5 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
-	},
-	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
 	}
 );
