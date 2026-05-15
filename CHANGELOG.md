@@ -1,5 +1,16 @@
 # @mirasen/chessboard
 
+## 1.2.2
+
+### Patch Changes
+
+- 6adedbe: dependabot: directory '/', update @sveltejs/kit
+- 6adedbe: dependabot: directory '/', update @types/node
+- 6adedbe: dependabot: directory '/', update svelte
+- 8b28f59: fix: graceful teardown in events extension unsubscribe during board.destroy()
+
+  `unsubscribeEvent` no longer asserts that the input adapter is alive — if it's already destroyed, unsubscription is a no-op since subscriptions are gone with the adapter.
+
 ## 1.2.1
 
 ### Patch Changes
