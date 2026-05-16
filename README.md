@@ -319,11 +319,13 @@ board = createBoard({
 
 Configured built-in extensions can be provided either as declarative `{ builtin, options }` objects or through the built-in extension factory map. If you use custom piece assets, pass the same `pieceUrls` map to renderer and promotion when you want the board and promotion UI to use the same piece set.
 
-### Default visual identity
+### Default visual identity and attribution
 
 The default first-party extension baseline includes a subtle Mirasen board watermark.
 
 If you want full control over the visual baseline, use an explicit extension list and omit the `watermark` extension.
+
+Attribution is not required by the MIT license, but it is appreciated. If Mirasen Chessboard helps your project, please consider keeping the default watermark or linking to `@mirasen/chessboard`.
 
 ## Documentation
 
