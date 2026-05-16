@@ -23,5 +23,6 @@ export const NEED_EVENT_TYPES: Set<string> = new Set([
 	'pointerdown',
 	'pointermove',
 	'pointerup',
-	'pointercancel'
+	'pointercancel',
+	'lostpointercapture'
 ]);

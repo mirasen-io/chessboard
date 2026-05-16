@@ -1,5 +1,6 @@
 import type { RuntimeInteractionAction } from '../../../extensions/types/basic/events.js';
 import {
+	determineActionLostPointerCapture,
 	determineActionPointerCancel,
 	determineActionPointerDown,
 	determineActionPointerMove,
@@ -23,6 +24,8 @@ export function determineRuntimeInteractionAction(
 			return determineActionPointerUp(state, context);
 		case 'pointercancel':
 			return determineActionPointerCancel(state, context);
+		case 'lostpointercapture':
+			return determineActionLostPointerCapture(state, context);
 	}
 	return null;
 }

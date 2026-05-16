@@ -181,3 +181,24 @@ export function determineActionPointerCancel(
 		type: 'cancelActiveInteraction'
 	};
 }
+
+export function determineActionLostPointerCapture(
+	state: InteractionControllerInternal,
+	context: InteractionControllerOnEventContext
+): RuntimeInteractionAction | null {
+	assert(
+		context.rawEvent.type === 'lostpointercapture',
+		'determineActionLostPointerCapture should only be called for lostpointercapture events'
+	);
+	const interaction = state.surface.getInteractionStateSnapshot();
+
+	if (!interaction.dragSession) {
+		// No active drag session, so nothing to do on lost pointer capture
+		return null;
+	}
+
+	// Cancel the active interaction on lost pointer capture
+	return {
+		type: 'cancelActiveInteraction'
+	};
+}

@@ -268,4 +268,42 @@ describe('createInteractionController', () => {
 			expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
 		});
 	});
+
+	describe('lostpointercapture routing', () => {
+		it('executes cancelActiveInteraction when drag is active', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28
+					}
+				}
+			});
+			const controller = createInteractionController({ surface });
+			const context = createEventContext({
+				rawEvent: new PointerEvent('lostpointercapture'),
+				sceneEvent: makeScenePointerEvent('lostpointercapture', 28)
+			});
+
+			controller.onEvent(context);
+
+			expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
+		});
+
+		it('does not call cancelActiveInteraction when no drag session', () => {
+			const surface = createMockSurface();
+			const controller = createInteractionController({ surface });
+			const context = createEventContext({
+				rawEvent: new PointerEvent('lostpointercapture'),
+				sceneEvent: makeScenePointerEvent('lostpointercapture')
+			});
+
+			controller.onEvent(context);
+
+			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
+		});
+	});
 });

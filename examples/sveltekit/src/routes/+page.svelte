@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { useBoard } from '$lib/use-board.svelte';
 	import { randomMove } from '$lib/board-utils';
+	import { useBoard } from '$lib/use-board.svelte';
 
 	let boardEl: HTMLDivElement;
 	let snapshotText = $state('');
@@ -41,13 +41,16 @@
 				console.log('Move played:', move);
 			});
 			b.extensions.events.setOnRawUpdate((context) => {
-				console.log('Raw update:', context);
 				const replacer = (_key: string, value: unknown) => {
 					if (value instanceof Set) return Array.from(value);
 					if (value instanceof Map) return Object.fromEntries(value.entries());
 					return value;
 				};
 				snapshotText = JSON.stringify(context.currentFrame, replacer, 2);
+				console.log('Raw update:', snapshotText);
+				Array.from(context.mutation.getAll().keys()).forEach((key) => {
+					console.log(`Mutation key: ${key}`);
+				});
 			});
 
 			for (const [sq1, sq2, mod] of circleData) {

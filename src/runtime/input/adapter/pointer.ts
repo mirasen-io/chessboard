@@ -31,6 +31,9 @@ function pointerEventAdapterHandler(state: InputAdapterInternal, e: PointerEvent
 		case 'pointercancel':
 			adapterOnPointerCancel(state, e);
 			break;
+		case 'lostpointercapture':
+			adapterOnLostPointerCapture(state, e);
+			break;
 	}
 }
 
@@ -59,6 +62,12 @@ export function adapterOnPointerUp(state: InputAdapterInternal, e: PointerEvent)
 
 export function adapterOnPointerCancel(state: InputAdapterInternal, e: PointerEvent): void {
 	assert(e.type === 'pointercancel', `Expected pointercancel event, got ${e.type}`);
+	if (e.pointerId !== state.activePointerId) return;
+	releaseCapture(state);
+}
+
+export function adapterOnLostPointerCapture(state: InputAdapterInternal, e: PointerEvent): void {
+	assert(e.type === 'lostpointercapture', `Expected lostpointercapture event, got ${e.type}`);
 	if (e.pointerId !== state.activePointerId) return;
 	releaseCapture(state);
 }

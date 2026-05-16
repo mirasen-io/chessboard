@@ -218,12 +218,6 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 	// Initial creation, so we mark board position as mutated to trigger mutation pipeline
 	internalState.mutation.addMutation('state.board.setPosition', true);
 
-	// We will have two different interfaces here
-	// One is returned, one is for controller - with different methods
-	// At the moment our assumption that controller will use Runtime but not opposite direction
-	// So we can construct these two objects separately so they would not be huge!
-	// TODO: const inputControllerSurface = createRuntimeInputControllerSurface(internalState);
-
 	// Initial run to process initial mutations and set up previousContext for the next runs
 	internalStatus = 'unmounted';
 	internalState.mutation.run(internalState);

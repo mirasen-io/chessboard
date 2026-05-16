@@ -107,7 +107,7 @@ function createLegalMovesInstance(
 					geometry.squareSize * internalState.config.captureTarget.strokeWidthRatio
 				).toString(),
 				fill: 'none'
-			}; // TODO: Remove, this is just for visual test
+			};
 			for (const [square, destination] of interaction.activeDestinations) {
 				const rect = geometry.getSquareRect(square);
 				const circleX = rect.x + geometry.squareSize / 2;

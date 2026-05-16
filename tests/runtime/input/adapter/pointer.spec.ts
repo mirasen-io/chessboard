@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+	adapterOnLostPointerCapture,
 	adapterOnPointerCancel,
 	adapterOnPointerDown,
 	adapterOnPointerUp,
@@ -106,6 +107,42 @@ describe('adapter pointer capture', () => {
 			adapterOnPointerCancel(state, e);
 
 			expect(state.activePointerId).toBe(7); // unchanged
+		});
+	});
+
+	describe('adapterOnLostPointerCapture', () => {
+		it('clears activePointerId when pointerId matches and hasPointerCapture is true', () => {
+			const state = createMockState();
+			state.activePointerId = 7;
+			const e = makePointerEvent('lostpointercapture', { pointerId: 7 });
+
+			adapterOnLostPointerCapture(state, e);
+
+			expect(state.activePointerId).toBeNull();
+			expect(state.container.releasePointerCapture).toHaveBeenCalledWith(7);
+		});
+
+		it('clears activePointerId when pointerId matches and hasPointerCapture is false', () => {
+			const state = createMockState();
+			state.activePointerId = 7;
+			(state.container.hasPointerCapture as ReturnType<typeof vi.fn>).mockReturnValue(false);
+			const e = makePointerEvent('lostpointercapture', { pointerId: 7 });
+
+			adapterOnLostPointerCapture(state, e);
+
+			expect(state.activePointerId).toBeNull();
+			expect(state.container.releasePointerCapture).not.toHaveBeenCalled();
+		});
+
+		it('ignores non-matching pointerId', () => {
+			const state = createMockState();
+			state.activePointerId = 7;
+			const e = makePointerEvent('lostpointercapture', { pointerId: 99 });
+
+			adapterOnLostPointerCapture(state, e);
+
+			expect(state.activePointerId).toBe(7); // unchanged
+			expect(state.container.releasePointerCapture).not.toHaveBeenCalled();
 		});
 	});
 
