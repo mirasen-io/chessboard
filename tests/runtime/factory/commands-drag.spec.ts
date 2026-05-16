@@ -53,7 +53,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 			type: 'lifted-piece-drag',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 0
 		});
 
 		expect(result).toBe(true);
@@ -66,7 +67,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 			type: 'lifted-piece-drag',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 0
 		});
 
 		const snapshot = runtime.getSnapshot();
@@ -84,7 +86,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 			type: 'lifted-piece-drag',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 0
 		});
 
 		expect(() =>
@@ -92,7 +95,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 				type: 'release-targeting',
 				sourceSquare: normalizeSquare('d7'),
 				sourcePieceCode: PieceCode.BlackPawn,
-				targetSquare: normalizeSquare('d5')
+				targetSquare: normalizeSquare('d5'),
+				startButton: 0
 			})
 		).toThrow(/Cannot set a new drag session/);
 	});
@@ -104,7 +108,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 			type: 'lifted-piece-drag',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 0
 		});
 
 		runtime.clearActiveInteraction();
@@ -113,7 +118,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 			type: 'release-targeting',
 			sourceSquare: normalizeSquare('d7'),
 			sourcePieceCode: PieceCode.BlackPawn,
-			targetSquare: normalizeSquare('d5')
+			targetSquare: normalizeSquare('d5'),
+			startButton: 0
 		});
 
 		expect(result).toBe(true);
@@ -130,7 +136,8 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 				type: 'lifted-piece-drag',
 				sourceSquare: normalizeSquare('e2'),
 				sourcePieceCode: PieceCode.WhitePawn,
-				targetSquare: normalizeSquare('e4')
+				targetSquare: normalizeSquare('e4'),
+				startButton: 0
 			})
 		).toThrow(/completeDrag/);
 	});
@@ -157,7 +164,8 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 			type: 'ext:draw',
 			sourceSquare: normalizeSquare('e4'),
 			sourcePieceCode: null,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 2
 		});
 
 		runtime.clearActiveInteraction();
@@ -180,7 +188,8 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 			type: 'lifted-piece-drag',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 0
 		});
 
 		expect(cancelDrag).not.toHaveBeenCalled();
@@ -202,7 +211,8 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 			type: 'ext:test',
 			sourceSquare: normalizeSquare('a1'),
 			sourcePieceCode: null,
-			targetSquare: normalizeSquare('a1')
+			targetSquare: normalizeSquare('a1'),
+			startButton: 0
 		});
 
 		expect(() => runtime.clearActiveInteraction()).not.toThrow();

@@ -72,7 +72,8 @@ describe('reconcileInteractionSelectionAfterBoardStateChange', () => {
 			type: 'lifted-piece-drag' as const,
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
-			targetSquare: normalizeSquare('e4')
+			targetSquare: normalizeSquare('e4'),
+			startButton: 0
 		});
 
 		reconcileInteractionSelectionAfterBoardStateChange(context, session);

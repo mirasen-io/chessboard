@@ -54,7 +54,8 @@ export function handleAnnotationsEvent(
 			type: ANNOTATIONS_DRAW_DRAG_TYPE,
 			sourceSquare: targetSquare,
 			sourcePieceCode: null,
-			targetSquare: targetSquare
+			targetSquare: targetSquare,
+			startButton: rawEvent.button
 		});
 
 		if (success) {
@@ -79,7 +80,8 @@ export function handleAnnotationsEvent(
 		type: ANNOTATIONS_IDLE_CLEAR_DRAG_TYPE,
 		sourceSquare: targetSquare,
 		sourcePieceCode: null,
-		targetSquare: targetSquare
+		targetSquare: targetSquare,
+		startButton: rawEvent.button
 	});
 
 	if (success) {

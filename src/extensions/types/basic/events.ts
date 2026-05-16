@@ -38,12 +38,14 @@ export type RuntimeInteractionActionStartLiftedDrag = {
 	type: 'startLiftedDrag';
 	source: Square;
 	target: Square;
+	startButton: number;
 };
 
 export type RuntimeInteractionActionStartReleaseTargetingDrag = {
 	type: 'startReleaseTargetingDrag';
 	source: Square;
 	target: Square;
+	startButton: number;
 };
 
 export type RuntimeInteractionActionCompleteCoreDrag = {

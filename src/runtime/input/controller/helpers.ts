@@ -2,6 +2,23 @@ import type { Square } from '../../../state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
 
+export function buttonToButtonsMask(button: number): number | null {
+	switch (button) {
+		case 0:
+			return 1;
+		case 1:
+			return 4;
+		case 2:
+			return 2;
+		case 3:
+			return 8;
+		case 4:
+			return 16;
+		default:
+			return null;
+	}
+}
+
 export function canMoveTo(snapshot: InteractionStateSnapshot, target: Square): boolean {
 	const { movability } = snapshot;
 

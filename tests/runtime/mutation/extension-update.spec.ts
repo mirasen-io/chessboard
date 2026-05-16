@@ -63,7 +63,8 @@ describe('extensionSystemUpdatePipe', () => {
 			type: 'lifted-piece-drag' as const,
 			sourceSquare: 0 as const,
 			sourcePieceCode: 1 as const,
-			targetSquare: 8 as const
+			targetSquare: 8 as const,
+			startButton: 0
 		});
 
 		extensionSystemUpdatePipe(context, session);

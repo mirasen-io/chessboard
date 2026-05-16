@@ -4,7 +4,7 @@ import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/chec
 import { fromPieceCode } from '../../../state/board/piece.js';
 import { isDragSessionCoreOwned } from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
-import { canMoveTo } from './helpers.js';
+import { buttonToButtonsMask, canMoveTo } from './helpers.js';
 import type {
 	InteractionControllerInternal,
 	InteractionControllerOnEventContext
@@ -49,7 +49,8 @@ export function determineActionPointerDown(
 				return {
 					type: 'startReleaseTargetingDrag',
 					source: interaction.selected.square,
-					target: sceneEvent.targetSquare
+					target: sceneEvent.targetSquare,
+					startButton: rawEvent.button
 				};
 			}
 
@@ -65,7 +66,8 @@ export function determineActionPointerDown(
 				return {
 					type: 'startReleaseTargetingDrag',
 					source: interaction.selected.square,
-					target: sceneEvent.targetSquare
+					target: sceneEvent.targetSquare,
+					startButton: rawEvent.button
 				};
 			}
 		}
@@ -78,7 +80,8 @@ export function determineActionPointerDown(
 			return {
 				type: 'startLiftedDrag',
 				source: sceneEvent.targetSquare,
-				target: sceneEvent.targetSquare
+				target: sceneEvent.targetSquare,
+				startButton: rawEvent.button
 			};
 		}
 	}
@@ -104,6 +107,42 @@ export function determineActionPointerMove(
 	return null;
 }
 
+function determineActionTerminalRelease(
+	state: InteractionControllerInternal,
+	context: InteractionControllerOnEventContext
+): RuntimeInteractionAction | null {
+	const interaction = state.surface.getInteractionStateSnapshot();
+	const dragSession = interaction.dragSession;
+
+	if (!dragSession) {
+		return null;
+	}
+
+	const sceneEvent = context.sceneEvent;
+	assert(sceneEvent, 'Scene event should be present for terminal release');
+
+	if (!isDragSessionCoreOwned(dragSession)) {
+		return {
+			type: 'completeExtensionDrag',
+			target: sceneEvent.targetSquare
+		};
+	}
+
+	if (sceneEvent.targetSquare === dragSession.sourceSquare) {
+		return { type: 'cancelActiveInteraction' };
+	}
+
+	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
+		return { type: 'completeCoreDragTo', target: sceneEvent.targetSquare };
+	}
+
+	if (dragSession.type === 'lifted-piece-drag') {
+		return { type: 'cancelActiveInteraction' };
+	} else {
+		return { type: 'cancelInteraction' };
+	}
+}
+
 export function determineActionPointerUp(
 	state: InteractionControllerInternal,
 	context: InteractionControllerOnEventContext
@@ -112,53 +151,7 @@ export function determineActionPointerUp(
 		context.rawEvent.type === 'pointerup',
 		'determineActionPointerUp should only be called for pointerup events'
 	);
-	const interaction = state.surface.getInteractionStateSnapshot();
-	const dragSession = interaction.dragSession;
-
-	if (!dragSession) {
-		// No active drag session, so nothing to do on pointer up
-		return null;
-	}
-
-	const sceneEvent = context.sceneEvent;
-	assert(sceneEvent, 'Scene event should be present for pointer events');
-
-	if (!isDragSessionCoreOwned(dragSession)) {
-		// For extension-owned drag sessions, we simply end the session without attempting to make a move,
-		// since the runtime doesn't have enough information about the semantics of the drag session.
-		return {
-			type: 'completeExtensionDrag',
-			target: sceneEvent.targetSquare
-		};
-	}
-
-	// Check if the square is the same as the source square of the drag session.
-	// If it is, then we can end the drag session without making a move.
-	if (sceneEvent.targetSquare === dragSession.sourceSquare) {
-		return {
-			type: 'cancelActiveInteraction'
-		};
-	}
-
-	// Check if the target square is a valid destination for the selected piece.
-	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
-		return {
-			type: 'completeCoreDragTo',
-			target: sceneEvent.targetSquare
-		};
-	}
-
-	// Invalid target: piece returns to source for lifted drag (selection preserved),
-	// or selection is cleared for release targeting.
-	if (dragSession.type === 'lifted-piece-drag') {
-		return {
-			type: 'cancelActiveInteraction'
-		};
-	} else {
-		return {
-			type: 'cancelInteraction'
-		};
-	}
+	return determineActionTerminalRelease(state, context);
 }
 
 export function determineActionPointerCancel(
@@ -172,11 +165,9 @@ export function determineActionPointerCancel(
 	const interaction = state.surface.getInteractionStateSnapshot();
 
 	if (!interaction.dragSession) {
-		// No active drag session, so nothing to do on pointer cancel
 		return null;
 	}
 
-	// Cancel the active interaction on pointer cancel
 	return {
 		type: 'cancelActiveInteraction'
 	};
@@ -191,14 +182,22 @@ export function determineActionLostPointerCapture(
 		'determineActionLostPointerCapture should only be called for lostpointercapture events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
+	const dragSession = interaction.dragSession;
 
-	if (!interaction.dragSession) {
-		// No active drag session, so nothing to do on lost pointer capture
+	if (!dragSession) {
 		return null;
 	}
 
-	// Cancel the active interaction on lost pointer capture
-	return {
-		type: 'cancelActiveInteraction'
-	};
+	const rawEvent = context.rawEvent as PointerEvent;
+	const mask = buttonToButtonsMask(dragSession.startButton);
+
+	if (mask === null) {
+		return { type: 'cancelActiveInteraction' };
+	}
+
+	if ((rawEvent.buttons & mask) === 0) {
+		return determineActionTerminalRelease(state, context);
+	}
+
+	return { type: 'cancelActiveInteraction' };
 }

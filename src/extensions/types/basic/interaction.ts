@@ -5,6 +5,7 @@ export interface ExtensionDragSessionBase {
 	sourceSquare: Square | null;
 	sourcePieceCode: PieceCode | null;
 	targetSquare: Square | null;
+	startButton: number;
 }
 
 export interface ExtensionDragSessionLiftedPiece extends ExtensionDragSessionBase {

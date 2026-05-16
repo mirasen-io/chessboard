@@ -29,7 +29,7 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			return internalState.state.board.getPieceCodeAt(square);
 		},
-		startLiftedDrag(source, target): void {
+		startLiftedDrag(source, target, startButton): void {
 			const internalState = state();
 			const interactionMutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
@@ -50,7 +50,8 @@ export function createRuntimeInteractionSurface(
 				type: 'lifted-piece-drag',
 				sourceSquare: interactionSource.square,
 				sourcePieceCode: interactionSource.pieceCode,
-				targetSquare: target
+				targetSquare: target,
+				startButton
 			};
 			interaction.setDragSession(dragSession, interactionMutationSession);
 			runtimeRunMutationPipeline(internalState);
@@ -90,7 +91,7 @@ export function createRuntimeInteractionSurface(
 			mutationSession.addMutation('runtime.interaction.completeExtensionDragTo', true, dragSession);
 			runtimeRunMutationPipeline(internalState);
 		},
-		startReleaseTargetingDrag(source, target): void {
+		startReleaseTargetingDrag(source, target, startButton): void {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
@@ -106,7 +107,8 @@ export function createRuntimeInteractionSurface(
 				type: 'release-targeting',
 				sourceSquare: source,
 				sourcePieceCode: interaction.selected.pieceCode,
-				targetSquare: target
+				targetSquare: target,
+				startButton
 			};
 			interaction.setDragSession(dragSession, mutationSession);
 			runtimeRunMutationPipeline(internalState);

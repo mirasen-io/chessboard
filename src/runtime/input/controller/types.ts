@@ -7,8 +7,8 @@ import type { InteractionStateSnapshot } from '../../../state/interaction/types/
 export interface RuntimeInteractionSurface {
 	getInteractionStateSnapshot(): InteractionStateSnapshot;
 	getPieceCodeAt(square: Square): PieceCode;
-	startLiftedDrag(source: Square, target: Square): void;
-	startReleaseTargetingDrag(source: Square, target: Square): void;
+	startLiftedDrag(source: Square, target: Square, startButton: number): void;
+	startReleaseTargetingDrag(source: Square, target: Square, startButton: number): void;
 	completeCoreDragTo(target: Square): void;
 	completeExtensionDrag(target: Square | null): void;
 	updateDragSessionCurrentTarget(target: Square | null): void;
