@@ -51,7 +51,12 @@ describe('createInteractionController', () => {
 
 			expect(surface.onEvent).toHaveBeenCalledWith({
 				...context,
-				runtimeInteractionActionPreview: { type: 'startLiftedDrag', source: 12, target: 12 }
+				runtimeInteractionActionPreview: {
+					type: 'startLiftedDrag',
+					source: 12,
+					target: 12,
+					startButton: 0
+				}
 			});
 		});
 
@@ -80,7 +85,8 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 28
+						targetSquare: 28,
+						startButton: 0
 					}
 				}
 			});
@@ -142,7 +148,7 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.startLiftedDrag).toHaveBeenCalledWith(12, 12);
+			expect(surface.startLiftedDrag).toHaveBeenCalledWith(12, 12, 0);
 		});
 	});
 
@@ -155,7 +161,8 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 12
+						targetSquare: 12,
+						startButton: 0
 					}
 				}
 			});
@@ -180,7 +187,8 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 28
+						targetSquare: 28,
+						startButton: 0
 					}
 				}
 			});
@@ -203,7 +211,8 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 12
+						targetSquare: 12,
+						startButton: 0
 					}
 				}
 			});
@@ -228,7 +237,8 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 28
+						targetSquare: 28,
+						startButton: 0
 					}
 				}
 			});
@@ -253,7 +263,8 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 28
+						targetSquare: 28,
+						startButton: 0
 					}
 				}
 			});
@@ -270,7 +281,7 @@ describe('createInteractionController', () => {
 	});
 
 	describe('lostpointercapture routing', () => {
-		it('executes cancelActiveInteraction when drag is active', () => {
+		it('executes cancelActiveInteraction when drag is active and button still pressed', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
@@ -278,19 +289,46 @@ describe('createInteractionController', () => {
 						type: 'lifted-piece-drag',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
-						targetSquare: 28
+						targetSquare: 28,
+						startButton: 0
 					}
 				}
 			});
 			const controller = createInteractionController({ surface });
 			const context = createEventContext({
-				rawEvent: new PointerEvent('lostpointercapture'),
+				rawEvent: new PointerEvent('lostpointercapture', { buttons: 1 }),
 				sceneEvent: makeScenePointerEvent('lostpointercapture', 28)
 			});
 
 			controller.onEvent(context);
 
 			expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
+		});
+
+		it('executes completeCoreDragTo when button released and valid target in free mode', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28,
+						startButton: 0
+					}
+				}
+			});
+			const controller = createInteractionController({ surface });
+			const context = createEventContext({
+				rawEvent: new PointerEvent('lostpointercapture', { buttons: 0 }),
+				sceneEvent: makeScenePointerEvent('lostpointercapture', 28)
+			});
+
+			controller.onEvent(context);
+
+			expect(surface.completeCoreDragTo).toHaveBeenCalledWith(28);
 		});
 
 		it('does not call cancelActiveInteraction when no drag session', () => {

@@ -77,7 +77,7 @@ describe('createInteractionState', () => {
 		state.setSelected(makeSelected(), session);
 
 		const session2 = createInteractionMutationSession();
-		const drag = makeDragSessionCoreOwned();
+		const drag = makeDragSessionCoreOwned({ startButton: 0 });
 		const changed = state.setDragSession(drag, session2);
 
 		expect(changed).toBe(true);
@@ -88,7 +88,7 @@ describe('createInteractionState', () => {
 	it('setDragSession asserts when no selected piece for core session', () => {
 		const state = createInteractionState({});
 		const session = createInteractionMutationSession();
-		const drag = makeDragSessionCoreOwned();
+		const drag = makeDragSessionCoreOwned({ startButton: 0 });
 
 		expect(() => state.setDragSession(drag, session)).toThrow();
 	});
@@ -97,17 +97,19 @@ describe('createInteractionState', () => {
 		const state = createInteractionState({});
 		const session = createInteractionMutationSession();
 		state.setSelected(makeSelected(), session);
-		state.setDragSession(makeDragSessionCoreOwned(), session);
+		state.setDragSession(makeDragSessionCoreOwned({ startButton: 0 }), session);
 
 		const session2 = createInteractionMutationSession();
-		expect(() => state.setDragSession(makeDragSessionCoreOwned(), session2)).toThrow();
+		expect(() =>
+			state.setDragSession(makeDragSessionCoreOwned({ startButton: 0 }), session2)
+		).toThrow();
 	});
 
 	it('setDragSession(null) clears drag session', () => {
 		const state = createInteractionState({});
 		const session = createInteractionMutationSession();
 		state.setSelected(makeSelected(), session);
-		state.setDragSession(makeDragSessionCoreOwned(), session);
+		state.setDragSession(makeDragSessionCoreOwned({ startButton: 0 }), session);
 
 		const session2 = createInteractionMutationSession();
 		const changed = state.setDragSession(null, session2);
@@ -144,7 +146,7 @@ describe('createInteractionState', () => {
 		const state = createInteractionState({});
 		const session = createInteractionMutationSession();
 		state.setSelected(makeSelected(), session);
-		state.setDragSession(makeDragSessionCoreOwned(), session);
+		state.setDragSession(makeDragSessionCoreOwned({ startButton: 0 }), session);
 
 		const snapshot = state.getSnapshot();
 
@@ -162,7 +164,7 @@ describe('createInteractionState', () => {
 		const state = createInteractionState({});
 		const session = createInteractionMutationSession();
 		state.setSelected(makeSelected(), session);
-		state.setDragSession(makeDragSessionCoreOwned(), session);
+		state.setDragSession(makeDragSessionCoreOwned({ startButton: 0 }), session);
 
 		const session2 = createInteractionMutationSession();
 		const changed = state.clearActive(session2);

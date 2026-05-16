@@ -44,7 +44,8 @@ describe('calculateAnimationPlan — special cases', () => {
 							type: 'lifted-piece-drag' as const,
 							sourceSquare: e2,
 							sourcePieceCode: PieceCode.WhitePawn,
-							targetSquare: e4
+							targetSquare: e4,
+							startButton: 0
 						}
 					})
 				}),
@@ -73,7 +74,8 @@ describe('calculateAnimationPlan — special cases', () => {
 							type: 'release-targeting' as const,
 							sourceSquare: e2,
 							sourcePieceCode: PieceCode.WhitePawn,
-							targetSquare: e4
+							targetSquare: e4,
+							startButton: 0
 						}
 					})
 				}),
@@ -102,7 +104,8 @@ describe('calculateAnimationPlan — special cases', () => {
 							type: 'lifted-piece-drag' as const,
 							sourceSquare: e1,
 							sourcePieceCode: PieceCode.WhiteKing,
-							targetSquare: g1
+							targetSquare: g1,
+							startButton: 0
 						}
 					})
 				}),
@@ -141,7 +144,8 @@ describe('calculateAnimationPlan — special cases', () => {
 							type: 'lifted-piece-drag' as const,
 							sourceSquare: e2,
 							sourcePieceCode: PieceCode.WhitePawn,
-							targetSquare: null
+							targetSquare: null,
+							startButton: 0
 						}
 					})
 				}),
@@ -156,7 +160,8 @@ describe('calculateAnimationPlan — special cases', () => {
 							type: 'lifted-piece-drag' as const,
 							sourceSquare: e4,
 							sourcePieceCode: PieceCode.WhitePawn,
-							targetSquare: null
+							targetSquare: null,
+							startButton: 0
 						}
 					})
 				})

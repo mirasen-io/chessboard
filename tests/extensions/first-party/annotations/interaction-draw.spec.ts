@@ -64,7 +64,8 @@ describe('annotations draw gesture — handleAnnotationsEvent', () => {
 			type: 'ext:draw',
 			sourceSquare: 28,
 			sourcePieceCode: null,
-			targetSquare: 28
+			targetSquare: 28,
+			startButton: 2
 		});
 	});
 

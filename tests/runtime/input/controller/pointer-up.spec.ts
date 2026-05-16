@@ -36,7 +36,8 @@ describe('determineActionPointerUp', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 28 as Square
+					targetSquare: 28 as Square,
+					startButton: 0
 				}
 			}
 		});
@@ -55,7 +56,8 @@ describe('determineActionPointerUp', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 12 as Square
+					targetSquare: 12 as Square,
+					startButton: 0
 				}
 			}
 		});
@@ -76,7 +78,8 @@ describe('determineActionPointerUp', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 28 as Square
+					targetSquare: 28 as Square,
+					startButton: 0
 				}
 			}
 		});
@@ -97,7 +100,8 @@ describe('determineActionPointerUp', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 28 as Square
+					targetSquare: 28 as Square,
+					startButton: 0
 				}
 			}
 		});
@@ -118,7 +122,8 @@ describe('determineActionPointerUp', () => {
 					type: 'release-targeting',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 28 as Square
+					targetSquare: 28 as Square,
+					startButton: 0
 				}
 			}
 		});
@@ -139,7 +144,8 @@ describe('determineActionPointerUp', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: null
+					targetSquare: null,
+					startButton: 0
 				}
 			}
 		});
@@ -160,7 +166,8 @@ describe('determineActionPointerUp', () => {
 					type: 'release-targeting',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: null
+					targetSquare: null,
+					startButton: 0
 				}
 			}
 		});

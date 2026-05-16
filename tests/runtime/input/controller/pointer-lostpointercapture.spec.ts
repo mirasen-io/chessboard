@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { ScenePointerEvent } from '../../../../src/extensions/types/basic/events.js';
-import { determineActionLostPointerCapture } from '../../../../src/runtime/input/controller/pointer.js';
+import {
+	determineActionLostPointerCapture,
+	determineActionPointerUp
+} from '../../../../src/runtime/input/controller/pointer.js';
 import { PieceCode, type Square } from '../../../../src/state/board/types/internal.js';
+import { MovabilityModeCode } from '../../../../src/state/interaction/types/internal.js';
 import { createEventContext, createMockSurface } from '../../../test-utils/runtime/controller.js';
 
-function makeContext() {
+function makeContext(options: { buttons: number; targetSquare: number | null }) {
 	return createEventContext({
-		rawEvent: new PointerEvent('lostpointercapture'),
+		rawEvent: new PointerEvent('lostpointercapture', { buttons: options.buttons }),
 		sceneEvent: {
 			type: 'lostpointercapture',
 			point: { x: 100, y: 100 },
 			clampedPoint: { x: 100, y: 100 },
 			boardClampedPoint: { x: 100, y: 100 },
-			targetSquare: null
+			targetSquare: options.targetSquare
 		} as ScenePointerEvent
 	});
 }
@@ -20,29 +24,213 @@ function makeContext() {
 describe('determineActionLostPointerCapture', () => {
 	it('returns null when no active drag session', () => {
 		const surface = createMockSurface();
-		const context = makeContext();
+		const context = makeContext({ buttons: 0, targetSquare: null });
 
 		const result = determineActionLostPointerCapture({ surface }, context);
 
 		expect(result).toBeNull();
 	});
 
-	it('returns cancelActiveInteraction when drag session is active', () => {
-		const surface = createMockSurface({
-			snapshot: {
-				dragSession: {
-					owner: 'core',
-					type: 'lifted-piece-drag',
-					sourceSquare: 12 as Square,
-					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 28 as Square
+	describe('terminal release inside board (button released, valid target)', () => {
+		it('commits move via completeCoreDragTo in free mode', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28 as Square,
+						startButton: 0
+					}
 				}
-			}
+			});
+			// buttons=0 means primary button (0) is no longer pressed
+			const context = makeContext({ buttons: 0, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'completeCoreDragTo', target: 28 });
 		});
-		const context = makeContext();
 
-		const result = determineActionLostPointerCapture({ surface }, context);
+		it('subsequent pointerup is no-op when drag session already cleared', () => {
+			const surface = createMockSurface({
+				snapshot: { dragSession: null }
+			});
+			const context = createEventContext({
+				rawEvent: new PointerEvent('pointerup'),
+				sceneEvent: {
+					type: 'pointerup',
+					point: { x: 100, y: 100 },
+					clampedPoint: { x: 100, y: 100 },
+					boardClampedPoint: { x: 100, y: 100 },
+					targetSquare: 28
+				} as ScenePointerEvent
+			});
 
-		expect(result).toEqual({ type: 'cancelActiveInteraction' });
+			const result = determineActionPointerUp({ surface }, context);
+
+			expect(result).toBeNull();
+		});
+
+		it('returns cancelActiveInteraction when target equals source square', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 12 as Square,
+						startButton: 0
+					}
+				}
+			});
+			const context = makeContext({ buttons: 0, targetSquare: 12 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelActiveInteraction' });
+		});
+	});
+
+	describe('terminal release outside board (button released, null target)', () => {
+		it('returns cancelActiveInteraction for lifted-piece-drag when targetSquare is null', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: null,
+						startButton: 0
+					}
+				}
+			});
+			const context = makeContext({ buttons: 0, targetSquare: null });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelActiveInteraction' });
+		});
+
+		it('returns cancelInteraction for release-targeting when targetSquare is null', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'release-targeting',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: null,
+						startButton: 0
+					}
+				}
+			});
+			const context = makeContext({ buttons: 0, targetSquare: null });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelInteraction' });
+		});
+	});
+
+	describe('initiating button still pressed (defensive cancellation)', () => {
+		it('returns cancelActiveInteraction when primary button is still pressed', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28 as Square,
+						startButton: 0
+					}
+				}
+			});
+			// buttons=1 means primary button (0) is still held
+			const context = makeContext({ buttons: 1, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelActiveInteraction' });
+		});
+
+		it('returns cancelActiveInteraction when secondary button is still pressed', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28 as Square,
+						startButton: 2
+					}
+				}
+			});
+			// buttons=2 means secondary button (2) is still held
+			const context = makeContext({ buttons: 2, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelActiveInteraction' });
+		});
+	});
+
+	describe('extension-owned drag lostpointercapture', () => {
+		it('returns completeExtensionDrag when initiating button released', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					dragSession: {
+						owner: 'annotations',
+						type: 'ext:draw' as `ext:${string}`,
+						sourceSquare: 12 as Square,
+						sourcePieceCode: null,
+						targetSquare: 28 as Square,
+						startButton: 2
+					}
+				}
+			});
+			// buttons=0 means secondary button (2) is no longer pressed
+			const context = makeContext({ buttons: 0, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'completeExtensionDrag', target: 28 });
+		});
+
+		it('returns cancelActiveInteraction when initiating button still pressed', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					dragSession: {
+						owner: 'annotations',
+						type: 'ext:draw' as `ext:${string}`,
+						sourceSquare: 12 as Square,
+						sourcePieceCode: null,
+						targetSquare: 28 as Square,
+						startButton: 2
+					}
+				}
+			});
+			// buttons=2 means secondary button still held
+			const context = makeContext({ buttons: 2, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelActiveInteraction' });
+		});
 	});
 });

@@ -38,7 +38,8 @@ describe('determineActionPointerDown', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 12 as Square
+					targetSquare: 12 as Square,
+					startButton: 0
 				}
 			},
 			getPieceCodeAt: () => PieceCode.WhitePawn
@@ -69,7 +70,7 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12 });
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12, startButton: 0 });
 	});
 
 	it('returns null when no selection and target is empty', () => {
@@ -94,7 +95,12 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startReleaseTargetingDrag', source: 12, target: 28 });
+		expect(result).toEqual({
+			type: 'startReleaseTargetingDrag',
+			source: 12,
+			target: 28,
+			startButton: 0
+		});
 	});
 
 	it('returns startLiftedDrag when selected and target is same square (re-lift)', () => {
@@ -108,7 +114,7 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12 });
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12, startButton: 0 });
 	});
 
 	it('returns startLiftedDrag when selected and target has same-color piece', () => {
@@ -122,7 +128,7 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 6, target: 6 });
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 6, target: 6, startButton: 0 });
 	});
 
 	it('returns startReleaseTargetingDrag when selected and target has opposite-color piece that is a legal move target (free mode)', () => {
@@ -137,7 +143,12 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startReleaseTargetingDrag', source: 12, target: 28 });
+		expect(result).toEqual({
+			type: 'startReleaseTargetingDrag',
+			source: 12,
+			target: 28,
+			startButton: 0
+		});
 	});
 
 	it('returns startReleaseTargetingDrag when selected and target has opposite-color piece in strict mode with target in destinations', () => {
@@ -154,7 +165,12 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startReleaseTargetingDrag', source: 12, target: 28 });
+		expect(result).toEqual({
+			type: 'startReleaseTargetingDrag',
+			source: 12,
+			target: 28,
+			startButton: 0
+		});
 	});
 
 	it('returns startLiftedDrag when selected and target has opposite-color piece but is NOT a legal target (disabled mode)', () => {
@@ -169,6 +185,6 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 28, target: 28 });
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 28, target: 28, startButton: 0 });
 	});
 });

@@ -75,19 +75,21 @@ describe('interactionSetActiveDestinations', () => {
 describe('interactionSetDragSession', () => {
 	it('sets drag session and returns true', () => {
 		const state = makeInteractionStateInternal();
-		const session = makeDragSessionCoreOwned();
+		const session = makeDragSessionCoreOwned({ startButton: 0 });
 		expect(interactionSetDragSession(state, session)).toBe(true);
 		expect(state.dragSession).not.toBeNull();
 	});
 
 	it('returns false when same session fields', () => {
-		const session = makeDragSessionCoreOwned();
+		const session = makeDragSessionCoreOwned({ startButton: 0 });
 		const state = makeInteractionStateInternal({ dragSession: { ...session } });
 		expect(interactionSetDragSession(state, session)).toBe(false);
 	});
 
 	it('null clears drag session', () => {
-		const state = makeInteractionStateInternal({ dragSession: makeDragSessionCoreOwned() });
+		const state = makeInteractionStateInternal({
+			dragSession: makeDragSessionCoreOwned({ startButton: 0 })
+		});
 		expect(interactionSetDragSession(state, null)).toBe(true);
 		expect(state.dragSession).toBeNull();
 	});
@@ -95,7 +97,9 @@ describe('interactionSetDragSession', () => {
 
 describe('interactionUpdateDragSessionCurrentTarget', () => {
 	it('updates target square', () => {
-		const state = makeInteractionStateInternal({ dragSession: makeDragSessionCoreOwned() });
+		const state = makeInteractionStateInternal({
+			dragSession: makeDragSessionCoreOwned({ startButton: 0 })
+		});
 		expect(interactionUpdateDragSessionCurrentTarget(state, 28 as Square)).toBe(true);
 		expect(state.dragSession!.targetSquare).toBe(28);
 	});
@@ -110,7 +114,7 @@ describe('interactionClear', () => {
 	it('clears all fields and returns true', () => {
 		const state = makeInteractionStateInternal({
 			selected: makeSelected(),
-			dragSession: makeDragSessionCoreOwned()
+			dragSession: makeDragSessionCoreOwned({ startButton: 0 })
 		});
 		expect(interactionClear(state)).toBe(true);
 		expect(state.selected).toBeNull();
@@ -128,7 +132,7 @@ describe('interactionClearActive', () => {
 	it('clears drag session only and returns true', () => {
 		const state = makeInteractionStateInternal({
 			selected: makeSelected(),
-			dragSession: makeDragSessionCoreOwned()
+			dragSession: makeDragSessionCoreOwned({ startButton: 0 })
 		});
 		expect(interactionClearActive(state)).toBe(true);
 		expect(state.dragSession).toBeNull();

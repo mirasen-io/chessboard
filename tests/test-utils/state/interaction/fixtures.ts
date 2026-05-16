@@ -20,14 +20,16 @@ export function makeSelected(
 }
 
 export function makeDragSessionCoreOwned(
-	overrides: Partial<DragSessionCoreOwnedSnapshot> = {}
+	overrides: Partial<DragSessionCoreOwnedSnapshot> &
+		Pick<DragSessionCoreOwnedSnapshot, 'startButton'>
 ): DragSessionCoreOwnedSnapshot {
 	return {
 		owner: 'core',
 		type: overrides.type ?? 'lifted-piece-drag',
 		sourceSquare: overrides.sourceSquare ?? (12 as Square),
 		sourcePieceCode: overrides.sourcePieceCode ?? PieceCode.WhitePawn,
-		targetSquare: overrides.targetSquare ?? null
+		targetSquare: overrides.targetSquare ?? null,
+		startButton: overrides.startButton
 	};
 }
 

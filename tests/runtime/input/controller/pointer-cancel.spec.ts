@@ -35,7 +35,8 @@ describe('determineActionPointerCancel', () => {
 					type: 'lifted-piece-drag',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
-					targetSquare: 28 as Square
+					targetSquare: 28 as Square,
+					startButton: 0
 				}
 			}
 		});

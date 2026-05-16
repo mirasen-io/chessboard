@@ -35,10 +35,14 @@ export function createInteractionController(
 			if (action) {
 				switch (action.type) {
 					case 'startLiftedDrag':
-						internalState.surface.startLiftedDrag(action.source, action.target);
+						internalState.surface.startLiftedDrag(action.source, action.target, action.startButton);
 						break;
 					case 'startReleaseTargetingDrag':
-						internalState.surface.startReleaseTargetingDrag(action.source, action.target);
+						internalState.surface.startReleaseTargetingDrag(
+							action.source,
+							action.target,
+							action.startButton
+						);
 						break;
 					case 'completeCoreDragTo':
 						internalState.surface.completeCoreDragTo(action.target);
