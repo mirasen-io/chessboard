@@ -30,6 +30,9 @@ export function createInteractionController(
 			if (context.rawEvent.defaultPrevented) {
 				transmitTransientInput(internalState, context);
 				return; // The event has been handled by the surface (extensions)
+			} else if (context.rawEvent.type === 'dragstart') {
+				// Prevent native drag-and-drop behavior to avoid conflicts with custom drag handling
+				context.rawEvent.preventDefault();
 			}
 
 			if (action) {

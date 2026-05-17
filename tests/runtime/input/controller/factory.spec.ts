@@ -344,4 +344,75 @@ describe('createInteractionController', () => {
 			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
 		});
 	});
+
+	describe('dragstart routing', () => {
+		it('passes dragstart to surface.onEvent with null runtimeInteractionActionPreview', () => {
+			const surface = createMockSurface();
+			const controller = createInteractionController({ surface });
+			const rawEvent = new Event('dragstart', { cancelable: true });
+			const context = createEventContext({ rawEvent, sceneEvent: null });
+
+			controller.onEvent(context);
+
+			expect(surface.onEvent).toHaveBeenCalledWith({
+				...context,
+				runtimeInteractionActionPreview: null
+			});
+		});
+
+		it('calls preventDefault on dragstart when not consumed by extensions', () => {
+			const surface = createMockSurface();
+			const controller = createInteractionController({ surface });
+			const rawEvent = new Event('dragstart', { cancelable: true });
+			const context = createEventContext({ rawEvent, sceneEvent: null });
+
+			controller.onEvent(context);
+
+			expect(rawEvent.defaultPrevented).toBe(true);
+		});
+
+		it('does not invoke any core interaction methods on dragstart', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						sourceSquare: 12,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28,
+						startButton: 0
+					}
+				}
+			});
+			const controller = createInteractionController({ surface });
+			const rawEvent = new Event('dragstart', { cancelable: true });
+			const context = createEventContext({ rawEvent, sceneEvent: null });
+
+			controller.onEvent(context);
+
+			expect(surface.startLiftedDrag).not.toHaveBeenCalled();
+			expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+			expect(surface.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
+			expect(surface.completeCoreDragTo).not.toHaveBeenCalled();
+			expect(surface.completeExtensionDrag).not.toHaveBeenCalled();
+			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
+			expect(surface.cancelInteraction).not.toHaveBeenCalled();
+		});
+
+		it('respects defaultPrevented path when extension consumes dragstart', () => {
+			const surface = createMockSurface();
+			(surface.onEvent as Mock).mockImplementation((ctx) => {
+				ctx.rawEvent.preventDefault();
+			});
+			const controller = createInteractionController({ surface });
+			const rawEvent = new Event('dragstart', { cancelable: true });
+			const context = createEventContext({ rawEvent, sceneEvent: null });
+
+			controller.onEvent(context);
+
+			expect(surface.onEvent).toHaveBeenCalledOnce();
+			expect(surface.startLiftedDrag).not.toHaveBeenCalled();
+			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
+		});
+	});
 });

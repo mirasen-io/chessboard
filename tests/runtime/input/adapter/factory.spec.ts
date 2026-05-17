@@ -97,6 +97,26 @@ describe('createInputAdapter', () => {
 			);
 		});
 
+		it('forwards dragstart events to controller with sceneEvent null', () => {
+			const controller = createMockController();
+			const container = createContainer();
+			createInputAdapter({
+				container,
+				getRenderGeometry: () => null,
+				controller
+			});
+
+			const dragstartEvent = new Event('dragstart', { cancelable: true });
+			container.dispatchEvent(dragstartEvent);
+
+			expect(controller.onEvent).toHaveBeenCalledWith(
+				expect.objectContaining({
+					rawEvent: dragstartEvent,
+					sceneEvent: null
+				})
+			);
+		});
+
 		it('forwards pointer events to controller with sceneEvent data', () => {
 			const controller = createMockController();
 			const container = createContainer();
