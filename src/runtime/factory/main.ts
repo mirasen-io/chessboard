@@ -105,6 +105,17 @@ function createExtensionRuntimeSurfaceCommandsInternalSurface(
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
+		setInteractionConfig(config) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			const changed = state.state.interaction.setConfig(config, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		getInteractionConfig() {
+			const state = getInternalState();
+			return state.state.interaction.getConfig();
+		},
 		select(square) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();

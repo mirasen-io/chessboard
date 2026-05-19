@@ -3,8 +3,10 @@ import { cloneDeep } from 'es-toolkit/object';
 import type { ReadonlyDeep } from 'type-fest';
 import { setsEqual } from '../../helpers/util.js';
 import type { RolePromotionCode, Square } from '../board/types/internal.js';
+import { areInteractionConfigsEqual } from './config.js';
 import { selectedEqual } from './helpers.js';
 import { movabilitiesEqual } from './movability.js';
+import type { InteractionConfig } from './types/config.js';
 import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal.js';
 import { InteractionStateInternal, InteractionStateSelected } from './types/main.js';
 
@@ -21,6 +23,15 @@ export function interactionSetSelected(
 export function interactionSetMovability(state: InteractionStateInternal, m: Movability): boolean {
 	if (movabilitiesEqual(state.movability, m)) return false; // no-op
 	state.movability = cloneDeep(m); // Defensive copy to prevent external mutations
+	return true;
+}
+
+export function interactionSetConfig(
+	state: InteractionStateInternal,
+	config: InteractionConfig
+): boolean {
+	if (areInteractionConfigsEqual(state.config, config)) return false; // no-op
+	state.config = cloneDeep(config); // Defensive copy to prevent external mutations
 	return true;
 }
 

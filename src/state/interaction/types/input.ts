@@ -1,4 +1,6 @@
+import { PartialDeep } from 'type-fest';
 import { MoveRequestInput, RolePromotionInput, SquareString } from '../../board/types/input.js';
+import { InteractionConfig } from './config.js';
 
 export interface MoveDestinationInput extends Omit<MoveRequestInput, 'from' | 'promotedTo'> {
 	promotedTo?: RolePromotionInput[]; // For cases where multiple promotions are possible (e.g., underpromotion options)
@@ -28,3 +30,5 @@ export type DisabledMovabilityInput = {
 };
 
 export type MovabilityInput = StrictMovabilityInput | FreeMovabilityInput | DisabledMovabilityInput;
+
+export type InteractionConfigInput = PartialDeep<InteractionConfig>;

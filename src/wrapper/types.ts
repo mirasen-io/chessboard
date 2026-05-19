@@ -109,6 +109,8 @@ export type ChessboardRuntimeSurface = Pick<
 	| 'setOrientation'
 	| 'setMovability'
 	| 'select'
+	| 'setInteractionConfig'
+	| 'getInteractionConfig'
 	| 'getSnapshot'
 >;
 

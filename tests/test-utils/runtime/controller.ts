@@ -5,6 +5,7 @@ import type {
 	RuntimeInteractionSurface
 } from '../../../src/runtime/input/controller/types.js';
 import { type PieceCode, type Square } from '../../../src/state/board/types/internal.js';
+import { DefaultInteractionDesktopConfig } from '../../../src/state/interaction/config.js';
 import { MovabilityModeCode } from '../../../src/state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../src/state/interaction/types/main.js';
 
@@ -23,6 +24,7 @@ export function createMockSurface(
 		movability: { mode: MovabilityModeCode.Disabled },
 		activeDestinations: new Map(),
 		dragSession: null,
+		config: DefaultInteractionDesktopConfig,
 		...overrides?.snapshot
 	};
 	return {

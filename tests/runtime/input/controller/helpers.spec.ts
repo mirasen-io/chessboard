@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { canMoveTo } from '../../../../src/runtime/input/controller/helpers.js';
 import { normalizeSquare } from '../../../../src/state/board/normalize.js';
 import { PieceCode } from '../../../../src/state/board/types/internal.js';
+import { DefaultInteractionDesktopConfig } from '../../../../src/state/interaction/config.js';
 import { MovabilityModeCode } from '../../../../src/state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../../src/state/interaction/types/main.js';
 
@@ -11,6 +12,7 @@ function makeSnapshot(overrides: Partial<InteractionStateSnapshot> = {}): Intera
 		movability: { mode: MovabilityModeCode.Disabled },
 		activeDestinations: new Map(),
 		dragSession: null,
+		config: DefaultInteractionDesktopConfig,
 		...overrides
 	};
 }

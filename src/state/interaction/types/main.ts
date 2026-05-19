@@ -1,10 +1,12 @@
-import { ReadonlyDeep } from 'type-fest';
-import { NonEmptyPieceCode, Square } from '../../board/types/internal.js';
-import { InteractionStateMutationSession } from '../mutation.js';
-import { MovabilityInput } from './input.js';
-import {
+import type { ReadonlyDeep } from 'type-fest';
+import type { NonEmptyPieceCode, Square } from '../../board/types/internal.js';
+import type { InteractionStateMutationSession } from '../mutation.js';
+import type { InteractionConfig } from './config.js';
+import type { InteractionConfigInput, MovabilityInput } from './input.js';
+import type {
 	DragSession,
 	DragSessionSnapshot,
+	InteractionConfigSnapshot,
 	Movability,
 	MovabilitySnapshot,
 	MoveDestinationSnapshot
@@ -20,12 +22,14 @@ export interface InteractionStateInternal {
 	movability: Movability;
 	activeDestinations: ReadonlyMap<Square, MoveDestinationSnapshot>;
 	dragSession: DragSession | null;
+	config: InteractionConfig;
 }
 
 export type InteractionStateSnapshot = ReadonlyDeep<InteractionStateInternal>;
 
 export interface InteractionStateInitOptions {
 	movability?: MovabilityInput;
+	config?: InteractionConfigInput;
 }
 
 export interface InteractionState {
@@ -52,5 +56,10 @@ export interface InteractionState {
 	): boolean;
 	clear(mutationSession: InteractionStateMutationSession): boolean;
 	clearActive(mutationSession: InteractionStateMutationSession): boolean;
+	setConfig(
+		config: InteractionConfigInput,
+		mutationSession: InteractionStateMutationSession
+	): boolean;
+	getConfig(): InteractionConfigSnapshot;
 	getSnapshot(): InteractionStateSnapshot;
 }

@@ -3,6 +3,7 @@ import {
 	type NonEmptyPieceCode,
 	type Square
 } from '../../../../src/state/board/types/internal.js';
+import { DefaultInteractionDesktopConfig } from '../../../../src/state/interaction/config.js';
 import type {
 	DragSessionCoreOwnedSnapshot,
 	MovabilityModeCode
@@ -40,6 +41,7 @@ export function makeInteractionStateInternal(
 		selected: overrides.selected ?? null,
 		movability: overrides.movability ?? { mode: 0 as MovabilityModeCode.Disabled },
 		activeDestinations: overrides.activeDestinations ?? new Map(),
-		dragSession: overrides.dragSession ?? null
+		dragSession: overrides.dragSession ?? null,
+		config: overrides.config ?? DefaultInteractionDesktopConfig
 	};
 }

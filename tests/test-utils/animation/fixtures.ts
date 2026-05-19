@@ -10,6 +10,7 @@ import {
 } from '../../../src/state/board/types/internal.js';
 import type { BoardStateSnapshot } from '../../../src/state/board/types/main.js';
 import type { ChangeStateSnapshot } from '../../../src/state/change/types/main.js';
+import { DefaultInteractionDesktopConfig } from '../../../src/state/interaction/config.js';
 import { MovabilityModeCode } from '../../../src/state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../src/state/interaction/types/main.js';
 
@@ -54,7 +55,8 @@ export function makeInteractionSnapshot(
 		selected: overrides.selected ?? null,
 		movability: overrides.movability ?? { mode: MovabilityModeCode.Disabled },
 		activeDestinations: overrides.activeDestinations ?? new Map(),
-		dragSession: overrides.dragSession ?? null
+		dragSession: overrides.dragSession ?? null,
+		config: overrides.config ?? DefaultInteractionDesktopConfig
 	};
 }
 

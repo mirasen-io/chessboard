@@ -53,6 +53,8 @@ export function createBoard<
 		setOrientation: runtime.setOrientation,
 		setMovability: runtime.setMovability,
 		select: runtime.select,
+		setInteractionConfig: runtime.setInteractionConfig,
+		getInteractionConfig: runtime.getInteractionConfig,
 		getSnapshot: runtime.getSnapshot,
 		extensions: runtime.getExtensionsPublicRecord() as Chessboard<TExtensions>['extensions']
 	};

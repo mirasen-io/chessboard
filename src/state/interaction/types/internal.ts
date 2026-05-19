@@ -9,6 +9,7 @@ import type {
 	RolePromotionCode,
 	Square
 } from '../../board/types/internal.js';
+import type { InteractionConfig } from './config.js';
 
 export type DragSessionExtensionOwned = ExtensionDragSession & {
 	owner: string; // Extension identifier
@@ -60,3 +61,5 @@ export interface MovabilityDisabled {
 
 export type Movability = MovabilityStrict | MovabilityFree | MovabilityDisabled;
 export type MovabilitySnapshot = ReadonlyDeep<Movability>;
+
+export type InteractionConfigSnapshot = ReadonlyDeep<InteractionConfig>;

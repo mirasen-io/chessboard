@@ -8,6 +8,7 @@ export type InteractionStateMutationPayloadByCause = {
 	'state.interaction.clearActive': undefined;
 	'state.interaction.setMovability': undefined;
 	'state.interaction.updateActiveDestinations': undefined;
+	'state.interaction.setConfig': undefined;
 };
 
 export type InteractionStateMutationSession =

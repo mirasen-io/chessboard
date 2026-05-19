@@ -1,10 +1,12 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit';
+import { DefaultInteractionDesktopConfig, normalizeInteractionConfig } from './config.js';
 import { updateActiveDestinations } from './helpers.js';
 import { normalizeMovability } from './normalize.js';
 import {
 	interactionClear,
 	interactionClearActive,
+	interactionSetConfig,
 	interactionSetDragSession,
 	interactionSetMovability,
 	interactionSetSelected,
@@ -33,7 +35,8 @@ function createInteractionStateInternal(
 		movability,
 		selected: null,
 		activeDestinations: new Map(),
-		dragSession: null
+		dragSession: null,
+		config: normalizeInteractionConfig(options.config, DefaultInteractionDesktopConfig)
 	};
 }
 
@@ -135,6 +138,16 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 				'state.interaction.clearActive',
 				interactionClearActive(internalState)
 			);
+		},
+		setConfig(config, mutationSession) {
+			const nextConfig = normalizeInteractionConfig(config, internalState.config);
+			return mutationSession.addMutation(
+				'state.interaction.setConfig',
+				interactionSetConfig(internalState, nextConfig)
+			);
+		},
+		getConfig() {
+			return cloneDeep(internalState.config);
 		},
 		getSnapshot() {
 			return cloneDeep(internalState);
