@@ -1,4 +1,4 @@
-import { toMerged } from 'es-toolkit';
+import { cloneDeep } from 'es-toolkit';
 import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
@@ -18,17 +18,16 @@ import {
 	EXTENSION_SLOTS,
 	ExtensionSlotsType,
 	MainRendererDefinition,
-	MainRendererInitOptions,
-	MainRendererInstance
+	MainRendererInstance,
+	RendererPublicAPI
 } from './types/extension.js';
 import { MainRendererInstanceInternal } from './types/instance.js';
-import { DefaultMainRendererDesktopConfig, MainRendererConfig } from './types/internal.js';
+import type { MainRendererConfig } from './types/internal.js';
+import { DefaultMainRendererDesktopConfig } from './types/internal.js';
+import type { MainRendererInitOptions } from './types/public.js';
 
-export function createMainRenderer(options: MainRendererInitOptions = {}): MainRendererDefinition {
-	const config: MainRendererConfig = toMerged(
-		DefaultMainRendererDesktopConfig,
-		normalizeMainRendererConfig(options)
-	);
+export function createMainRenderer(options?: MainRendererInitOptions): MainRendererDefinition {
+	const config = normalizeMainRendererConfig(options, DefaultMainRendererDesktopConfig);
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
@@ -56,7 +55,19 @@ function createMainRendererInternal(
 		drag,
 		animation,
 		runtimeSurface: options.runtimeSurface,
-		pieceSymbolResolver
+		pieceSymbolResolver,
+		config
+	};
+}
+
+function createMainRendererInstancePublic(state: MainRendererInstanceInternal): RendererPublicAPI {
+	return {
+		getDragConfig() {
+			return cloneDeep(state.config.drag);
+		},
+		setDragConfig(options) {
+			state.config = normalizeMainRendererConfig({ drag: options }, state.config);
+		}
 	};
 }
 
@@ -82,13 +93,14 @@ function createMainRendererInstance(
 	config: MainRendererConfig
 ): MainRendererInstance {
 	const internalState = createMainRendererInternal(options, config);
+	const publicInterface = createMainRendererInstancePublic(internalState);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
 			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
 			ensurePieceSymbolsDefined(
 				env.slotRoots.defs,
-				config.pieceUrls,
+				internalState.config.pieceUrls,
 				internalState.pieceSymbolResolver
 			);
 		},
@@ -132,6 +144,9 @@ function createMainRendererInstance(
 		destroy() {
 			extensionUnmountLocal(internalState);
 			extensionDestroyBase<ExtensionSlotsType>(internalState);
+		},
+		getPublic() {
+			return publicInterface;
 		}
 	};
 }

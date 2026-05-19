@@ -1,12 +1,9 @@
 import assert from '@ktarmyshov/assert';
+import { toMerged } from 'es-toolkit/object';
 import { normalizePiece } from '../../../state/board/normalize.js';
 import type { PieceString } from '../../../state/board/types/input.js';
 import { ALL_NON_EMPTY_PIECE_CODES, PieceCode } from '../../../state/board/types/internal.js';
-import type {
-	DefaultMainRendererDesktopConfig,
-	MainRendererConfig,
-	PieceUrls
-} from './types/internal.js';
+import type { MainRendererConfig, PieceUrls } from './types/internal.js';
 import type { MainRendererInitOptions, PieceUrlsPublic } from './types/public.js';
 
 function assertPieceUrlsComplete(pieceUrls: Partial<PieceUrls>): asserts pieceUrls is PieceUrls {
@@ -26,11 +23,26 @@ function normalizePieceUrls(input: PieceUrlsPublic): PieceUrls {
 	return normalized;
 }
 
-export function normalizeMainRendererConfig(input: MainRendererInitOptions): MainRendererConfig {
-	return {
-		colors: input.colors ?? DefaultMainRendererDesktopConfig.colors,
-		pieceUrls: input.pieceUrls
-			? normalizePieceUrls(input.pieceUrls)
-			: DefaultMainRendererDesktopConfig.pieceUrls
+function validateMainRendererConfig(config: MainRendererConfig): void {
+	const { pieceScale, pieceAnchor } = config.drag;
+	assert(Number.isFinite(pieceScale), 'drag.pieceScale must be a finite number');
+	assert(pieceScale > 0, 'drag.pieceScale must be > 0');
+	assert(
+		pieceAnchor === 'center' || pieceAnchor === 'bottom',
+		`drag.pieceAnchor must be 'center' or 'bottom', received: ${String(pieceAnchor)}`
+	);
+}
+
+export function normalizeMainRendererConfig(
+	input: MainRendererInitOptions | undefined,
+	base: MainRendererConfig
+): MainRendererConfig {
+	const { pieceUrls: inputPieceUrls, ...rest } = input ?? {};
+	const merged = toMerged(base, rest) as MainRendererConfig;
+	const result: MainRendererConfig = {
+		...merged,
+		pieceUrls: inputPieceUrls !== undefined ? normalizePieceUrls(inputPieceUrls) : merged.pieceUrls
 	};
+	validateMainRendererConfig(result);
+	return result;
 }
