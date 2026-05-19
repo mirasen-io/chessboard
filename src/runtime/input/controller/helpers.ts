@@ -40,13 +40,13 @@ export function canMoveTo(snapshot: InteractionStateSnapshot, target: Square): b
 	return snapshot.activeDestinations.has(target);
 }
 
-export function isStartPendingLiftedDragInput(
+export function isStartPendingLiftedDragSessionInput(
 	input: StartLiftedDragSessionInput
 ): input is StartPendingLiftedDragSessionInput {
 	return input.phase === 'pending';
 }
 
-export function isStartActiveLiftedDragInput(
+export function isStartActiveLiftedDragSessionInput(
 	input: StartLiftedDragSessionInput
 ): input is StartActiveLiftedDragSessionInput {
 	return input.phase === 'active';
