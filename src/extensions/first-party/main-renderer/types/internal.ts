@@ -1,5 +1,8 @@
-import { NonEmptyPieceCode, PieceCode } from '../../../../state/board/types/internal.js';
-import { TMainRendererConfig } from './template.js';
+import { cloneDeep } from 'es-toolkit';
+import type { ReadonlyDeep } from 'type-fest';
+import type { NonEmptyPieceCode } from '../../../../state/board/types/internal.js';
+import { PieceCode } from '../../../../state/board/types/internal.js';
+import type { TMainRendererConfig } from './template.js';
 
 export interface ConfigColorPair {
 	light: string; // board light square color
@@ -13,7 +16,7 @@ export interface ConfigColors {
 
 export type PieceUrls = Record<NonEmptyPieceCode, string>;
 
-export type MainRendererConfig = TMainRendererConfig<PieceUrls>;
+export type MainRendererConfig = ReadonlyDeep<TMainRendererConfig<PieceUrls>>;
 
 export const CHESSNUT_PIECE_URLS: PieceUrls = {
 	[PieceCode.WhiteKing]: new URL(
@@ -69,7 +72,7 @@ export const CHESSNUT_PIECE_URLS: PieceUrls = {
 /**
  * Default board renderer configuration.
  */
-export const DEFAULT_MAIN_RENDERER_CONFIG: MainRendererConfig = {
+const DefaultMainRendererConfigPart = {
 	colors: {
 		board: {
 			light: '#d7dde5',
@@ -81,4 +84,20 @@ export const DEFAULT_MAIN_RENDERER_CONFIG: MainRendererConfig = {
 		}
 	},
 	pieceUrls: CHESSNUT_PIECE_URLS
+} as const;
+
+export const DefaultMainRendererDesktopConfig: MainRendererConfig = {
+	...cloneDeep(DefaultMainRendererConfigPart),
+	drag: {
+		pieceScale: 1,
+		pieceAnchor: 'center'
+	}
+};
+
+export const DefaultMainRendererMobileConfig: MainRendererConfig = {
+	...cloneDeep(DefaultMainRendererConfigPart),
+	drag: {
+		pieceScale: 1.5,
+		pieceAnchor: 'bottom'
+	}
 };

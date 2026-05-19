@@ -1,9 +1,9 @@
 import { ColorShort, RolePromotionShort } from '../../../../state/board/types/input.js';
 import { OpaqueColor } from '../../common/types.js';
-import { PieceUrlsInput } from '../../main-renderer/types/input.js';
+import { PieceUrlsPublic } from '../../main-renderer/types/public.js';
 
 export type PromotionPieceString = `${ColorShort}${RolePromotionShort}`;
-export type PromotionPieceUrlsInput = Pick<PieceUrlsInput, PromotionPieceString>;
+export type PromotionPieceUrlsInput = Pick<PieceUrlsPublic, PromotionPieceString>;
 
 export interface PromotionInitConfig {
 	squareColor?: OpaqueColor;

@@ -22,11 +22,11 @@ import {
 	MainRendererInstance
 } from './types/extension.js';
 import { MainRendererInstanceInternal } from './types/instance.js';
-import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/internal.js';
+import { DefaultMainRendererDesktopConfig, MainRendererConfig } from './types/internal.js';
 
 export function createMainRenderer(options: MainRendererInitOptions = {}): MainRendererDefinition {
 	const config: MainRendererConfig = toMerged(
-		DEFAULT_MAIN_RENDERER_CONFIG,
+		DefaultMainRendererDesktopConfig,
 		normalizeMainRendererConfig(options)
 	);
 	return {

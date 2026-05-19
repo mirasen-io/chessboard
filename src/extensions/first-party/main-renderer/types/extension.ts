@@ -1,7 +1,5 @@
-import { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
-import { MainRendererConfigInput } from './input.js';
-
-export type MainRendererInitOptions = Partial<MainRendererConfigInput>;
+import type { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
+import type { MainRendererConfigPublicDrag, MainRendererInitOptionsDrag } from './public.js';
 
 export const EXTENSION_SLOTS = [
 	'defs',
@@ -14,19 +12,21 @@ export const EXTENSION_SLOTS = [
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'renderer' as const;
 
-// export type MainRendererMountOptions = ExtensionInstanceMountOptions<typeof EXTENSION_SLOTS>;
-// export type MainRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
+export interface RendererPublicAPI {
+	setDragConfig(options: MainRendererInitOptionsDrag): void;
+	getDragConfig(): MainRendererConfigPublicDrag;
+}
 
 export type MainRendererDefinition = ExtensionDefinition<
 	typeof EXTENSION_ID,
 	typeof EXTENSION_SLOTS,
-	never
+	RendererPublicAPI
 >;
 
 export type MainRendererInstance = ExtensionInstance<
 	typeof EXTENSION_ID,
 	typeof EXTENSION_SLOTS,
-	never
+	RendererPublicAPI
 >;
 
 export enum DirtyLayer {

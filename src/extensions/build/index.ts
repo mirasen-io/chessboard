@@ -36,8 +36,8 @@ export {
 	extensionUnmountBase
 } from '../first-party/common/helpers.js';
 export type { ExtensionInternalBase, OpaqueColor } from '../first-party/common/types.js';
-export type { PieceUrlsInput } from '../first-party/main-renderer/types/input.js';
 export type { PieceUrls } from '../first-party/main-renderer/types/internal.js';
+export type { PieceUrlsPublic } from '../first-party/main-renderer/types/public.js';
 export type { PromotionPieceCode } from '../first-party/promotion/types/internal.js';
 export type { ExtensionSlotName, ExtensionSlotSvgRoots } from '../types/basic/mount.js';
 export { isFrameMounted, isFrameRenderable } from '../types/basic/update.js';
