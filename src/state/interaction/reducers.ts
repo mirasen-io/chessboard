@@ -5,16 +5,12 @@ import type { ReadonlyDeep } from 'type-fest';
 import { setsEqual } from '../../helpers/util.js';
 import type { RolePromotionCode, Square } from '../board/types/internal.js';
 import { areInteractionConfigsEqual } from './config.js';
-import {
-	isDragSessionCoreOwned,
-	isDragSessionPendingLiftedPiece,
-	selectedEqual
-} from './helpers.js';
+import { isDragSessionPendingLiftedPiece, selectedEqual } from './helpers.js';
 import { movabilitiesEqual } from './movability.js';
 import type { InteractionConfig } from './types/config.js';
 import {
 	Movability,
-	type DragSessionActiveLiftedPieceCoreOwned,
+	type DragSession,
 	type DragSessionSnapshot,
 	type MoveDestination
 } from './types/internal.js';
@@ -100,23 +96,12 @@ export function interactionActivatePendingLiftedDragSession(
 	const current = state.dragSession;
 	assert(current !== null, 'activatePendingLiftedDragSession requires an active drag session');
 	assert(
-		isDragSessionCoreOwned(current),
-		'activatePendingLiftedDragSession requires a core-owned drag session'
-	);
-	assert(
 		isDragSessionPendingLiftedPiece(current),
 		'activatePendingLiftedDragSession requires a pending lifted-piece drag session'
 	);
-	const next: DragSessionActiveLiftedPieceCoreOwned = {
-		owner: 'core',
-		type: 'lifted-piece-drag',
-		phase: 'active',
-		sourceSquare: current.sourceSquare,
-		sourcePieceCode: current.sourcePieceCode,
-		targetSquare,
-		startButton: current.startButton
-	};
-	state.dragSession = next;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { startPoint: _startPoint, thresholdPx: _thresholdPx, ...rest } = current;
+	state.dragSession = { ...rest, phase: 'active', targetSquare } satisfies DragSession;
 	return true;
 }
 

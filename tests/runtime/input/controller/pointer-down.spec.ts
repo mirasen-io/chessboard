@@ -212,4 +212,46 @@ describe('determineActionPointerDown', () => {
 			startButton: 0
 		});
 	});
+
+	it('starts active lifted-piece drag when thresholdPx === 0', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				config: { drag: { liftedActivation: { thresholdPx: 0 } } }
+			},
+			getPieceCodeAt: () => PieceCode.WhitePawn
+		});
+		const context = makeContext(12);
+
+		const result = determineActionPointerDown({ surface }, context);
+
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'active',
+			sourceSquare: 12,
+			targetSquare: 12,
+			startButton: 0
+		});
+	});
+
+	it('starts pending lifted-piece drag when thresholdPx > 0', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				config: { drag: { liftedActivation: { thresholdPx: 4 } } }
+			},
+			getPieceCodeAt: () => PieceCode.WhitePawn
+		});
+		const context = makeContext(12);
+
+		const result = determineActionPointerDown({ surface }, context);
+
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'pending',
+			sourceSquare: 12,
+			targetSquare: 12,
+			startButton: 0,
+			startPoint: { x: 100, y: 100 },
+			thresholdPx: 4
+		});
+	});
 });

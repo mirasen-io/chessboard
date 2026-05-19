@@ -11,6 +11,7 @@ import {
 } from '../../../src/runtime/factory/input.js';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
 import { PieceCode, type Square } from '../../../src/state/board/types/internal.js';
+import type { DragSessionExtensionOwned } from '../../../src/state/interaction/types/internal.js';
 import { makeDragSessionCoreOwned } from '../../test-utils/state/interaction/fixtures.js';
 
 let capturedCommands: ExtensionRuntimeSurfaceCommands | null = null;
@@ -280,5 +281,61 @@ describe('createRuntimeInteractionSurface.completeCoreDragSessionTo assertion', 
 			/core-owned active lifted-piece/
 		);
 		expect(interaction.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
+	});
+});
+
+describe('createRuntimeInteractionSurface.completeExtensionDragSession', () => {
+	function createSurfaceWithExtensionDragSession(initial: DragSessionExtensionOwned) {
+		const mutationSession = { addMutation: vi.fn() };
+		let currentSession: DragSessionExtensionOwned | null = initial;
+		const interaction = {
+			get dragSession() {
+				return currentSession;
+			},
+			updateDragSessionCurrentTarget: vi.fn(),
+			setDragSession: vi.fn((session: DragSessionExtensionOwned | null) => {
+				currentSession = session;
+				return true;
+			})
+		};
+		const completeDrag = vi.fn();
+		const fakeInternal = {
+			state: { interaction },
+			mutation: { getSession: () => mutationSession, run: vi.fn(() => false) },
+			extensionSystem: { completeDrag },
+			renderSystem: { requestRender: vi.fn() }
+		};
+		return {
+			surface: createRuntimeInteractionSurface(() => fakeInternal as never),
+			interaction,
+			completeDrag
+		};
+	}
+
+	it('accepts an extension-owned pending lifted-piece session', () => {
+		const dragSession: DragSessionExtensionOwned = {
+			owner: 'my-ext',
+			type: 'lifted-piece-drag',
+			phase: 'pending',
+			sourceSquare: 12 as Square,
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: 28 as Square,
+			startButton: 0,
+			startPoint: { x: 0, y: 0 },
+			thresholdPx: 4
+		};
+		const { surface, completeDrag, interaction } =
+			createSurfaceWithExtensionDragSession(dragSession);
+
+		expect(() => surface.completeExtensionDragSession(28 as Square)).not.toThrow();
+		expect(completeDrag).toHaveBeenCalledTimes(1);
+		expect(completeDrag).toHaveBeenCalledWith(
+			expect.objectContaining({
+				owner: 'my-ext',
+				type: 'lifted-piece-drag',
+				phase: 'pending'
+			})
+		);
+		expect(interaction.setDragSession).toHaveBeenCalledWith(null, expect.anything());
 	});
 });

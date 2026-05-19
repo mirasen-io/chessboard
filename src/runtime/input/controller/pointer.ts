@@ -4,10 +4,11 @@ import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/chec
 import { fromPieceCode } from '../../../state/board/piece.js';
 import {
 	isDragSessionActiveLiftedPiece,
-	isDragSessionCoreOwned
+	isDragSessionCoreOwned,
+	isDragSessionPendingLiftedPiece
 } from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
-import { buttonToButtonsMask, canMoveTo } from './helpers.js';
+import { buttonToButtonsMask, canMoveTo, isMovementBeyondThreshold } from './helpers.js';
 import type {
 	InteractionControllerInternal,
 	InteractionControllerOnEventContext
@@ -80,6 +81,18 @@ export function determineActionPointerDown(
 		 */
 		const pieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 		if (!isEmptyPieceCode(pieceCode)) {
+			const thresholdPx = interaction.config.drag.liftedActivation.thresholdPx;
+			if (thresholdPx > 0) {
+				return {
+					type: 'startLiftedDragSession',
+					phase: 'pending',
+					sourceSquare: sceneEvent.targetSquare,
+					targetSquare: sceneEvent.targetSquare,
+					startButton: rawEvent.button,
+					startPoint: sceneEvent.point,
+					thresholdPx
+				};
+			}
 			return {
 				type: 'startLiftedDragSession',
 				phase: 'active',
@@ -102,13 +115,27 @@ export function determineActionPointerMove(
 		'determineActionPointerMove should only be called for pointermove events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
-	if (interaction.dragSession) {
-		return {
-			type: 'updateDragSessionCurrentTarget',
-			targetSquare: context.sceneEvent?.targetSquare ?? null
-		};
+	const dragSession = interaction.dragSession;
+	if (!dragSession) {
+		return null;
 	}
-	return null;
+	const sceneEvent = context.sceneEvent;
+	assert(sceneEvent, 'pointermove requires a scene event');
+	if (isDragSessionPendingLiftedPiece(dragSession)) {
+		if (
+			isMovementBeyondThreshold(dragSession.startPoint, sceneEvent.point, dragSession.thresholdPx)
+		) {
+			return {
+				type: 'activatePendingLiftedDragSession',
+				targetSquare: sceneEvent.targetSquare
+			};
+		}
+		return { type: 'updateDragSessionCurrentTarget', targetSquare: sceneEvent.targetSquare };
+	}
+	return {
+		type: 'updateDragSessionCurrentTarget',
+		targetSquare: sceneEvent.targetSquare
+	};
 }
 
 function determineActionTerminalRelease(

@@ -1,3 +1,4 @@
+import type { ScenePoint } from '../../../extensions/types/basic/transient-visuals.js';
 import type { Square } from '../../../state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
@@ -50,4 +51,14 @@ export function isStartActiveLiftedDragSessionInput(
 	input: StartLiftedDragSessionInput
 ): input is StartActiveLiftedDragSessionInput {
 	return input.phase === 'active';
+}
+
+export function isMovementBeyondThreshold(
+	start: ScenePoint,
+	current: ScenePoint,
+	thresholdPx: number
+): boolean {
+	const dx = current.x - start.x;
+	const dy = current.y - start.y;
+	return dx * dx + dy * dy >= thresholdPx * thresholdPx;
 }

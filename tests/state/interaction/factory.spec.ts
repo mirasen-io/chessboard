@@ -235,7 +235,7 @@ describe('createInteractionState', () => {
 			expect(() => state.activatePendingLiftedDragSession(28 as Square, session2)).toThrow();
 		});
 
-		it('asserts when current dragSession is extension-owned', () => {
+		it('transitions an extension-owned pending lifted-piece session to active, preserving owner', () => {
 			const state = createInteractionState({});
 			const session = createInteractionMutationSession();
 			state.setDragSession(
@@ -254,7 +254,27 @@ describe('createInteractionState', () => {
 			);
 
 			const session2 = createInteractionMutationSession();
-			expect(() => state.activatePendingLiftedDragSession(28 as Square, session2)).toThrow();
+			const changed = state.activatePendingLiftedDragSession(28 as Square, session2);
+
+			expect(changed).toBe(true);
+			expect(
+				session2.hasMutation({
+					causes: ['state.interaction.activatePendingLiftedDragSession']
+				})
+			).toBe(true);
+			const drag = state.dragSession!;
+			expect(drag.owner).toBe('my-ext');
+			expect(drag.type).toBe('lifted-piece-drag');
+			if (drag.type !== 'lifted-piece-drag') {
+				throw new Error('expected lifted-piece-drag');
+			}
+			expect(drag.phase).toBe('active');
+			expect(drag.sourceSquare).toBe(12);
+			expect(drag.sourcePieceCode).toBe(PieceCode.WhitePawn);
+			expect(drag.targetSquare).toBe(28);
+			expect(drag.startButton).toBe(0);
+			expect((drag as unknown as { startPoint?: unknown }).startPoint).toBeUndefined();
+			expect((drag as unknown as { thresholdPx?: unknown }).thresholdPx).toBeUndefined();
 		});
 
 		it('asserts when current dragSession is already an active lifted-piece session', () => {

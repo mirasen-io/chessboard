@@ -242,6 +242,29 @@ describe('determineActionLostPointerCapture', () => {
 			expect(result).toEqual({ type: 'completeExtensionDragSession', targetSquare: 28 });
 		});
 
+		it('returns completeExtensionDragSession for extension-owned pending lifted-piece on lostpointercapture', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					dragSession: {
+						owner: 'my-ext',
+						type: 'lifted-piece-drag',
+						phase: 'pending',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28 as Square,
+						startButton: 0,
+						startPoint: { x: 0, y: 0 },
+						thresholdPx: 4
+					}
+				}
+			});
+			const context = makeContext({ buttons: 0, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'completeExtensionDragSession', targetSquare: 28 });
+		});
+
 		it('returns cancelActiveInteraction when initiating button still pressed', () => {
 			const surface = createMockSurface({
 				snapshot: {
