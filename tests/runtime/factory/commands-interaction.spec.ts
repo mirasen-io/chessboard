@@ -117,4 +117,71 @@ describe('runtime interaction commands', () => {
 			expect(result).toBe(false);
 		});
 	});
+
+	describe('interaction config', () => {
+		it('default runtime uses desktop default thresholdPx (0)', () => {
+			const runtime = createTestRuntime();
+			expect(runtime.getInteractionConfig().drag.liftedActivation.thresholdPx).toBe(0);
+		});
+
+		it('honors thresholdPx provided via createRuntime state.interaction.config', () => {
+			const runtime = createRuntime({
+				element: document.createElement('div'),
+				state: {
+					interaction: {
+						config: { drag: { liftedActivation: { thresholdPx: 3 } } }
+					}
+				}
+			});
+			expect(runtime.getInteractionConfig().drag.liftedActivation.thresholdPx).toBe(3);
+		});
+
+		it('setInteractionConfig returns true when thresholdPx changes and reflects new value', () => {
+			const runtime = createTestRuntime();
+			const result = runtime.setInteractionConfig({
+				drag: { liftedActivation: { thresholdPx: 5 } }
+			});
+			expect(result).toBe(true);
+			expect(runtime.getInteractionConfig().drag.liftedActivation.thresholdPx).toBe(5);
+			expect(runtime.getSnapshot().state.interaction.config.drag.liftedActivation.thresholdPx).toBe(
+				5
+			);
+		});
+
+		it('setInteractionConfig returns false when value is unchanged', () => {
+			const runtime = createTestRuntime();
+			const result = runtime.setInteractionConfig({
+				drag: { liftedActivation: { thresholdPx: 0 } }
+			});
+			expect(result).toBe(false);
+		});
+
+		it('partial-merges nested input over current config', () => {
+			const runtime = createTestRuntime();
+			runtime.setInteractionConfig({ drag: { liftedActivation: { thresholdPx: 7 } } });
+			// Provide an empty drag branch — must NOT clobber thresholdPx, but should be a no-op
+			const result = runtime.setInteractionConfig({ drag: {} });
+			expect(result).toBe(false);
+			expect(runtime.getInteractionConfig().drag.liftedActivation.thresholdPx).toBe(7);
+		});
+
+		it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+			'throws for invalid thresholdPx: %s',
+			(value) => {
+				const runtime = createTestRuntime();
+				expect(() =>
+					runtime.setInteractionConfig({ drag: { liftedActivation: { thresholdPx: value } } })
+				).toThrow();
+			}
+		);
+
+		it('getInteractionConfig returns an isolated snapshot (mutation does not leak)', () => {
+			const runtime = createTestRuntime();
+			const snapshot = runtime.getInteractionConfig() as {
+				drag: { liftedActivation: { thresholdPx: number } };
+			};
+			snapshot.drag.liftedActivation.thresholdPx = 999;
+			expect(runtime.getInteractionConfig().drag.liftedActivation.thresholdPx).toBe(0);
+		});
+	});
 });
