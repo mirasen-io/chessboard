@@ -1,6 +1,9 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check.js';
-import { isDragSessionCoreOwned } from '../../state/interaction/helpers.js';
+import {
+	isDragSessionCoreOwned,
+	isDragSessionExtensionOwned
+} from '../../state/interaction/helpers.js';
 import {
 	DragSession,
 	DragSessionActiveLiftedPieceCoreOwned,
@@ -112,7 +115,7 @@ export function createRuntimeInteractionSurface(
 			interaction.updateDragSessionCurrentTarget(target, mutationSession);
 			const dragSession = interaction.dragSession!;
 			assert(
-				!isDragSessionCoreOwned(dragSession),
+				isDragSessionExtensionOwned(dragSession),
 				'completeExtensionDragSession can only be called for extension-owned drag sessions'
 			);
 
