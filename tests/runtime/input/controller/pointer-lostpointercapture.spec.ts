@@ -145,6 +145,31 @@ describe('determineActionLostPointerCapture', () => {
 
 			expect(result).toEqual({ type: 'cancelInteraction' });
 		});
+
+		it('returns cancelActiveInteraction for pending lifted-piece even when target is a legal destination', () => {
+			const surface = createMockSurface({
+				snapshot: {
+					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+					movability: { mode: MovabilityModeCode.Free },
+					dragSession: {
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						phase: 'pending',
+						sourceSquare: 12 as Square,
+						sourcePieceCode: PieceCode.WhitePawn,
+						targetSquare: 28 as Square,
+						startButton: 0,
+						startPoint: { x: 0, y: 0 },
+						thresholdPx: 4
+					}
+				}
+			});
+			const context = makeContext({ buttons: 0, targetSquare: 28 });
+
+			const result = determineActionLostPointerCapture({ surface }, context);
+
+			expect(result).toEqual({ type: 'cancelActiveInteraction' });
+		});
 	});
 
 	describe('initiating button still pressed (defensive cancellation)', () => {

@@ -92,6 +92,36 @@ describe('calculateAnimationPlan — special cases', () => {
 			expect(findMoveTrack(plan.tracks, e2, e4)).toBeDefined();
 		});
 
+		it('does not suppress when prev drag is a pending lifted-piece session', () => {
+			const input: AnimationPlanningInput = {
+				previous: makeSnapshot({
+					board: makeBoardSnapshot([[e2, PieceCode.WhitePawn]]),
+					interaction: makeInteractionSnapshot({
+						dragSession: {
+							owner: 'core' as const,
+							type: 'lifted-piece-drag' as const,
+							phase: 'pending' as const,
+							sourceSquare: e2,
+							sourcePieceCode: PieceCode.WhitePawn,
+							targetSquare: e2,
+							startButton: 0,
+							startPoint: { x: 0, y: 0 },
+							thresholdPx: 4
+						}
+					})
+				}),
+				current: makeSnapshot({
+					board: makeBoardSnapshot([[e4, PieceCode.WhitePawn]]),
+					change: makeChangeSnapshot({
+						lastMove: { from: e2, to: e4, piece: PieceCode.WhitePawn }
+					}),
+					interaction: makeInteractionSnapshot({ dragSession: null })
+				})
+			};
+			const plan = calculateAnimationPlan(input);
+			expect(findMoveTrack(plan.tracks, e2, e4)).toBeDefined();
+		});
+
 		it('keeps dropped castling king visible while rook animates', () => {
 			const input: AnimationPlanningInput = {
 				previous: makeSnapshot({

@@ -2,7 +2,10 @@ import assert from '@ktarmyshov/assert';
 import type { RuntimeInteractionAction } from '../../../extensions/types/basic/events.js';
 import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
-import { isDragSessionCoreOwned } from '../../../state/interaction/helpers.js';
+import {
+	isDragSessionActiveLiftedPiece,
+	isDragSessionCoreOwned
+} from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import { buttonToButtonsMask, canMoveTo } from './helpers.js';
 import type {
@@ -133,7 +136,11 @@ function determineActionTerminalRelease(
 		return { type: 'cancelActiveInteraction' };
 	}
 
-	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
+	if (
+		sceneEvent.targetSquare !== null &&
+		isDragSessionActiveLiftedPiece(dragSession) &&
+		canMoveTo(interaction, sceneEvent.targetSquare)
+	) {
 		return { type: 'completeCoreDragSessionTo', targetSquare: sceneEvent.targetSquare };
 	}
 

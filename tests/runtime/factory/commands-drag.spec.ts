@@ -5,9 +5,13 @@ import type {
 } from '../../../src/extensions/types/extension.js';
 import type { ExtensionRuntimeSurfaceCommands } from '../../../src/extensions/types/surface/commands.js';
 import { createRuntime } from '../../../src/runtime/factory/main.js';
-import { notifyExtensionCancelDragIfOwned } from '../../../src/runtime/factory/input.js';
+import {
+	createRuntimeInteractionSurface,
+	notifyExtensionCancelDragIfOwned
+} from '../../../src/runtime/factory/input.js';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
-import { PieceCode } from '../../../src/state/board/types/internal.js';
+import { PieceCode, type Square } from '../../../src/state/board/types/internal.js';
+import { makeDragSessionCoreOwned } from '../../test-utils/state/interaction/fixtures.js';
 
 let capturedCommands: ExtensionRuntimeSurfaceCommands | null = null;
 
@@ -222,5 +226,59 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 		});
 
 		expect(() => runtime.clearActiveInteraction()).not.toThrow();
+	});
+});
+
+describe('createRuntimeInteractionSurface.completeCoreDragSessionTo assertion', () => {
+	function createSurfaceWithDragSession(dragSession: ReturnType<typeof makeDragSessionCoreOwned>) {
+		const mutationSession = { addMutation: vi.fn() };
+		const interaction = {
+			get dragSession() {
+				return dragSession;
+			},
+			updateDragSessionCurrentTarget: vi.fn()
+		};
+		const fakeInternal = {
+			state: { interaction },
+			mutation: { getSession: () => mutationSession }
+		};
+		return {
+			surface: createRuntimeInteractionSurface(() => fakeInternal as never),
+			interaction
+		};
+	}
+
+	it('throws when drag session is a pending lifted-piece (core-owned)', () => {
+		const dragSession = makeDragSessionCoreOwned({
+			phase: 'pending',
+			sourceSquare: 12 as Square,
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: 28 as Square,
+			startButton: 0,
+			startPoint: { x: 0, y: 0 },
+			thresholdPx: 4
+		});
+		const { surface, interaction } = createSurfaceWithDragSession(dragSession);
+
+		expect(() => surface.completeCoreDragSessionTo(28 as Square)).toThrow(
+			/core-owned active lifted-piece/
+		);
+		expect(interaction.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
+	});
+
+	it('throws when drag session is release-targeting (core-owned but not active lifted-piece)', () => {
+		const dragSession = makeDragSessionCoreOwned({
+			type: 'release-targeting',
+			sourceSquare: 12 as Square,
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: 28 as Square,
+			startButton: 0
+		});
+		const { surface, interaction } = createSurfaceWithDragSession(dragSession);
+
+		expect(() => surface.completeCoreDragSessionTo(28 as Square)).toThrow(
+			/core-owned active lifted-piece/
+		);
+		expect(interaction.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
 	});
 });

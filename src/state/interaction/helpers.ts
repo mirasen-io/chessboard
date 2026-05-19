@@ -36,12 +36,6 @@ export function isDragSessionCoreOwned<T extends DragSessionSnapshot>(
 	return session.owner === 'core';
 }
 
-export function isDragSessionExtensionOwned<T extends DragSessionSnapshot>(
-	session: T
-): session is Exclude<T, { owner: 'core' }> {
-	return session.owner !== 'core';
-}
-
 export function isDragSessionReleaseTargeting<T extends DragSessionSnapshot>(
 	session: T
 ): session is Extract<T, { type: 'release-targeting' }> {

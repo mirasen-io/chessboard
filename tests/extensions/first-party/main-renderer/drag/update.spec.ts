@@ -42,6 +42,28 @@ describe('drag update – no-op when inactive', () => {
 
 		expect(subscribe).not.toHaveBeenCalled();
 	});
+
+	it('does not activate for pending lifted-piece drag', () => {
+		const { surface, subscribe } = createMockRuntimeSurface();
+		const drag = createMainRendererDrag(surface, resolver);
+
+		const ctx = createDragUpdateContext({
+			dragSession: {
+				owner: 'core',
+				type: 'lifted-piece-drag',
+				phase: 'pending',
+				sourceSquare: 4 as Square,
+				sourcePieceCode: PieceCode.WhiteKing,
+				targetSquare: 4 as Square,
+				startButton: 0,
+				startPoint: { x: 0, y: 0 },
+				thresholdPx: 4
+			}
+		});
+		drag.onUpdate(ctx);
+
+		expect(subscribe).not.toHaveBeenCalled();
+	});
 });
 
 describe('drag update – drag start', () => {

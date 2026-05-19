@@ -11,6 +11,7 @@ import {
 import { BoardStateSnapshot } from '../state/board/types/main.js';
 import { baseMovesEqual } from '../state/change/helpers.js';
 import { ChangeStateSnapshot } from '../state/change/types/main.js';
+import { isDragSessionActiveLiftedPiece } from '../state/interaction/helpers.js';
 import type {
 	AnimationPlan,
 	AnimationPlanningInput,
@@ -64,7 +65,7 @@ function detectLiftedPieceDrop(
 	current: AnimationPlanningSnapshot
 ): MoveSnapshot | null {
 	const prevDrag = previous.interaction.dragSession;
-	if (!prevDrag || prevDrag.type !== 'lifted-piece-drag') return null;
+	if (!prevDrag || !isDragSessionActiveLiftedPiece(prevDrag)) return null;
 	if (current.interaction.dragSession !== null) return null;
 	return current.change.lastMove ?? null;
 }

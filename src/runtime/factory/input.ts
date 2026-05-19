@@ -1,8 +1,8 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check.js';
 import {
-	isDragSessionCoreOwned,
-	isDragSessionExtensionOwned
+	isDragSessionActiveLiftedPiece,
+	isDragSessionCoreOwned
 } from '../../state/interaction/helpers.js';
 import {
 	DragSession,
@@ -93,12 +93,15 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			interaction.updateDragSessionCurrentTarget(target, mutationSession);
-			const dragSession = interaction.dragSession!;
+			const currentDragSession = interaction.dragSession;
 			assert(
-				isDragSessionCoreOwned(dragSession),
-				'completeCoreDragSessionTo can only be called for core-owned drag sessions'
+				currentDragSession !== null &&
+					isDragSessionCoreOwned(currentDragSession) &&
+					isDragSessionActiveLiftedPiece(currentDragSession),
+				'completeCoreDragSessionTo requires a core-owned active lifted-piece drag session'
 			);
+			interaction.updateDragSessionCurrentTarget(target, mutationSession);
+			const dragSession = interaction.dragSession as DragSessionActiveLiftedPieceCoreOwned;
 
 			uiMoveCompleteTo(internalState, target);
 			mutationSession.addMutation(
@@ -112,12 +115,16 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			interaction.updateDragSessionCurrentTarget(target, mutationSession);
-			const dragSession = interaction.dragSession!;
+			const currentDragSession = interaction.dragSession;
 			assert(
-				isDragSessionExtensionOwned(dragSession),
+				currentDragSession !== null && !isDragSessionCoreOwned(currentDragSession),
 				'completeExtensionDragSession can only be called for extension-owned drag sessions'
 			);
+			interaction.updateDragSessionCurrentTarget(target, mutationSession);
+			const dragSession = interaction.dragSession as Exclude<
+				DragSessionSnapshot,
+				{ owner: 'core' }
+			>;
 
 			internalState.extensionSystem.completeDrag(dragSession);
 			internalState.state.interaction.setDragSession(null, mutationSession);

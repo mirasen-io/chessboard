@@ -1,4 +1,5 @@
 import { Square } from '../../../../state/board/types/internal.js';
+import { isDragSessionActiveLiftedPiece } from '../../../../state/interaction/helpers.js';
 import { ExtensionCleanAnimationContext } from '../../../types/context/animation.js';
 import { ExtensionUpdateContext } from '../../../types/context/update.js';
 import { MainRendererPiecesInternal } from './types.js';
@@ -9,7 +10,8 @@ export function calculateSuppressedSquares(
 	animationSuppressedSquares: ReadonlySet<Square>
 ): ReadonlySet<Square> {
 	const dragSession = context.currentFrame.state.interaction.dragSession;
-	const dragSquare = dragSession?.type === 'lifted-piece-drag' ? dragSession.sourceSquare : null;
+	const dragSquare =
+		dragSession && isDragSessionActiveLiftedPiece(dragSession) ? dragSession.sourceSquare : null;
 
 	const result = new Set(animationSuppressedSquares);
 	if (dragSquare !== null) {
