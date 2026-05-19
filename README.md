@@ -20,9 +20,11 @@ Use [`@mirasen/react-chessboard`](https://www.npmjs.com/package/@mirasen/react-c
 
 ## Native mobile apps
 
-`@mirasen/chessboard` is not tied to React or any other web framework. It is plain TypeScript/JavaScript on top of DOM and SVG, so it can be bundled into a small WebView host page and embedded in native iOS or Android apps.
+`@mirasen/chessboard` is not tied to React or any other web framework. It is plain TypeScript/JavaScript on top of DOM and SVG, so it should fit WebView-based native iOS or Android integrations.
 
-Use the WebView bridge to forward board events to native code and call board APIs from native code when needed. This lets native apps reuse the board interaction layer without rebuilding chessboard UI natively.
+A common integration pattern is to bundle a WebView host page, mount the board there, and communicate with the native app through the platform bridge.
+
+This keeps the integration model lightweight while avoiding a separate native chessboard UI implementation.
 
 ## Why this exists
 
