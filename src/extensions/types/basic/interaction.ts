@@ -1,5 +1,6 @@
-import { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep } from 'type-fest';
 import type { PieceCode, Square } from '../../../state/board/types/internal.js';
+import type { ScenePoint } from './transient-visuals.js';
 
 export interface ExtensionDragSessionBase {
 	sourceSquare: Square | null;
@@ -8,10 +9,24 @@ export interface ExtensionDragSessionBase {
 	startButton: number;
 }
 
-export interface ExtensionDragSessionLiftedPiece extends ExtensionDragSessionBase {
+export interface ExtensionDragSessionLiftedPieceBase extends ExtensionDragSessionBase {
 	type: 'lifted-piece-drag';
 	sourcePieceCode: PieceCode;
 }
+
+export interface ExtensionDragSessionPendingLiftedPiece extends ExtensionDragSessionLiftedPieceBase {
+	phase: 'pending';
+	startPoint: ScenePoint;
+	thresholdPx: number;
+}
+
+export interface ExtensionDragSessionActiveLiftedPiece extends ExtensionDragSessionLiftedPieceBase {
+	phase: 'active';
+}
+
+export type ExtensionDragSessionLiftedPiece =
+	| ExtensionDragSessionPendingLiftedPiece
+	| ExtensionDragSessionActiveLiftedPiece;
 
 export interface ExtensionDragSessionReleaseTargeting extends ExtensionDragSessionBase {
 	type: 'release-targeting';

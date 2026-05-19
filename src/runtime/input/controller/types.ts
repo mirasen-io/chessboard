@@ -2,15 +2,44 @@ import type { RuntimeInteractionAction } from '../../../extensions/types/basic/e
 import type { TransientInput } from '../../../extensions/types/basic/transient-visuals.js';
 import type { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
 import type { PieceCode, Square } from '../../../state/board/types/internal.js';
+import type {
+	DragSessionActiveLiftedPieceCoreOwned,
+	DragSessionPendingLiftedPieceCoreOwned,
+	DragSessionReleaseTargetingCoreOwned
+} from '../../../state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
+
+export type StartPendingLiftedDragSessionInput = Pick<
+	DragSessionPendingLiftedPieceCoreOwned,
+	'phase' | 'sourceSquare' | 'targetSquare' | 'startButton' | 'startPoint' | 'thresholdPx'
+>;
+
+export type StartActiveLiftedDragSessionInput = Pick<
+	DragSessionActiveLiftedPieceCoreOwned,
+	'phase' | 'sourceSquare' | 'targetSquare' | 'startButton'
+>;
+
+export type StartLiftedDragSessionInput =
+	| StartPendingLiftedDragSessionInput
+	| StartActiveLiftedDragSessionInput;
+
+export type ActivatePendingLiftedDragSessionInput = {
+	targetSquare: Square | null;
+};
+
+export type StartReleaseTargetingDragSessionInput = Pick<
+	DragSessionReleaseTargetingCoreOwned,
+	'sourceSquare' | 'targetSquare' | 'startButton'
+>;
 
 export interface RuntimeInteractionSurface {
 	getInteractionStateSnapshot(): InteractionStateSnapshot;
 	getPieceCodeAt(square: Square): PieceCode;
-	startLiftedDrag(source: Square, target: Square, startButton: number): void;
-	startReleaseTargetingDrag(source: Square, target: Square, startButton: number): void;
-	completeCoreDragTo(target: Square): void;
-	completeExtensionDrag(target: Square | null): void;
+	startLiftedDragSession(input: StartLiftedDragSessionInput): void;
+	activatePendingLiftedDragSession(input: ActivatePendingLiftedDragSessionInput): void;
+	startReleaseTargetingDragSession(input: StartReleaseTargetingDragSessionInput): void;
+	completeCoreDragSessionTo(target: Square): void;
+	completeExtensionDragSession(target: Square | null): void;
 	updateDragSessionCurrentTarget(target: Square | null): void;
 	cancelActiveInteraction(): void;
 	cancelInteraction(): void;

@@ -1,7 +1,7 @@
 import { getActiveDestinations } from './movability.js';
 import { InteractionStateMutationSession } from './mutation.js';
 import { interactionSetActiveDestinations } from './reducers.js';
-import { DragSessionCoreOwnedSnapshot, DragSessionSnapshot } from './types/internal.js';
+import { DragSessionSnapshot } from './types/internal.js';
 import { InteractionStateInternal, InteractionStateSelected } from './types/main.js';
 
 export function selectedEqual(
@@ -30,8 +30,38 @@ export function updateActiveDestinations(
 	);
 }
 
-export function isDragSessionCoreOwned(
-	session: DragSessionSnapshot
-): session is DragSessionCoreOwnedSnapshot {
+export function isDragSessionCoreOwned<T extends DragSessionSnapshot>(
+	session: T
+): session is Extract<T, { owner: 'core' }> {
 	return session.owner === 'core';
+}
+
+export function isDragSessionExtensionOwned<T extends DragSessionSnapshot>(
+	session: T
+): session is Exclude<T, { owner: 'core' }> {
+	return session.owner !== 'core';
+}
+
+export function isDragSessionReleaseTargeting<T extends DragSessionSnapshot>(
+	session: T
+): session is Extract<T, { type: 'release-targeting' }> {
+	return session.type === 'release-targeting';
+}
+
+export function isDragSessionLiftedPiece<T extends DragSessionSnapshot>(
+	session: T
+): session is Extract<T, { type: 'lifted-piece-drag' }> {
+	return session.type === 'lifted-piece-drag';
+}
+
+export function isDragSessionPendingLiftedPiece<T extends DragSessionSnapshot>(
+	session: T
+): session is Extract<T, { type: 'lifted-piece-drag'; phase: 'pending' }> {
+	return isDragSessionLiftedPiece(session) && session.phase === 'pending';
+}
+
+export function isDragSessionActiveLiftedPiece<T extends DragSessionSnapshot>(
+	session: T
+): session is Extract<T, { type: 'lifted-piece-drag'; phase: 'active' }> {
+	return isDragSessionLiftedPiece(session) && session.phase === 'active';
 }

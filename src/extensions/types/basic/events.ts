@@ -34,33 +34,49 @@ export interface ScenePointerEvent {
 
 export type SceneEvent = ScenePointerEvent;
 
-export type RuntimeInteractionActionStartLiftedDrag = {
-	type: 'startLiftedDrag';
-	source: Square;
-	target: Square;
+export type RuntimeInteractionActionStartPendingLiftedDragSession = {
+	type: 'startLiftedDragSession';
+	phase: 'pending';
+	sourceSquare: Square;
+	targetSquare: Square;
+	startButton: number;
+	startPoint: ScenePoint;
+	thresholdPx: number;
+};
+
+export type RuntimeInteractionActionStartActiveLiftedDragSession = {
+	type: 'startLiftedDragSession';
+	phase: 'active';
+	sourceSquare: Square;
+	targetSquare: Square;
 	startButton: number;
 };
 
-export type RuntimeInteractionActionStartReleaseTargetingDrag = {
-	type: 'startReleaseTargetingDrag';
-	source: Square;
-	target: Square;
+export type RuntimeInteractionActionActivatePendingLiftedDragSession = {
+	type: 'activatePendingLiftedDragSession';
+	targetSquare: Square | null;
+};
+
+export type RuntimeInteractionActionStartReleaseTargetingDragSession = {
+	type: 'startReleaseTargetingDragSession';
+	sourceSquare: Square;
+	targetSquare: Square;
 	startButton: number;
 };
 
-export type RuntimeInteractionActionCompleteCoreDrag = {
-	type: 'completeCoreDragTo';
-	target: Square;
+export type RuntimeInteractionActionCompleteCoreDragSessionTo = {
+	type: 'completeCoreDragSessionTo';
+	targetSquare: Square;
 };
 
-export type RuntimeInteractionActionCompleteExtensionDrag = {
-	type: 'completeExtensionDrag';
-	target: Square | null;
+export type RuntimeInteractionActionCompleteExtensionDragSession = {
+	type: 'completeExtensionDragSession';
+	targetSquare: Square | null;
 };
 
 export type RuntimeInteractionActionUpdateDragSessionCurrentTarget = {
 	type: 'updateDragSessionCurrentTarget';
-	target: Square | null;
+	targetSquare: Square | null;
 };
 
 export type RuntimeInteractionActionCancelActiveInteraction = {
@@ -72,10 +88,12 @@ export type RuntimeInteractionActionCancelInteraction = {
 };
 
 export type RuntimeInteractionAction =
-	| RuntimeInteractionActionStartLiftedDrag
-	| RuntimeInteractionActionStartReleaseTargetingDrag
-	| RuntimeInteractionActionCompleteCoreDrag
-	| RuntimeInteractionActionCompleteExtensionDrag
+	| RuntimeInteractionActionStartPendingLiftedDragSession
+	| RuntimeInteractionActionStartActiveLiftedDragSession
+	| RuntimeInteractionActionActivatePendingLiftedDragSession
+	| RuntimeInteractionActionStartReleaseTargetingDragSession
+	| RuntimeInteractionActionCompleteCoreDragSessionTo
+	| RuntimeInteractionActionCompleteExtensionDragSession
 	| RuntimeInteractionActionUpdateDragSessionCurrentTarget
 	| RuntimeInteractionActionCancelActiveInteraction
 	| RuntimeInteractionActionCancelInteraction;

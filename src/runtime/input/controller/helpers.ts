@@ -1,6 +1,11 @@
 import type { Square } from '../../../state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
+import type {
+	StartActiveLiftedDragSessionInput,
+	StartLiftedDragSessionInput,
+	StartPendingLiftedDragSessionInput
+} from './types.js';
 
 export function buttonToButtonsMask(button: number): number | null {
 	switch (button) {
@@ -33,4 +38,16 @@ export function canMoveTo(snapshot: InteractionStateSnapshot, target: Square): b
 
 	// strict: target must be in the computed active destinations
 	return snapshot.activeDestinations.has(target);
+}
+
+export function isStartPendingLiftedDragInput(
+	input: StartLiftedDragSessionInput
+): input is StartPendingLiftedDragSessionInput {
+	return input.phase === 'pending';
+}
+
+export function isStartActiveLiftedDragInput(
+	input: StartLiftedDragSessionInput
+): input is StartActiveLiftedDragSessionInput {
+	return input.phase === 'active';
 }
