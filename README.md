@@ -11,6 +11,7 @@ A framework-agnostic TypeScript chessboard platform with real chess interaction 
 ## Try it live (including annotations)
 
 - [Play a chess.js game](https://mirasen.io/chessboard/examples/chessjs.html)
+- [Watch 12 live boards](https://mirasen.io/chessboard/examples/live-games-grid.html)
 - [Try the promotion flow](https://mirasen.io/chessboard/examples/promotion.html)
 - [Try the minimal example](https://mirasen.io/chessboard/examples/minimal.html)
 
