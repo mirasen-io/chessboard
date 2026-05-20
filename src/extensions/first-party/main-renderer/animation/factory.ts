@@ -1,6 +1,7 @@
 import { cleanAnimationPlan } from '../../../../animation/render/plan.js';
 import type { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
 import type { PieceSymbolResolver } from '../piece-symbols.js';
+import type { MainRendererConfigAnimation } from '../types/template.js';
 import {
 	getAnimationSuppressedSquares,
 	rendererAnimationClean,
@@ -12,12 +13,14 @@ import { rendererAnimationOnUpdate } from './update.js';
 
 export function createMainRendererAnimation(
 	runtimeSurface: ExtensionRuntimeSurface,
-	resolver: PieceSymbolResolver
+	resolver: PieceSymbolResolver,
+	getAnimationConfig: () => MainRendererConfigAnimation
 ): MainRendererAnimation {
 	const state: MainRendererAnimationInternal = {
 		runtimeSurface,
 		resolver,
-		entries: new Map()
+		entries: new Map(),
+		getAnimationConfig
 	};
 	return {
 		onUpdate(context) {

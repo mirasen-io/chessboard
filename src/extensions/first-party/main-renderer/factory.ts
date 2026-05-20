@@ -46,6 +46,7 @@ function configToPublic(config: MainRendererConfig): MainRendererConfigPublic {
 	return {
 		colors: cloneDeep(config.colors),
 		drag: cloneDeep(config.drag),
+		animation: cloneDeep(config.animation),
 		pieceUrls: denormalizePieceUrls(config.pieceUrls)
 	};
 }
@@ -73,7 +74,11 @@ function createMainRendererInternal(
 	const coordinates = createMainRendererCoordinates(() => internalState.config.colors.coordinates);
 	const pieces = createMainRendererPieces(pieceSymbolResolver);
 	const drag = createMainRendererDrag(options.runtimeSurface, pieceSymbolResolver);
-	const animation = createMainRendererAnimation(options.runtimeSurface, pieceSymbolResolver);
+	const animation = createMainRendererAnimation(
+		options.runtimeSurface,
+		pieceSymbolResolver,
+		() => internalState.config.animation
+	);
 	const internalState = {
 		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		board,

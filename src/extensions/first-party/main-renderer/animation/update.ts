@@ -7,8 +7,6 @@ import {
 } from '../../../types/context/update.js';
 import type { MainRendererAnimationInternal } from './types.js';
 
-const DEFAULT_ANIMATION_DURATION_MS = 180;
-
 export function rendererAnimationOnUpdate(
 	state: MainRendererAnimationInternal,
 	context: ExtensionUpdateContext
@@ -27,6 +25,9 @@ export function rendererAnimationOnUpdate(
 	)
 		return;
 
+	const durationMs = state.getAnimationConfig().durationMs;
+	if (durationMs === 0) return;
+
 	// Pass raw snapshots to the planner — it normalizes internally
 	const plan = calculateAnimationPlan({
 		previous: context.previousFrame.state,
@@ -34,7 +35,7 @@ export function rendererAnimationOnUpdate(
 	});
 	if (plan.tracks.length === 0) return;
 	const session = state.runtimeSurface.animation.submit({
-		duration: DEFAULT_ANIMATION_DURATION_MS
+		duration: durationMs
 	});
 	state.entries.set(session.id, { plan, nodes: null });
 }

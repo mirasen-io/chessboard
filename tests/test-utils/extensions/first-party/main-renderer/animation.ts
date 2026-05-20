@@ -79,13 +79,15 @@ function createDefaultResolver(): PieceSymbolResolver {
 }
 
 export function createAnimationInternalState(
-	surface?: ExtensionRuntimeSurface
+	surface?: ExtensionRuntimeSurface,
+	getAnimationConfig?: () => { durationMs: number }
 ): MainRendererAnimationInternal {
 	const { surface: defaultSurface } = createMockAnimationRuntimeSurface();
 	return {
 		runtimeSurface: surface ?? defaultSurface,
 		resolver: createDefaultResolver(),
-		entries: new Map()
+		entries: new Map(),
+		getAnimationConfig: getAnimationConfig ?? (() => ({ durationMs: 180 }))
 	};
 }
 

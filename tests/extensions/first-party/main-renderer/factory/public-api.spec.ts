@@ -46,12 +46,24 @@ describe('main-renderer public API – getConfig', () => {
 		);
 	});
 
+	it('default-constructed renderer exposes animation.durationMs === 180', () => {
+		const { api } = createInstance();
+		expect(api.getConfig().animation.durationMs).toBe(180);
+	});
+
 	it('mutating the returned snapshot does not affect internal state', () => {
 		const { api } = createInstance();
 		const snapshot = api.getConfig() as unknown as { colors: { board: { light: string } } };
 		snapshot.colors.board.light = 'mutated-by-caller';
 		const next = api.getConfig();
 		expect(next.colors.board.light).not.toBe('mutated-by-caller');
+	});
+
+	it('mutating the returned animation snapshot does not affect a subsequent getConfig()', () => {
+		const { api } = createInstance();
+		const snapshot = api.getConfig() as unknown as { animation: { durationMs: number } };
+		snapshot.animation.durationMs = 9999;
+		expect(api.getConfig().animation.durationMs).toBe(180);
 	});
 });
 
@@ -140,6 +152,37 @@ describe('main-renderer public API – setConfig', () => {
 			(el as SVGElement).getAttribute('fill')
 		);
 		expect(lightFills).toContain('#aabbcc');
+	});
+
+	it('setConfig({ animation }) updates animation config without marking dirty or requesting render', () => {
+		const { api, markDirty, requestRender } = createInstance();
+		markDirty.mockClear();
+		requestRender.mockClear();
+		api.setConfig({ animation: { durationMs: 75 } });
+		expect(api.getConfig().animation.durationMs).toBe(75);
+		expect(markDirty).not.toHaveBeenCalled();
+		expect(requestRender).not.toHaveBeenCalled();
+	});
+
+	it('setConfig({ animation, colors }) updates animation and preserves colors invalidation', () => {
+		const { api, markDirty, requestRender } = createInstance();
+		markDirty.mockClear();
+		requestRender.mockClear();
+		api.setConfig({
+			animation: { durationMs: 75 },
+			colors: { board: { light: '#ffffff' } }
+		});
+		expect(api.getConfig().animation.durationMs).toBe(75);
+		expect(api.getConfig().colors.board.light).toBe('#ffffff');
+		expect(markDirty).toHaveBeenCalledWith(DirtyLayer.Board);
+		expect(requestRender).toHaveBeenCalledWith({ state: true });
+	});
+
+	it('setConfig with invalid animation.durationMs is rejected and previous config is retained', () => {
+		const { api } = createInstance();
+		const before = api.getConfig().animation.durationMs;
+		expect(() => api.setConfig({ animation: { durationMs: -5 } })).toThrow();
+		expect(api.getConfig().animation.durationMs).toBe(before);
 	});
 
 	// Type-error fixture: pieceUrls is rejected at the type level by MainRendererSetConfigOptions.

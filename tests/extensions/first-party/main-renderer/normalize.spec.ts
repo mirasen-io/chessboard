@@ -38,6 +38,11 @@ describe('normalizeMainRendererConfig', () => {
 				pieceAnchor: 'bottom'
 			});
 		});
+
+		it('desktop and mobile defaults both expose animation.durationMs === 180', () => {
+			expect(DefaultMainRendererDesktopConfig.animation).toEqual({ durationMs: 180 });
+			expect(DefaultMainRendererMobileConfig.animation).toEqual({ durationMs: 180 });
+		});
 	});
 
 	describe('input + base wiring', () => {
@@ -121,6 +126,58 @@ describe('normalizeMainRendererConfig', () => {
 			expect(() =>
 				normalizeMainRendererConfig(
 					{ drag: { pieceAnchor: 'invalid' as never } },
+					DefaultMainRendererDesktopConfig
+				)
+			).toThrow();
+		});
+	});
+
+	describe('animation', () => {
+		it('uses default animation when input is undefined', () => {
+			const config = normalizeMainRendererConfig(undefined, DefaultMainRendererDesktopConfig);
+			expect(config.animation).toEqual(DefaultMainRendererDesktopConfig.animation);
+			expect(config.animation.durationMs).toBe(180);
+		});
+
+		it('omitting the animation section preserves the default deeply', () => {
+			const config = normalizeMainRendererConfig({}, DefaultMainRendererDesktopConfig);
+			expect(config.animation).toEqual(DefaultMainRendererDesktopConfig.animation);
+		});
+
+		it('empty animation object falls back to default durationMs', () => {
+			const config = normalizeMainRendererConfig(
+				{ animation: {} },
+				DefaultMainRendererDesktopConfig
+			);
+			expect(config.animation.durationMs).toBe(180);
+		});
+
+		it('honors a custom positive durationMs', () => {
+			const config = normalizeMainRendererConfig(
+				{ animation: { durationMs: 250 } },
+				DefaultMainRendererDesktopConfig
+			);
+			expect(config.animation.durationMs).toBe(250);
+		});
+
+		it('honors durationMs: 0', () => {
+			const config = normalizeMainRendererConfig(
+				{ animation: { durationMs: 0 } },
+				DefaultMainRendererDesktopConfig
+			);
+			expect(config.animation.durationMs).toBe(0);
+		});
+
+		it.each([
+			-1,
+			Number.NaN,
+			Number.POSITIVE_INFINITY,
+			Number.NEGATIVE_INFINITY,
+			'180' as unknown as number
+		])('throws for invalid durationMs: %s', (value) => {
+			expect(() =>
+				normalizeMainRendererConfig(
+					{ animation: { durationMs: value } },
 					DefaultMainRendererDesktopConfig
 				)
 			).toThrow();

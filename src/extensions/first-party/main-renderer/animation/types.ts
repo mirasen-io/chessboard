@@ -9,6 +9,7 @@ import {
 import { ExtensionUpdateContext } from '../../../types/context/update.js';
 import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
 import type { PieceSymbolResolver } from '../piece-symbols.js';
+import type { MainRendererConfig } from '../types/internal.js';
 
 export interface MainRendererAnimationEntry {
 	plan: AnimationPlan;
@@ -19,6 +20,7 @@ export interface MainRendererAnimationInternal {
 	readonly runtimeSurface: ExtensionRuntimeSurface;
 	readonly resolver: PieceSymbolResolver;
 	readonly entries: Map<number, MainRendererAnimationEntry>;
+	readonly getAnimationConfig: () => MainRendererConfig['animation'];
 }
 
 export interface MainRendererAnimation {

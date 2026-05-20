@@ -28,7 +28,7 @@ function boardWithPiece(sq: Square, piece: PieceCode): object {
 describe('animation unmount – cleanup', () => {
 	it('removes prepared animation DOM nodes from the layer', () => {
 		const { surface, submit } = createMockAnimationRuntimeSurface();
-		const anim = createMainRendererAnimation(surface, resolver);
+		const anim = createMainRendererAnimation(surface, resolver, () => ({ durationMs: 180 }));
 		const layer = createLayer();
 
 		// Trigger an animation via onUpdate
@@ -64,7 +64,7 @@ describe('animation unmount – cleanup', () => {
 
 	it('clears entries observably via getSuppressedSquares returning empty', () => {
 		const { surface, submit, getAll } = createMockAnimationRuntimeSurface();
-		const anim = createMainRendererAnimation(surface, resolver);
+		const anim = createMainRendererAnimation(surface, resolver, () => ({ durationMs: 180 }));
 
 		// Trigger animation
 		const ctx = createAnimationUpdateContext({
@@ -101,14 +101,14 @@ describe('animation unmount – cleanup', () => {
 
 	it('does not throw when there are no entries', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const anim = createMainRendererAnimation(surface, resolver);
+		const anim = createMainRendererAnimation(surface, resolver, () => ({ durationMs: 180 }));
 
 		expect(() => anim.unmount()).not.toThrow();
 	});
 
 	it('does not throw when called multiple times', () => {
 		const { surface, submit } = createMockAnimationRuntimeSurface();
-		const anim = createMainRendererAnimation(surface, resolver);
+		const anim = createMainRendererAnimation(surface, resolver, () => ({ durationMs: 180 }));
 		const layer = createLayer();
 
 		// Trigger and prepare

@@ -31,6 +31,9 @@ function validateMainRendererConfig(config: MainRendererConfig): void {
 		pieceAnchor === 'center' || pieceAnchor === 'bottom',
 		`drag.pieceAnchor must be 'center' or 'bottom', received: ${String(pieceAnchor)}`
 	);
+	const { durationMs } = config.animation;
+	assert(Number.isFinite(durationMs), 'animation.durationMs must be a finite number');
+	assert(durationMs >= 0, 'animation.durationMs must be >= 0');
 }
 
 export function normalizeMainRendererConfig(

@@ -91,6 +91,9 @@ export const DefaultMainRendererDesktopConfig: MainRendererConfig = {
 	drag: {
 		pieceScale: 1,
 		pieceAnchor: 'center'
+	},
+	animation: {
+		durationMs: 180
 	}
 };
 
@@ -99,5 +102,8 @@ export const DefaultMainRendererMobileConfig: MainRendererConfig = {
 	drag: {
 		pieceScale: 1.5,
 		pieceAnchor: 'bottom'
+	},
+	animation: {
+		durationMs: 180
 	}
 };
