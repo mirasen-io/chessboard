@@ -96,6 +96,22 @@ find "$STAGING_DIR" -type d \( \
   -path "$STAGING_DIR/.git" \
 \) -prune -exec rm -rf {} +
 
+# Strip macOS noise.
+find "$STAGING_DIR" \( \
+  -name '.DS_Store' -o \
+  -name '._*' -o \
+  -name 'Icon?' -o \
+  -name '.apdisk' \
+\) -type f -delete
+find "$STAGING_DIR" -type d \( \
+  -name '.AppleDouble' -o \
+  -name '.Spotlight-V100' -o \
+  -name '.Trashes' -o \
+  -name '.fseventsd' -o \
+  -name '.TemporaryItems' -o \
+  -name '__MACOSX' \
+\) -prune -exec rm -rf {} +
+
 {
   echo "Included project tree:"
   echo

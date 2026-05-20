@@ -138,4 +138,6 @@ dist
 
 artifacts
 
-.claude/
+.claude/settings.local.json
+.claude/cache/
+.claude/sessions/
