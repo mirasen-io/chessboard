@@ -3,9 +3,9 @@ import { rendererCoordinatesRender } from './render.js';
 import { MainRendererCoordinates, MainRendererCoordinatesInternal } from './types.js';
 
 export function createMainRendererCoordinates(
-	getConfig: () => ConfigColorPair
+	getColorConfig: () => ConfigColorPair
 ): MainRendererCoordinates {
-	const internalState: MainRendererCoordinatesInternal = { getConfig };
+	const internalState: MainRendererCoordinatesInternal = { getColorConfig };
 	return {
 		render(context, slot) {
 			rendererCoordinatesRender(internalState, context, slot);

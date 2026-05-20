@@ -4,13 +4,13 @@ import { MainRendererBoard, MainRendererBoardInternal } from './types.js';
 import { rendererBoardOnUpdate } from './update.js';
 
 function createMainRendererBoardInternal(
-	getConfig: () => ConfigColorPair
+	getColorConfig: () => ConfigColorPair
 ): MainRendererBoardInternal {
-	return { getConfig };
+	return { getColorConfig };
 }
 
-export function createMainRendererBoard(getConfig: () => ConfigColorPair): MainRendererBoard {
-	const internalState = createMainRendererBoardInternal(getConfig);
+export function createMainRendererBoard(getColorConfig: () => ConfigColorPair): MainRendererBoard {
+	const internalState = createMainRendererBoardInternal(getColorConfig);
 	return {
 		onUpdate(context) {
 			rendererBoardOnUpdate(internalState, context);

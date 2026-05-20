@@ -67,6 +67,15 @@
 					}
 				}
 			});
+			b.extensions.renderer.setConfig({
+				animation: {
+					durationMs: 2000
+				},
+				drag: {
+					pieceAnchor: 'bottom',
+					pieceScale: 1.5
+				}
+			});
 		}
 	);
 

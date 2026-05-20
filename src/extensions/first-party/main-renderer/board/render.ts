@@ -20,7 +20,7 @@ export function rendererBoardRender(
 	const geometry = context.currentFrame.layout.geometry;
 	clearSvgElementChildren(slot);
 
-	const { light, dark } = state.getConfig();
+	const { light, dark } = state.getColorConfig();
 
 	for (let sq = 0 as Square; sq < SQUARE_COUNT; sq++) {
 		const r = geometry.getSquareRect(sq);

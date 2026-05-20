@@ -30,7 +30,7 @@ export function rendererCoordinatesRender(
 	const geometry = context.currentFrame.layout.geometry;
 	clearSvgElementChildren(slot);
 
-	const coords = state.getConfig();
+	const coords = state.getColorConfig();
 	const fontSize = geometry.squareSize * 0.12;
 	const offset = 3;
 
