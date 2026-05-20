@@ -33,7 +33,7 @@ describe('coordinates renderer – geometry placement (white)', () => {
 	const offset = 3;
 
 	it('rank label "8" is positioned at top-left corner plus offset', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -53,7 +53,7 @@ describe('coordinates renderer – geometry placement (white)', () => {
 	});
 
 	it('rank label "1" is positioned at bottom-left plus offset', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -73,7 +73,7 @@ describe('coordinates renderer – geometry placement (white)', () => {
 	});
 
 	it('file label "a" is positioned at bottom-left square bottom-right corner minus offset', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -93,7 +93,7 @@ describe('coordinates renderer – geometry placement (white)', () => {
 	});
 
 	it('file label "h" is positioned at bottom-right square', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -115,7 +115,7 @@ describe('coordinates renderer – geometry placement (white)', () => {
 
 describe('coordinates renderer – font size from geometry', () => {
 	it('font-size attribute equals squareSize * 0.12 for a 400px scene', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 		const sceneSize = 400;
 		const expectedFontSize = (sceneSize / 8) * 0.12;
@@ -134,7 +134,7 @@ describe('coordinates renderer – font size from geometry', () => {
 	});
 
 	it('font-size scales with different scene sizes', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 		const sceneSize = 800;
 		const expectedFontSize = (sceneSize / 8) * 0.12;
@@ -155,7 +155,7 @@ describe('coordinates renderer – font size from geometry', () => {
 
 describe('coordinates renderer – renders into provided layer', () => {
 	it('all labels are direct children of the passed SVG layer element', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);

@@ -3,7 +3,7 @@ import { ExtensionUpdateContext } from '../../../types/context/update.js';
 import { ConfigColorPair } from '../types/internal.js';
 
 export interface MainRendererBoardInternal {
-	readonly config: ConfigColorPair;
+	readonly getConfig: () => ConfigColorPair;
 }
 
 export interface MainRendererBoard {

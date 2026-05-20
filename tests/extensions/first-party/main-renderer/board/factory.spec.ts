@@ -92,7 +92,7 @@ function createLayer(): SVGGElement {
 describe('createMainRendererBoard', () => {
 	describe('onUpdate', () => {
 		it('marks Board | Coordinates dirty when geometry changes due to layout.refreshGeometry', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const { context, markDirty } = createUpdateContext({
 				causes: ['layout.refreshGeometry'],
 				currentGeometry: createGeometry({ boardRect: { x: 0, y: 0, width: 400, height: 400 } }),
@@ -105,7 +105,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('does not mark dirty when mutation is not layout.refreshGeometry', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const { context, markDirty } = createUpdateContext({
 				causes: ['state.board.setPosition'],
 				currentGeometry: createGeometry()
@@ -117,7 +117,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('does not mark dirty when context is not renderable (no geometry)', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const { context, markDirty } = createUpdateContext({
 				causes: ['layout.refreshGeometry'],
 				isMounted: false
@@ -129,7 +129,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('does not mark dirty when board rect and orientation are unchanged', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const geo = createGeometry({
 				boardRect: { x: 0, y: 0, width: 400, height: 400 },
 				orientation: 0
@@ -146,7 +146,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('marks dirty when board rect changes', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const { context, markDirty } = createUpdateContext({
 				causes: ['layout.refreshGeometry'],
 				currentGeometry: createGeometry({ boardRect: { x: 0, y: 0, width: 800, height: 800 } }),
@@ -159,7 +159,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('marks dirty when orientation changes', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const { context, markDirty } = createUpdateContext({
 				causes: ['layout.refreshGeometry'],
 				currentGeometry: createGeometry({ orientation: 8 }),
@@ -174,7 +174,7 @@ describe('createMainRendererBoard', () => {
 
 	describe('render', () => {
 		it('no-ops when Board dirty layer is not set', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const layer = createLayer();
 			layer.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
 
@@ -184,7 +184,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('clears previous children and creates 64 square rects', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const layer = createLayer();
 			layer.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'rect'));
 
@@ -194,7 +194,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('square rects have correct data-chessboard-id attributes', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const layer = createLayer();
 
 			board.render(createRenderContext({ dirtyLayers: DirtyLayer.Board }), layer);
@@ -204,7 +204,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('square rects use configured light/dark colors', () => {
-			const board = createMainRendererBoard({ light: '#aaa', dark: '#333' });
+			const board = createMainRendererBoard(() => ({ light: '#aaa', dark: '#333' }));
 			const layer = createLayer();
 
 			board.render(createRenderContext({ dirtyLayers: DirtyLayer.Board }), layer);
@@ -215,7 +215,7 @@ describe('createMainRendererBoard', () => {
 		});
 
 		it('square rects use geometry square rectangles', () => {
-			const board = createMainRendererBoard({ light: '#fff', dark: '#000' });
+			const board = createMainRendererBoard(() => ({ light: '#fff', dark: '#000' }));
 			const layer = createLayer();
 
 			board.render(createRenderContext({ dirtyLayers: DirtyLayer.Board }), layer);

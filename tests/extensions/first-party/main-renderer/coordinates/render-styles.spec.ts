@@ -33,7 +33,7 @@ describe('coordinates renderer – label fill colors', () => {
 	const coordColors = { light: '#eef2f7', dark: '#707a8a' };
 
 	it('rank label on a light square uses coordColors.dark as fill', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig(coordColors));
+		const coords = createMainRendererCoordinates(() => createCoordConfig(coordColors));
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -51,7 +51,7 @@ describe('coordinates renderer – label fill colors', () => {
 	});
 
 	it('rank label on a dark square uses coordColors.light as fill', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig(coordColors));
+		const coords = createMainRendererCoordinates(() => createCoordConfig(coordColors));
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -69,7 +69,7 @@ describe('coordinates renderer – label fill colors', () => {
 	});
 
 	it('file label on a dark square uses coordColors.light as fill', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig(coordColors));
+		const coords = createMainRendererCoordinates(() => createCoordConfig(coordColors));
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -87,7 +87,7 @@ describe('coordinates renderer – label fill colors', () => {
 	});
 
 	it('file label on a light square uses coordColors.dark as fill', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig(coordColors));
+		const coords = createMainRendererCoordinates(() => createCoordConfig(coordColors));
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -106,7 +106,7 @@ describe('coordinates renderer – label fill colors', () => {
 
 	it('uses custom colors passed via config', () => {
 		const custom = { light: '#ff0000', dark: '#00ff00' };
-		const coords = createMainRendererCoordinates(createCoordConfig(custom));
+		const coords = createMainRendererCoordinates(() => createCoordConfig(custom));
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -125,7 +125,7 @@ describe('coordinates renderer – label fill colors', () => {
 
 describe('coordinates renderer – file label mobile-safe styles', () => {
 	it('file labels have pointer-events: none', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);
@@ -136,7 +136,7 @@ describe('coordinates renderer – file label mobile-safe styles', () => {
 	});
 
 	it('file labels have user-select: none', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);
@@ -147,7 +147,7 @@ describe('coordinates renderer – file label mobile-safe styles', () => {
 	});
 
 	it('file labels have -webkit-user-select: none', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);
@@ -160,7 +160,7 @@ describe('coordinates renderer – file label mobile-safe styles', () => {
 
 describe('coordinates renderer – rank labels do NOT have mobile-safe styles', () => {
 	it('rank labels do not have pointer-events style set', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);
@@ -172,7 +172,7 @@ describe('coordinates renderer – rank labels do NOT have mobile-safe styles', 
 	});
 
 	it('rank labels do not have user-select style set', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);

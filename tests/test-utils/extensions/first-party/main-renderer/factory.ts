@@ -4,7 +4,8 @@ import { createSvgElement } from '../../../dom/svg.js';
 
 /**
  * Creates a mock ExtensionRuntimeSurface suitable for top-level main-renderer factory tests.
- * Includes transientVisuals (for drag) and animation.submit/getAll (for animation).
+ * Includes transientVisuals (for drag), animation.submit/getAll (for animation),
+ * commands.requestRender, and invalidation.markDirty (for setConfig).
  */
 export function createMainRendererRuntimeSurface() {
 	const subscribe = vi.fn();
@@ -19,13 +20,19 @@ export function createMainRendererRuntimeSurface() {
 	const getAll = vi.fn(
 		() => [] as Array<{ id: number; startTime: number; duration: number; status: string }>
 	);
+	const requestRender = vi.fn(() => true);
+	const markDirty = vi.fn();
+	const clearDirty = vi.fn();
+	const clear = vi.fn();
 
 	const surface = {
 		transientVisuals: { subscribe, unsubscribe },
-		animation: { submit, getAll }
+		animation: { submit, getAll },
+		commands: { requestRender },
+		invalidation: { dirtyLayers: 0, markDirty, clearDirty, clear }
 	} as unknown as ExtensionRuntimeSurface;
 
-	return { surface, subscribe, unsubscribe, submit, getAll };
+	return { surface, subscribe, unsubscribe, submit, getAll, requestRender, markDirty };
 }
 
 /**

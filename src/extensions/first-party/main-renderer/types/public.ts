@@ -4,7 +4,7 @@ import type { TMainRendererConfig } from './template.js';
 
 export type PieceUrlsPublic = Record<PieceString, string>;
 
-type MainRendererConfigPublic = ReadonlyDeep<TMainRendererConfig<PieceUrlsPublic>>;
+export type MainRendererConfigPublic = ReadonlyDeep<TMainRendererConfig<PieceUrlsPublic>>;
 
 export interface MainRendererInitOptions extends PartialDeep<
 	WritableDeep<MainRendererConfigPublic>
@@ -12,5 +12,7 @@ export interface MainRendererInitOptions extends PartialDeep<
 	pieceUrls?: PieceUrlsPublic;
 }
 
-export type MainRendererConfigPublicDrag = MainRendererConfigPublic['drag'];
-export type MainRendererInitOptionsDrag = NonNullable<MainRendererInitOptions['drag']>;
+// Lifecycle contract: MainRendererSetConfigOptions encodes the runtime-mutable subset of
+// MainRendererInitOptions. Every init-only field MUST appear in the Omit union below; adding
+// a future init-only section means extending this union here.
+export type MainRendererSetConfigOptions = Omit<MainRendererInitOptions, 'pieceUrls'>;

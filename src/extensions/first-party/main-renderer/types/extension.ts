@@ -1,5 +1,5 @@
 import type { ExtensionDefinition, ExtensionInstance } from '../../../types/extension.js';
-import type { MainRendererConfigPublicDrag, MainRendererInitOptionsDrag } from './public.js';
+import type { MainRendererConfigPublic, MainRendererSetConfigOptions } from './public.js';
 
 export const EXTENSION_SLOTS = [
 	'defs',
@@ -13,8 +13,8 @@ export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'renderer' as const;
 
 export interface RendererPublicAPI {
-	setDragConfig(options: MainRendererInitOptionsDrag): void;
-	getDragConfig(): MainRendererConfigPublicDrag;
+	setConfig(options: MainRendererSetConfigOptions): void;
+	getConfig(): MainRendererConfigPublic;
 }
 
 export type MainRendererDefinition = ExtensionDefinition<

@@ -10,7 +10,7 @@ import {
 
 describe('coordinates renderer – dirty layer gating', () => {
 	it('no-ops when DirtyLayer.Coordinates is not set', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 		// Pre-populate with a dummy child
 		layer.appendChild(createSvgElement('text'));
@@ -23,7 +23,7 @@ describe('coordinates renderer – dirty layer gating', () => {
 	});
 
 	it('no-ops when dirtyLayers is 0', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 		layer.appendChild(createSvgElement('text'));
 
@@ -34,7 +34,7 @@ describe('coordinates renderer – dirty layer gating', () => {
 	});
 
 	it('renders 16 labels when DirtyLayer.Coordinates is set', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		const context = createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates });
@@ -44,7 +44,7 @@ describe('coordinates renderer – dirty layer gating', () => {
 	});
 
 	it('renders when DirtyLayer.All includes Coordinates', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		const context = createCoordRenderContext({ dirtyLayers: DirtyLayer.All });
@@ -56,7 +56,7 @@ describe('coordinates renderer – dirty layer gating', () => {
 
 describe('coordinates renderer – DOM replacement', () => {
 	it('clears previous children before rendering fresh labels', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		// Add pre-existing children
@@ -72,7 +72,7 @@ describe('coordinates renderer – DOM replacement', () => {
 	});
 
 	it('repeated render does not accumulate duplicate labels', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		const context = createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates });

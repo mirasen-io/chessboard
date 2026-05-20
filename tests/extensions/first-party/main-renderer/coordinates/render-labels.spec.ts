@@ -25,7 +25,7 @@ function getFileLabels(layer: SVGGElement): { id: string; text: string }[] {
 
 describe('coordinates renderer – label count', () => {
 	it('renders exactly 8 rank labels and 8 file labels', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(createCoordRenderContext({ dirtyLayers: DirtyLayer.Coordinates }), layer);
@@ -37,7 +37,7 @@ describe('coordinates renderer – label count', () => {
 
 describe('coordinates renderer – white orientation labels', () => {
 	it('rank labels are 8,7,6,5,4,3,2,1 from first to last rendered', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -53,7 +53,7 @@ describe('coordinates renderer – white orientation labels', () => {
 	});
 
 	it('file labels are a,b,c,d,e,f,g,h from first to last rendered', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -69,7 +69,7 @@ describe('coordinates renderer – white orientation labels', () => {
 	});
 
 	it('rank label data-chessboard-id includes the label value', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -86,7 +86,7 @@ describe('coordinates renderer – white orientation labels', () => {
 	});
 
 	it('file label data-chessboard-id includes the label value', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -105,7 +105,7 @@ describe('coordinates renderer – white orientation labels', () => {
 
 describe('coordinates renderer – black orientation labels', () => {
 	it('rank labels are 1,2,3,4,5,6,7,8 from first to last rendered', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -121,7 +121,7 @@ describe('coordinates renderer – black orientation labels', () => {
 	});
 
 	it('file labels are h,g,f,e,d,c,b,a from first to last rendered', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -137,7 +137,7 @@ describe('coordinates renderer – black orientation labels', () => {
 	});
 
 	it('rank label data-chessboard-id matches reversed labels', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(
@@ -154,7 +154,7 @@ describe('coordinates renderer – black orientation labels', () => {
 	});
 
 	it('file label data-chessboard-id matches reversed labels', () => {
-		const coords = createMainRendererCoordinates(createCoordConfig());
+		const coords = createMainRendererCoordinates(() => createCoordConfig());
 		const layer = createCoordinatesLayer();
 
 		coords.render(

@@ -2,7 +2,7 @@ import { ExtensionRenderContext } from '../../../types/context/render.js';
 import { ConfigColorPair } from '../types/internal.js';
 
 export interface MainRendererCoordinatesInternal {
-	readonly config: ConfigColorPair;
+	readonly getConfig: () => ConfigColorPair;
 }
 
 export interface MainRendererCoordinates {

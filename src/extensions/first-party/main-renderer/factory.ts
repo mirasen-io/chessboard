@@ -1,4 +1,6 @@
 import { cloneDeep } from 'es-toolkit';
+import { denormalizePieceString } from '../../../state/board/denormalize.js';
+import { NonEmptyPieceCode } from '../../../state/board/types/internal.js';
 import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
@@ -14,6 +16,7 @@ import { normalizeMainRendererConfig } from './normalize.js';
 import { createPieceSymbolResolver, ensurePieceSymbolsDefined } from './piece-symbols.js';
 import { createMainRendererPieces } from './pieces/factory.js';
 import {
+	DirtyLayer,
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
 	ExtensionSlotsType,
@@ -22,9 +25,30 @@ import {
 	RendererPublicAPI
 } from './types/extension.js';
 import { MainRendererInstanceInternal } from './types/instance.js';
-import type { MainRendererConfig } from './types/internal.js';
+import type { MainRendererConfig, PieceUrls } from './types/internal.js';
 import { DefaultMainRendererDesktopConfig } from './types/internal.js';
-import type { MainRendererInitOptions } from './types/public.js';
+import type {
+	MainRendererConfigPublic,
+	MainRendererInitOptions,
+	PieceUrlsPublic
+} from './types/public.js';
+
+function denormalizePieceUrls(pieceUrls: PieceUrls): PieceUrlsPublic {
+	const result = {} as PieceUrlsPublic;
+	for (const [codeKey, url] of Object.entries(pieceUrls)) {
+		const code = Number(codeKey) as NonEmptyPieceCode;
+		result[denormalizePieceString(code)] = url;
+	}
+	return result;
+}
+
+function configToPublic(config: MainRendererConfig): MainRendererConfigPublic {
+	return {
+		colors: cloneDeep(config.colors),
+		drag: cloneDeep(config.drag),
+		pieceUrls: denormalizePieceUrls(config.pieceUrls)
+	};
+}
 
 export function createMainRenderer(options?: MainRendererInitOptions): MainRendererDefinition {
 	const config = normalizeMainRendererConfig(options, DefaultMainRendererDesktopConfig);
@@ -42,12 +66,15 @@ function createMainRendererInternal(
 	config: MainRendererConfig
 ): MainRendererInstanceInternal {
 	const pieceSymbolResolver = createPieceSymbolResolver(options.svgIds);
-	const board = createMainRendererBoard(config.colors.board);
-	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
+	// Forward reference: subsystems read color config through getters that close over the
+	// internal state, so a runtime setConfig({ colors }) update is observed on the next render
+	// without re-creating the subsystems.
+	const board = createMainRendererBoard(() => internalState.config.colors.board);
+	const coordinates = createMainRendererCoordinates(() => internalState.config.colors.coordinates);
 	const pieces = createMainRendererPieces(pieceSymbolResolver);
 	const drag = createMainRendererDrag(options.runtimeSurface, pieceSymbolResolver);
 	const animation = createMainRendererAnimation(options.runtimeSurface, pieceSymbolResolver);
-	return {
+	const internalState = {
 		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		board,
 		coordinates,
@@ -58,15 +85,31 @@ function createMainRendererInternal(
 		pieceSymbolResolver,
 		config
 	};
+	return internalState;
 }
 
 function createMainRendererInstancePublic(state: MainRendererInstanceInternal): RendererPublicAPI {
 	return {
-		getDragConfig() {
-			return cloneDeep(state.config.drag);
+		getConfig() {
+			return configToPublic(state.config);
 		},
-		setDragConfig(options) {
-			state.config = normalizeMainRendererConfig({ drag: options }, state.config);
+		setConfig(options) {
+			// Defensively strip pieceUrls so a non-TS caller cannot bypass the lifecycle.
+			const { pieceUrls: _ignored, ...safeInput } = (options ?? {}) as MainRendererInitOptions;
+			void _ignored;
+			const previous = state.config;
+			state.config = normalizeMainRendererConfig(safeInput, state.config);
+			let dirty = 0;
+			if (state.config.colors.board !== previous.colors.board) {
+				dirty |= DirtyLayer.Board;
+			}
+			if (state.config.colors.coordinates !== previous.colors.coordinates) {
+				dirty |= DirtyLayer.Coordinates;
+			}
+			if (dirty !== 0) {
+				state.runtimeSurface.invalidation.markDirty(dirty);
+				state.runtimeSurface.commands.requestRender({ state: true });
+			}
 		}
 	};
 }
