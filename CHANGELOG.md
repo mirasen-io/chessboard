@@ -1,5 +1,41 @@
 # @mirasen/chessboard
 
+## 1.3.0
+
+### Minor Changes
+
+- eaed694: Add configurable desktop and mobile drag behavior.
+
+  The board now exposes interaction config APIs through `setInteractionConfig()` and `getInteractionConfig()`, including `drag.liftedActivation.thresholdPx`. This enables desktop-style immediate drag activation and mobile-style delayed drag activation from the same interaction model.
+
+  The first-party main renderer now exposes runtime config APIs through `renderer.setConfig()` and `renderer.getConfig()`. Renderer config now includes dragged-piece visual settings and animation duration:
+  - `drag.pieceScale`
+  - `drag.pieceAnchor`
+  - `drag.pieceAnchorOffsetY`
+  - `animation.durationMs`
+
+  The package also exports public desktop/mobile main-renderer defaults from `@mirasen/chessboard/extensions` as `DefaultMainRendererDesktopConfig` and `DefaultMainRendererMobileConfig`.
+
+  Set `animation.durationMs` to `0` to disable piece movement animation by skipping animation creation.
+
+  Custom extension authors may need to update runtime interaction action names and payload fields to the new drag-session naming.
+
+### Patch Changes
+
+- dde200f: dependabot: directory '/', update eslint
+- dfe6882: dependabot: directory '/', update typescript from 5.9.3 to 6.0.3
+- eb1fcb5: dependabot: directory '/', update @types/node
+- eb1fcb5: dependabot: directory '/', update @vitest/browser-playwright
+- eb1fcb5: dependabot: directory '/', update @vitest/coverage-istanbul
+- eb1fcb5: dependabot: directory '/', update svelte
+- eb1fcb5: dependabot: directory '/', update typescript-eslint
+- eb1fcb5: dependabot: directory '/', update vitest
+- d1da3c1: Prevent fast mouse dragging from triggering native browser drag-and-drop on SVG piece images.
+
+  Browsers can treat SVG images inside pieces as draggable content during quick mouse movement. When that native drag fallback starts, it can interrupt the board's pointer-driven drag flow by causing `pointercancel` / `lostpointercapture` and, in some cases, preventing the board from receiving the expected `pointerup`.
+
+  The board now suppresses native `dragstart` by default when no extension consumes the event, reducing one common source of interrupted fast mouse drags while keeping the existing `lostpointercapture` recovery path for other platform edge cases. `dragstart` remains observable by extensions and does not produce a core interaction action.
+
 ## 1.2.4
 
 ### Patch Changes
