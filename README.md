@@ -300,15 +300,19 @@ board.extensions.renderer.setConfig({
 });
 ```
 
-You can reuse the calibrated mobile renderer preset:
+For convenience, the root package ships board-level presets that combine the interaction feel and renderer visuals for a desktop- or mobile-style board. Apply both parts together:
 
 ```ts
-import { DefaultMainRendererMobileConfig } from '@mirasen/chessboard/extensions';
+import { DefaultChessboardMobileConfig } from '@mirasen/chessboard';
+
+board.setInteractionConfig(DefaultChessboardMobileConfig.interaction);
 
 board.extensions.renderer.setConfig({
-	drag: DefaultMainRendererMobileConfig.drag
+	drag: DefaultChessboardMobileConfig.renderer.drag
 });
 ```
+
+`DefaultChessboardDesktopConfig` is the matching desktop preset. If you only want the renderer half, the lower-level `DefaultMainRendererDesktopConfig` and `DefaultMainRendererMobileConfig` building blocks are still exported from `@mirasen/chessboard/extensions`.
 
 ### Animation tuning
 
