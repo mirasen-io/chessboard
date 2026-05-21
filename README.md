@@ -293,7 +293,7 @@ The first-party renderer controls how the lifted piece looks while dragging:
 ```ts
 board.extensions.renderer.setConfig({
 	drag: {
-		pieceScale: 1.5,
+		pieceScale: 2,
 		pieceAnchor: 'bottom',
 		pieceAnchorOffsetY: 0.14
 	}

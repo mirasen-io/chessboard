@@ -73,7 +73,7 @@
 				},
 				drag: {
 					pieceAnchor: 'bottom',
-					pieceScale: 1.5,
+					pieceScale: 2,
 					pieceAnchorOffsetY: 0.14
 				}
 			});

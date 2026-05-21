@@ -33,9 +33,9 @@ describe('normalizeMainRendererConfig', () => {
 			});
 		});
 
-		it('mobile default has drag { pieceScale: 1.5, pieceAnchor: "bottom", pieceAnchorOffsetY: 0.14 }', () => {
+		it('mobile default has drag { pieceScale: 2, pieceAnchor: "bottom", pieceAnchorOffsetY: 0.14 }', () => {
 			expect(DefaultMainRendererMobileConfig.drag).toEqual({
-				pieceScale: 1.5,
+				pieceScale: 2,
 				pieceAnchor: 'bottom',
 				pieceAnchorOffsetY: 0.14
 			});
@@ -64,7 +64,7 @@ describe('normalizeMainRendererConfig', () => {
 			const config = normalizeMainRendererConfig(undefined, DefaultMainRendererMobileConfig);
 			expect(config).toEqual(DefaultMainRendererMobileConfig);
 			expect(config.drag).toEqual({
-				pieceScale: 1.5,
+				pieceScale: 2,
 				pieceAnchor: 'bottom',
 				pieceAnchorOffsetY: 0.14
 			});
@@ -102,11 +102,11 @@ describe('normalizeMainRendererConfig', () => {
 	describe('drag', () => {
 		it('partial-merges drag over base', () => {
 			const config = normalizeMainRendererConfig(
-				{ drag: { pieceScale: 2 } },
+				{ drag: { pieceScale: 3 } },
 				DefaultMainRendererMobileConfig
 			);
 			expect(config.drag).toEqual({
-				pieceScale: 2,
+				pieceScale: 3,
 				pieceAnchor: 'bottom',
 				pieceAnchorOffsetY: 0.14
 			});

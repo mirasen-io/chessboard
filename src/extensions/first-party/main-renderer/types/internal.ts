@@ -101,7 +101,7 @@ export const DefaultMainRendererDesktopConfig: MainRendererConfig = {
 export const DefaultMainRendererMobileConfig: MainRendererConfig = {
 	...cloneDeep(DefaultMainRendererConfigPart),
 	drag: {
-		pieceScale: 1.5,
+		pieceScale: 2,
 		pieceAnchor: 'bottom',
 		pieceAnchorOffsetY: 0.14
 	},
