@@ -1,5 +1,19 @@
 # @mirasen/chessboard
 
+## 1.3.1
+
+### Patch Changes
+
+- be0386f: Calibrate the default mobile drag piece scale and add board-level desktop/mobile config presets.
+
+  The mobile main-renderer drag preset now uses a larger lifted piece scale while preserving the existing bottom anchor and offset.
+
+  The root package now also exports `DefaultChessboardDesktopConfig` and `DefaultChessboardMobileConfig`, which combine the matching interaction defaults with the matching main-renderer defaults for easier desktop/mobile preset usage.
+
+- be0386f: Calibrate the default mobile drag piece scale.
+
+  The mobile main-renderer drag preset now uses a larger lifted piece scale, making touch dragging feel closer to common mobile chessboard behavior while keeping the existing bottom anchor and offset.
+
 ## 1.3.0
 
 ### Minor Changes
