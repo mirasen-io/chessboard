@@ -1,11 +1,11 @@
 export interface InteractionConfigDragLiftedActivation {
-	thresholdPx: number;
+	readonly thresholdPx: number;
 }
 
 export interface InteractionConfigDrag {
-	liftedActivation: InteractionConfigDragLiftedActivation;
+	readonly liftedActivation: InteractionConfigDragLiftedActivation;
 }
 
 export interface InteractionConfig {
-	drag: InteractionConfigDrag;
+	readonly drag: InteractionConfigDrag;
 }
