@@ -74,7 +74,7 @@ Rules and legality still belong to your game layer. Use the built-in `chess.js` 
 - Real built-in chess interaction
 - Built-in circles and arrows with live add/remove previews
 - **Easy game/rules integration** — connect your own game model, or use the built-in `chess.js` adapter
-- Works on desktop and mobile out of the box, with pointer-based mouse and touch interaction
+- Works on desktop and mobile out of the box, with pointer-based mouse/touch interaction and tunable drag behavior
 - State-diff animation beyond simple move events
 - Extension-driven architecture
 - First-party baseline extensions
@@ -265,6 +265,64 @@ Movability controls how the board accepts user-initiated moves.
 - `disabled` — user moves are ignored
 - `free` — user moves are accepted without legal destination filtering
 - `strict` — user moves are accepted only when the target is allowed by the destinations provided by your app/rules layer
+
+### Desktop and mobile drag tuning
+
+The board exposes interaction-level and renderer-level drag configuration so you can tune mouse-first and touch-first surfaces without replacing the built-in interaction model.
+
+Interaction config controls when lifted-piece drag becomes active:
+
+```ts
+const board = createBoard({
+	element
+});
+
+board.setInteractionConfig({
+	drag: {
+		liftedActivation: {
+			thresholdPx: 5
+		}
+	}
+});
+```
+
+Use `thresholdPx: 0` for immediate desktop-style drag activation, or a small threshold for mobile/touch UIs where the piece should not jump on the first tiny pointer movement.
+
+The first-party renderer controls how the lifted piece looks while dragging:
+
+```ts
+board.extensions.renderer.setConfig({
+	drag: {
+		pieceScale: 1.5,
+		pieceAnchor: 'bottom',
+		pieceAnchorOffsetY: 0.14
+	}
+});
+```
+
+You can reuse the calibrated mobile renderer preset:
+
+```ts
+import { DefaultMainRendererMobileConfig } from '@mirasen/chessboard/extensions';
+
+board.extensions.renderer.setConfig({
+	drag: DefaultMainRendererMobileConfig.drag
+});
+```
+
+### Animation tuning
+
+The first-party renderer exposes animation duration config:
+
+```ts
+board.extensions.renderer.setConfig({
+	animation: {
+		durationMs: 0
+	}
+});
+```
+
+Set `animation.durationMs` to `0` when you want position updates to render instantly without creating movement animations.
 
 ### Advanced: explicit extension lists
 
