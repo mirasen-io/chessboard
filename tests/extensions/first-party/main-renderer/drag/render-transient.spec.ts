@@ -478,3 +478,29 @@ describe('drag transient render – pieceAnchorOffsetY', () => {
 		expect(state2.pieceNode!.getAttribute('y')).toBe('160');
 	});
 });
+
+describe('drag transient render – viewport overflow', () => {
+	it('mobile-style drag near the top rank produces a negative y, intentionally rendering above the viewport', () => {
+		// Mirrors the mobile preset used by the renderer: scale 2, bottom anchor,
+		// 0.14 squareSize lift. With the pointer clamped to the top rank, the
+		// lifted piece must extend above y=0; this contract is the reason the
+		// root SVG opts into `overflow: visible` so the visual is not clipped.
+		const state = createActiveState(PieceCode.WhiteKing, {
+			pieceScale: 2,
+			pieceAnchor: 'bottom',
+			pieceAnchorOffsetY: 0.14
+		});
+		const layer = createDragLayer();
+		// 400px scene → squareSize = 50. Pointer near the top edge of the board.
+		const ctx = createDragTransientVisualsContext({
+			sceneSize: 400,
+			boardClampedPoint: { x: 200, y: 25 }
+		});
+
+		rendererDragRenderTransientVisuals(state, ctx, layer);
+
+		const el = layer.children[0];
+		// renderedSize = 100, anchorOffsetY = 7, y = 25 - 100 + 7 = -68
+		expect(Number(el.getAttribute('y'))).toBeLessThan(0);
+	});
+});

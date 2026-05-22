@@ -52,6 +52,11 @@ describe('createSvgRoots', () => {
 		expect(roots.svgRoot.style.getPropertyValue('touch-action')).toBe('pinch-zoom');
 	});
 
+	it('svgRoot has overflow visible style so board-local overlay visuals are not clipped at the viewport', () => {
+		const roots = makeSvgRoots();
+		expect(roots.svgRoot.style.getPropertyValue('overflow')).toBe('visible');
+	});
+
 	it('all layer elements are children of svgRoot', () => {
 		const roots = makeSvgRoots();
 		const layers = [
