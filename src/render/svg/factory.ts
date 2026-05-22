@@ -14,6 +14,9 @@ export function createSvgRoots(options: RenderSystemInitOptionsInternal): SvgRoo
 	svgRoot.style.setProperty('touch-action', 'pinch-zoom');
 	svgRoot.style.setProperty('-webkit-touch-callout', 'none');
 	svgRoot.style.setProperty('-webkit-tap-highlight-color', 'transparent');
+	// Don't clip board-local overlay visuals (e.g. mobile lifted drag piece
+	// scaled above the top rank) at the SVG viewport.
+	svgRoot.style.setProperty('overflow', 'visible');
 
 	// Create children in the correct order
 	const board = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'board-root' });
