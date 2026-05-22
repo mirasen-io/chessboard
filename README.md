@@ -6,7 +6,7 @@
 
 # @mirasen/chessboard
 
-A framework-agnostic TypeScript chessboard platform with real chess interaction built in and an extension-driven architecture.
+A production-grade, framework-agnostic TypeScript chessboard platform with real chess interaction built in and an extension-driven architecture.
 
 ## Try it live (including annotations)
 
