@@ -133,7 +133,7 @@ body {
 	width: 100%;
 	aspect-ratio: 1 / 1;
 	background: #e5e7eb;
-	overflow: hidden;
+	overflow: visible;
 	touch-action: pinch-zoom;
 	user-select: none;
 }
