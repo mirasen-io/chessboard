@@ -3,11 +3,14 @@ set -euo pipefail
 
 # Packages project source for ChatGPT code review.
 #
+# Copies everything git would consider part of the project (tracked files +
+# untracked files that aren't ignored), honoring all nested .gitignore rules
+# via `git ls-files`. Reusable across repos without per-project tweaks.
+# Must be run inside a git repo.
+#
 # Usage:
 #   ./scripts/package-review-src.sh
-#   ./scripts/package-review-src.sh --full
 #   ./scripts/package-review-src.sh my-prefix
-#   ./scripts/package-review-src.sh my-prefix --full
 #
 # Output:
 #   ./artifacts/<name>-YYYYMMDD-HHMMSS.tgz
@@ -19,19 +22,7 @@ ARTIFACTS_DIR="$ROOT_DIR/artifacts"
 STAGING_DIR="$ARTIFACTS_DIR/.review-src-staging"
 
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
-NAME_PREFIX="chessboard-src-review"
-FULL_MODE="false"
-
-for arg in "$@"; do
-  case "$arg" in
-    --full)
-      FULL_MODE="true"
-      ;;
-    *)
-      NAME_PREFIX="$arg"
-      ;;
-  esac
-done
+NAME_PREFIX="${1:-chessboard-src-review}"
 
 ARCHIVE_NAME="${NAME_PREFIX}-${TIMESTAMP}.tgz"
 ARCHIVE_PATH="$ARTIFACTS_DIR/$ARCHIVE_NAME"
@@ -40,77 +31,76 @@ rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR"
 mkdir -p "$ARTIFACTS_DIR"
 
-copy_if_exists() {
-  local path="$1"
-  if [[ -e "$ROOT_DIR/$path" ]]; then
-    mkdir -p "$STAGING_DIR/$(dirname "$path")"
-    cp -R "$ROOT_DIR/$path" "$STAGING_DIR/$path"
-  fi
-}
-
 echo "Preparing review package..."
-echo "Mode: $([[ "$FULL_MODE" == "true" ]] && echo full || echo standard)"
 
-if [[ ! -d "$ROOT_DIR/src" ]]; then
-  echo "Error: src directory not found"
-  exit 1
-fi
+# Copy everything git tracks plus untracked-but-not-ignored files. This honors
+# all (nested) .gitignore rules without maintaining a per-project allowlist.
+# `git ls-files --cached` reports paths from the index, which can include files
+# that were deleted on disk but not yet staged — skip those, the archive should
+# reflect the working tree, not the index.
+while IFS= read -r -d '' f; do
+  [[ -e "$ROOT_DIR/$f" ]] || continue
+  mkdir -p "$STAGING_DIR/$(dirname "$f")"
+  cp "$ROOT_DIR/$f" "$STAGING_DIR/$f"
+done < <(git -C "$ROOT_DIR" ls-files -z --cached --others --exclude-standard)
 
-# Standard payload
-cp -R "$ROOT_DIR/src" "$STAGING_DIR/src"
-copy_if_exists "tests"
-copy_if_exists "scripts"
-copy_if_exists "docs"
+# Paths to strip from the staged tree, on top of .gitignore. Each entry is
+# matched against the basename at any depth (i.e. `**/<entry>`) and removed
+# recursively, so the same list works for files and directories. Glob chars
+# (`*`, `?`) are passed through to find.
+EXTRA_EXCLUDES=(
+  # Lockfiles — noisy, useless for review.
+  'package-lock.json'
+  'yarn.lock'
+  'pnpm-lock.yaml'
+  'bun.lockb'
 
-copy_if_exists "src-old"
-copy_if_exists "tests-old"
+  # AI / IDE assistant configs.
+  '.claude'
+  '.cursor'
+  '.aider*'
+  '.windsurf'
+  '.continue'
 
-copy_if_exists "package.json"
-copy_if_exists "package-lock.json"
-copy_if_exists "pnpm-lock.yaml"
-copy_if_exists "yarn.lock"
+  # Release / process metadata, not code.
+  'CHANGELOG.md'
+  'LICENSE'
 
-copy_if_exists "tsconfig.json"
-copy_if_exists "tsconfig-test.json"
-copy_if_exists "tsconfig-release.json"
+  # macOS filesystem noise.
+  '.DS_Store'
+  '._*'
+  'Icon?'
+  '.apdisk'
+  '.AppleDouble'
+  '.Spotlight-V100'
+  '.Trashes'
+  '.fseventsd'
+  '.TemporaryItems'
+  '__MACOSX'
+)
 
-copy_if_exists "vite.config.ts"
-copy_if_exists "vitest.config.ts"
+# Optional excludes — uncomment per task when these aren't relevant to the
+# review (e.g. you're reviewing application code, not CI/release plumbing).
+# EXTRA_EXCLUDES+=(
+#   '.changeset'
+#   'openspec'
+#   '.github'
+#   '.githooks'
+#   '__snapshots__'
+#   '.vscode'
+#   '.idea'
+#   '.editorconfig'
+#   '.prettierrc'
+#   '.prettierignore'
+#   '.npmrc'
+#   '.nvmrc'
+#   '.sonarcloud.properties'
+#   'sonar-project.properties'
+# )
 
-copy_if_exists "README.md"
-copy_if_exists ".npmignore"
-
-# Optional extras in full mode
-if [[ "$FULL_MODE" == "true" ]]; then
-  copy_if_exists "scripts"
-  copy_if_exists "examples"
-  copy_if_exists ".github"
-  copy_if_exists "CHANGELOG.md"
-fi
-
-find "$STAGING_DIR" -type d \( \
-  -path "$STAGING_DIR/node_modules" -o \
-  -path "$STAGING_DIR/dist" -o \
-  -path "$STAGING_DIR/build" -o \
-  -path "$STAGING_DIR/coverage" -o \
-  -path "$STAGING_DIR/.git" \
-\) -prune -exec rm -rf {} +
-
-# Strip macOS noise.
-find "$STAGING_DIR" \( \
-  -name '.DS_Store' -o \
-  -name '._*' -o \
-  -name 'Icon?' -o \
-  -name '.apdisk' \
-\) -type f -delete
-find "$STAGING_DIR" -type d \( \
-  -name '.AppleDouble' -o \
-  -name '.Spotlight-V100' -o \
-  -name '.Trashes' -o \
-  -name '.fseventsd' -o \
-  -name '.TemporaryItems' -o \
-  -name '__MACOSX' \
-\) -prune -exec rm -rf {} +
+for pattern in "${EXTRA_EXCLUDES[@]}"; do
+  find "$STAGING_DIR" -depth -name "$pattern" -exec rm -rf {} +
+done
 
 {
   echo "Included project tree:"
@@ -124,32 +114,6 @@ find "$STAGING_DIR" -type d \( \
     )
   fi
 } > "$STAGING_DIR/TREE.txt"
-
-cat > "$STAGING_DIR/REVIEW_NOTES.txt" <<'EOF'
-Suggested prompt when uploading this archive:
-
-Need a full review of this npm chessboard package source.
-
-Focus:
-- architecture
-- public API
-- renderer/state boundaries
-- drag-and-drop readiness
-- extension model
-- TypeScript quality
-- package readiness
-
-Less important:
-- visual polish
-- tests
-- docs wording
-
-Please provide:
-1. high-level architectural review
-2. critical issues
-3. medium issues
-4. recommended priority order
-EOF
 
 (
   cd "$STAGING_DIR"
