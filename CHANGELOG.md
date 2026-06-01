@@ -1,5 +1,20 @@
 # @mirasen/chessboard
 
+## 1.3.2
+
+### Patch Changes
+
+- 41c2799: dependabot: directory '/', update @sveltejs/kit
+- 41c2799: dependabot: directory '/', update es-toolkit
+- 41c2799: dependabot: directory '/', update eslint-plugin-svelte
+- 41c2799: dependabot: directory '/', update svelte
+- 41c2799: dependabot: directory '/', update typescript-eslint
+- 00b1e4f: dependabot: directory '/', update vite
+- 857a1b5: dependabot: directory '/examples/sveltekit', update prettier-plugin-svelte from 3.5.2 to 4.0.1
+- 1226db9: Fix mobile lifted-piece drag clipping near board edges.
+
+  Scaled mobile drag visuals can intentionally extend outside the board viewport so the dragged piece stays visible under the user's finger. The root SVG and SvelteKit example container now allow those board-local overlay visuals to remain visible without changing layout geometry, pointer mapping, or drag behavior.
+
 ## 1.3.1
 
 ### Patch Changes
