@@ -1,5 +1,55 @@
 # @mirasen/chessboard
 
+## 1.3.3
+
+### Patch Changes
+
+- b249a16: main-renderer: fix `setConfig` spuriously marking `Board` and `Coordinates` layers dirty (and requesting a render) when only unrelated fields like `drag` or `animation` were patched, or when called with `{}`.
+
+  The check relied on reference-equality of nested config objects across `toMerged` calls — which held under es-toolkit ≤ 1.47.1 by accident (a bug where `toMerged` reused references from `base` for untouched branches). es-toolkit 1.49.0 fixed that, exposing our bad assumption. Switched to structural equality via `isEqual`.
+
+- 7f72b26: dependabot: directory '/', update @ktarmyshov/assert
+- 7f72b26: dependabot: directory '/', update @sveltejs/kit
+- 7f72b26: dependabot: directory '/', update @vitest/browser-playwright
+- 7f72b26: dependabot: directory '/', update @vitest/coverage-istanbul
+- 7f72b26: dependabot: directory '/', update eslint-plugin-svelte
+- 7f72b26: dependabot: directory '/', update eslint
+- 7f72b26: dependabot: directory '/', update prettier-plugin-svelte
+- 7f72b26: dependabot: directory '/', update svelte-check
+- 7f72b26: dependabot: directory '/', update svelte
+- 7f72b26: dependabot: directory '/', update type-fest
+- 7f72b26: dependabot: directory '/', update typescript-eslint
+- 7f72b26: dependabot: directory '/', update vite
+- 7f72b26: dependabot: directory '/', update vitest
+- eb0ccf2: dependabot: directory '/', update @sveltejs/kit
+- eb0ccf2: dependabot: directory '/', update @tailwindcss/typography
+- eb0ccf2: dependabot: directory '/', update @types/node
+- eb0ccf2: dependabot: directory '/', update prettier
+- eb0ccf2: dependabot: directory '/', update svelte
+- eb0ccf2: dependabot: directory '/', update typescript-eslint
+- 8633b5a: dependabot: directory '/', update @playwright/test
+- 8633b5a: dependabot: directory '/', update @sveltejs/kit
+- 8633b5a: dependabot: directory '/', update @tailwindcss/vite
+- 8633b5a: dependabot: directory '/', update @vitest/browser-playwright
+- 8633b5a: dependabot: directory '/', update @vitest/coverage-istanbul
+- 8633b5a: dependabot: directory '/', update es-toolkit
+- 8633b5a: dependabot: directory '/', update eslint
+- 8633b5a: dependabot: directory '/', update playwright
+- 8633b5a: dependabot: directory '/', update prettier-plugin-svelte
+- 8633b5a: dependabot: directory '/', update tailwindcss
+- 8633b5a: dependabot: directory '/', update typescript-eslint
+- 8633b5a: dependabot: directory '/', update vitest
+- b249a16: dependabot: directory '/', update @playwright/test
+- b249a16: dependabot: directory '/', update @sveltejs/kit
+- b249a16: dependabot: directory '/', update es-toolkit
+- b249a16: dependabot: directory '/', update globals
+- b249a16: dependabot: directory '/', update playwright
+- b249a16: dependabot: directory '/', update svelte-check
+- b249a16: dependabot: directory '/', update svelte
+- b249a16: dependabot: directory '/', update typescript-eslint
+- b249a16: dependabot: directory '/', update vite
+- 47d3b59: dependabot: directory '/', update @types/node from 25.9.3 to 26.0.1
+
 ## 1.3.2
 
 ### Patch Changes
