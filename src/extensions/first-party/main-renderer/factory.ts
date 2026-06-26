@@ -1,3 +1,4 @@
+import { isEqual } from 'es-toolkit/predicate';
 import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
@@ -85,10 +86,10 @@ function createMainRendererInstancePublic(state: MainRendererInstanceInternal): 
 			const previous = state.config;
 			state.config = normalizeMainRendererConfig(safeInput, state.config);
 			let dirty = 0;
-			if (state.config.colors.board !== previous.colors.board) {
+			if (!isEqual(state.config.colors.board, previous.colors.board)) {
 				dirty |= DirtyLayer.Board;
 			}
-			if (state.config.colors.coordinates !== previous.colors.coordinates) {
+			if (!isEqual(state.config.colors.coordinates, previous.colors.coordinates)) {
 				dirty |= DirtyLayer.Coordinates;
 			}
 			if (dirty !== 0) {
