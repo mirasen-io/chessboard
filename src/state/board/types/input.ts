@@ -31,9 +31,7 @@ export type PiecePositionRecord = Partial<Record<SquareString, Piece>>;
 export type PiecePositionRecordShort = Partial<Record<SquareString, PieceShort>>;
 export type PiecePositionRecordString = Partial<Record<SquareString, PieceString>>;
 export type PiecePositionInputRecord =
-	| PiecePositionRecord
-	| PiecePositionRecordShort
-	| PiecePositionRecordString;
+	PiecePositionRecord | PiecePositionRecordShort | PiecePositionRecordString;
 export type PiecePositionInput = 'start' | PiecePositionInputRecord;
 
 export type PositionInputObject = {

@@ -25,8 +25,7 @@ export interface ExtensionDragSessionActiveLiftedPiece extends ExtensionDragSess
 }
 
 export type ExtensionDragSessionLiftedPiece =
-	| ExtensionDragSessionPendingLiftedPiece
-	| ExtensionDragSessionActiveLiftedPiece;
+	ExtensionDragSessionPendingLiftedPiece | ExtensionDragSessionActiveLiftedPiece;
 
 export interface ExtensionDragSessionReleaseTargeting extends ExtensionDragSessionBase {
 	type: 'release-targeting';

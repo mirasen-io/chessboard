@@ -4,14 +4,12 @@ import { makeBoardRect, measureBoardSize } from './helpers.js';
 import { SceneRenderGeometry, Size } from './types.js';
 
 export function createRenderGeometry(sceneSize: Size, orientation: ColorCode): SceneRenderGeometry {
-	if (
-		!(
-			sceneSize.height > 0 &&
-			Number.isFinite(sceneSize.height) &&
-			sceneSize.width > 0 &&
-			Number.isFinite(sceneSize.width)
-		)
-	) {
+	if (!(
+		sceneSize.height > 0 &&
+		Number.isFinite(sceneSize.height) &&
+		sceneSize.width > 0 &&
+		Number.isFinite(sceneSize.width)
+	)) {
 		throw new RangeError(`Invalid sceneSize: ${JSON.stringify(sceneSize)}`);
 	}
 	const boardSize = measureBoardSize(sceneSize);

@@ -20,8 +20,7 @@ export type StartActiveLiftedDragSessionInput = Pick<
 >;
 
 export type StartLiftedDragSessionInput =
-	| StartPendingLiftedDragSessionInput
-	| StartActiveLiftedDragSessionInput;
+	StartPendingLiftedDragSessionInput | StartActiveLiftedDragSessionInput;
 
 export type ActivatePendingLiftedDragSessionInput = {
 	targetSquare: Square | null;

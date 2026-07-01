@@ -28,8 +28,7 @@ export type ExtensionUpdateContextUnmounted = ExtensionUpdateContextCommonUnmoun
 export type ExtensionUpdateContextMounted = ExtensionUpdateContextCommonMounted;
 
 export type ExtensionUpdateContext =
-	| ExtensionUpdateContextUnmounted
-	| ExtensionUpdateContextMounted;
+	ExtensionUpdateContextUnmounted | ExtensionUpdateContextMounted;
 
 export function isUpdateContextCommonMounted<T extends ExtensionUpdateContextCommon>(
 	context: T
