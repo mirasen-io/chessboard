@@ -13,8 +13,7 @@ export type MovabilityResolverInput = (
 	source: SquareString
 ) => readonly MoveDestinationInput[] | undefined;
 export type MovabilityDestinationsInput =
-	| MovabilityDestinationsRecordInput
-	| MovabilityResolverInput;
+	MovabilityDestinationsRecordInput | MovabilityResolverInput;
 
 export type StrictMovabilityInput = {
 	mode: 'strict';

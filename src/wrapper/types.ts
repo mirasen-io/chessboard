@@ -34,9 +34,7 @@ export type BuiltInExtensionInitOptions = {
 }[BuiltInExtensionIdsWithOptions];
 
 export type ChessboardExtensionInput =
-	| BuiltInExtensionId
-	| BuiltInExtensionInitOptions
-	| AnyExtensionDefinition;
+	BuiltInExtensionId | BuiltInExtensionInitOptions | AnyExtensionDefinition;
 
 /**
  * Resolve one public input item into a concrete extension definition type
@@ -71,9 +69,11 @@ type ExtensionDefinitionHasPublicApi<T> = [ExtensionDefinitionPublicApi<T>] exte
  * Public map for already-resolved extension definitions
  */
 type ExtensionsPublicMap<TExtensions extends readonly AnyExtensionDefinition[]> = {
-	[TDef in TExtensions[number] as ExtensionDefinitionHasPublicApi<TDef> extends true
-		? ExtensionDefinitionId<TDef>
-		: never]: ExtensionDefinitionPublicApi<TDef>;
+	[
+		TDef in TExtensions[number] as ExtensionDefinitionHasPublicApi<TDef> extends true
+			? ExtensionDefinitionId<TDef>
+			: never
+	]: ExtensionDefinitionPublicApi<TDef>;
 };
 
 /**
