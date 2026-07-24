@@ -1,5 +1,50 @@
 # @mirasen/chessboard
 
+## 1.3.4
+
+### Patch Changes
+
+- a536d05: dependabot: directory '/', update @ktarmyshov/assert
+- a536d05: dependabot: directory '/', update @tailwindcss/vite
+- a536d05: dependabot: directory '/', update eslint-plugin-svelte
+- a536d05: dependabot: directory '/', update eslint
+- a536d05: dependabot: directory '/', update prettier
+- a536d05: dependabot: directory '/', update tailwindcss
+- a536d05: dependabot: directory '/', update typescript-eslint
+- a536d05: dependabot: directory '/', update vite
+- a536d05: dependabot: directory '/', update vitest-browser-svelte
+- 2043c71: dependabot: directory '/', update @sveltejs/kit
+- 2043c71: dependabot: directory '/', update @types/node
+- 2043c71: dependabot: directory '/', update vite
+- 718a1ed: dependabot: directory '/', update @sveltejs/kit
+- 718a1ed: dependabot: directory '/', update @sveltejs/vite-plugin-svelte
+- 718a1ed: dependabot: directory '/', update @types/node
+- 718a1ed: dependabot: directory '/', update @vitest/browser-playwright
+- 718a1ed: dependabot: directory '/', update @vitest/coverage-istanbul
+- 718a1ed: dependabot: directory '/', update prettier
+- 718a1ed: dependabot: directory '/', update svelte-check
+- 718a1ed: dependabot: directory '/', update type-fest
+- 718a1ed: dependabot: directory '/', update typescript-eslint
+- 718a1ed: dependabot: directory '/', update vite
+- 718a1ed: dependabot: directory '/', update vitest
+- e080bf8: dependabot: directory '/examples/sveltekit', update vitest-browser-svelte from 2.2.0 to 3.0.0
+- 5b7c613: dependabot: directory '/', update @changesets/cli
+- 5b7c613: dependabot: directory '/', update @sveltejs/kit
+- 5b7c613: dependabot: directory '/', update @tailwindcss/vite
+- 5b7c613: dependabot: directory '/', update eslint
+- 5b7c613: dependabot: directory '/', update prettier-plugin-tailwindcss
+- 5b7c613: dependabot: directory '/', update svelte-check
+- 5b7c613: dependabot: directory '/', update svelte
+- 5b7c613: dependabot: directory '/', update tailwindcss
+- 5b7c613: dependabot: directory '/', update typescript-eslint
+- 5b7c613: dependabot: directory '/', update vite
+- 7bed657: dependabot: directory '/', update @sveltejs/kit
+- 7bed657: dependabot: directory '/', update eslint-plugin-svelte
+- 7bed657: dependabot: directory '/', update prettier
+- 7bed657: dependabot: directory '/', update publint
+- 7bed657: dependabot: directory '/', update svelte
+- 7bed657: dependabot: directory '/', update typescript-eslint
+
 ## 1.3.3
 
 ### Patch Changes
