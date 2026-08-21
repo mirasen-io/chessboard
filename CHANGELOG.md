@@ -1,5 +1,30 @@
 # @mirasen/chessboard
 
+## 1.3.5
+
+### Patch Changes
+
+- 2c8eea7: dependabot: directory '/', update @ktarmyshov/assert
+- 2c8eea7: dependabot: directory '/', update @playwright/test
+- 2c8eea7: dependabot: directory '/', update @sveltejs/kit
+- 2c8eea7: dependabot: directory '/', update globals
+- 2c8eea7: dependabot: directory '/', update jsdom
+- 2c8eea7: dependabot: directory '/', update playwright
+- 2c8eea7: dependabot: directory '/', update typescript-eslint
+- 2c8eea7: dependabot: directory '/', update vite
+- 4a6f1d3: dependabot: directory '/', update @sveltejs/vite-plugin-svelte
+- 4a6f1d3: dependabot: directory '/', update @types/node
+- 4a6f1d3: dependabot: directory '/', update eslint
+- 4a6f1d3: dependabot: directory '/', update publint
+- 4a6f1d3: dependabot: directory '/', update svelte-check
+- 4a6f1d3: dependabot: directory '/', update typescript-eslint
+- 4a6f1d3: dependabot: directory '/', update vite
+- 6bf7293: dependabot: directory '/', update es-toolkit
+- 6bf7293: dependabot: directory '/', update eslint-plugin-svelte
+- 6bf7293: dependabot: directory '/', update globals
+- 6bf7293: dependabot: directory '/', update svelte-check
+- 6bf7293: dependabot: directory '/', update svelte
+
 ## 1.3.4
 
 ### Patch Changes
