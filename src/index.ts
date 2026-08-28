@@ -13,7 +13,8 @@ export type {
 	ColorInput,
 	MoveRequestInput,
 	PiecePositionRecordString,
-	PositionInput
+	PositionInput,
+	SquareString
 } from './state/board/types/input.js';
 export type { MoveOutput } from './state/board/types/output.js';
 export type { MovabilityInput, MoveDestinationInput } from './state/interaction/types/input.js';
