@@ -45,7 +45,7 @@ This is not just a board renderer. It is a chessboard platform designed for real
 
 ## What you get out of the box
 
-The default first-party extension baseline includes rendering, events, selection, active target feedback, legal move hints, last move feedback, annotations, promotion UI, and optional auto-promotion.
+The default first-party extension baseline includes rendering, events, selection, active target feedback, legal move hints, last move feedback, check square highlight, annotations, promotion UI, and optional auto-promotion.
 
 - `renderer` — the first-party rendering extension that validates the same extension architecture used for board features
 - `events`
@@ -53,6 +53,7 @@ The default first-party extension baseline includes rendering, events, selection
 - `activeTarget`
 - `legalMoves`
 - `lastMove`
+- `check`
 - `annotations`
 - `promotion`
 - `autoPromote`
