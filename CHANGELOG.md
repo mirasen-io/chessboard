@@ -1,5 +1,54 @@
 # @mirasen/chessboard
 
+## 1.4.0
+
+### Minor Changes
+
+- 63415ac: feat: add first-party `check` extension for king-in-check square highlighting
+
+  Adds a built-in `check` extension that renders a red radial glow on a consumer-supplied square to indicate a king in check. The board remains rules-agnostic — the highlighted square is entirely determined by the caller.
+
+  ```ts
+  board.extensions.check.square = 'e1'; // highlight
+  board.extensions.check.square = null; // clear
+  ```
+
+  The extension is included in the default built-in set, so no extra registration is needed. The default visual is a red radial gradient (center-to-transparent) rendered below pieces in the `underPieces` slot. Color and opacity are configurable via `createCheck({ color, opacity })`.
+
+### Patch Changes
+
+- 9dda2cf: chore: switch coverage provider from istanbul to v8
+- 2c8eea7: dependabot: directory '/', update @ktarmyshov/assert
+- 2c8eea7: dependabot: directory '/', update @playwright/test
+- 2c8eea7: dependabot: directory '/', update @sveltejs/kit
+- 2c8eea7: dependabot: directory '/', update globals
+- 2c8eea7: dependabot: directory '/', update jsdom
+- 2c8eea7: dependabot: directory '/', update playwright
+- 2c8eea7: dependabot: directory '/', update typescript-eslint
+- 2c8eea7: dependabot: directory '/', update vite
+- 4a6f1d3: dependabot: directory '/', update @sveltejs/vite-plugin-svelte
+- 4a6f1d3: dependabot: directory '/', update @types/node
+- 4a6f1d3: dependabot: directory '/', update eslint
+- 4a6f1d3: dependabot: directory '/', update publint
+- 4a6f1d3: dependabot: directory '/', update svelte-check
+- 2c8eea7: dependabot: directory '/', update typescript-eslint
+- 2c8eea7: dependabot: directory '/', update vite
+- 6bf7293: dependabot: directory '/', update es-toolkit
+- 6bf7293: dependabot: directory '/', update eslint-plugin-svelte
+- 2c8eea7: dependabot: directory '/', update globals
+- 4a6f1d3: dependabot: directory '/', update svelte-check
+- 6bf7293: dependabot: directory '/', update svelte
+- 2c8eea7: dependabot: directory '/', update @sveltejs/kit
+- ae1574c: dependabot: directory '/', update @vitest/browser-playwright
+- 4a6f1d3: dependabot: directory '/', update eslint
+- 4a6f1d3: dependabot: directory '/', update publint
+- 6bf7293: dependabot: directory '/', update svelte
+- 2c8eea7: dependabot: directory '/', update vite
+- dee1c04: dependabot: directory '/', update @changesets/cli from 2.31.1 to 3.0.1
+- 4a6f1d3: dependabot: directory '/', update @types/node
+- 4a6f1d3: dependabot: directory '/', update eslint
+- 2c8eea7: dependabot: directory '/', update typescript-eslint
+
 ## 1.3.4
 
 ### Patch Changes
