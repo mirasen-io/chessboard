@@ -68,7 +68,7 @@ are for GitHub only (root is `private`, never published).
 
 # PHASES (execution order)
 
-## Phase 0 — PREREQUISITE: fix + test `dependabot-generate-changesets` (before any monorepo move)
+## Phase 0A — PREREQUISITE: fix + test `dependabot-generate-changesets` (before any monorepo move)
 
 Rationale: the mis-attribution bug is **already live** in the single repo and must be fixed first, in
 `kt-workflows/actions`, then verified, so the monorepo inherits a working automation.
@@ -88,18 +88,30 @@ Changes (per research report Outcome B):
      with no auto-pagination (fine for tiny Dependabot PRs, but the shared action must be correct for any repo).
    - Expand root `package.json#workspaces` globs → member dirs; for each changed `<member>/package.json`,
      read `name` + `private`; skip `private:true`; collect publishable names.
-   - Empty set → write NO changeset (exit 0). Else write ONE changeset, deterministic filename
-     `.changeset/dependabot-pr-<PR>.md`, each affected package `: patch`, body starting with `dependabot:`
-     (kept so `dependabot-auto-release` detection still matches). Re-run/rebase overwrites the same file (idempotent).
+   - Compute the deterministic filename `FILE=.changeset/dependabot-pr-<PR>.md` **first, before branching on the affected set.** If the affected set is empty → **`rm -f "$FILE"`** (delete any stale changeset left by an earlier run) and emit `changesets-json=[]`; else write ONE changeset to `FILE`, each affected package `: patch`, body starting with `dependabot:` (kept so `dependabot-auto-release` detection still matches).
+   - The commit step must stage `.changeset` such that a **deletion** is committed too (`git add -A .changeset`, not just new files). This makes it idempotent in all directions: `A→A` overwrite · `A→A+B` rewrite · `A+B→B` rewrite · `A→none` delete stale · `none→A` create.
    - Drop the dead `if: steps.find-comment.outputs.comment-id == ''` gate.
 2. `dependabot-auto-merge`: pass `pr-number` (and repo/owner) to the generator instead of
    `updated-dependencies-json`; keep `fetch-metadata` for the minor/patch **merge** gate.
 3. Ignore internal packages in every consuming repo's `dependabot.yml` (`@mirasen/chessboard`,
    `@mirasen/react-chessboard`).
-4. Test the action against the fixture PR shape before proceeding (see §Phase 16 matrix, run conceptually).
+4. Test the action against the fixture PR shape before proceeding (see §Phase 16 matrix). Cover every idempotency direction explicitly: `A→A`, `A→A+B`, `A+B→B`, `A→none` (stale changeset deleted), `none→A`.
 
 `dependabot-auto-release`, `npm-release`, `create-github-app-token`, `get-associated-pr` — **no change**
 (verified). `npm-release-upd-pkg-lock`, `major-release-tag` — **not referenced anywhere** (grep-confirmed), ignore.
+
+## Phase 0B — tooling prerequisite: `npm-ci-sonar` `project-base-dir` support
+
+Verified: `kt-workflows/actions/npm-ci-sonar` runs `sonarsource/sonarqube-scan-action@v7` **with no
+`projectBaseDir`** (no `with:` at all) — it always scans the repo root. Its `working-directory` input only
+affects the npm run-script, not the scanner. The monorepo needs per-package scans (Phase 13), so:
+
+1. Add an input `project-base-dir` (default `.`) to `npm-ci-sonar`.
+2. Pass it to the scan step: `sonarsource/sonarqube-scan-action@v7` with `projectBaseDir: ${{ inputs.project-base-dir }}`.
+3. Keep `working-directory` for npm commands — do NOT overload its meaning.
+
+This is a separate concern from the Dependabot fix (Phase 0A) but is likewise a **prerequisite**: it must
+land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) references the new input.
 
 ## Phase 1 — Prep
 
@@ -133,13 +145,13 @@ Changes (per research report Outcome B):
    - Principle: build-critical tooling stays visible in the package that needs it (no "works only by
      hoist accident"); truly repo-wide tooling is hoisted once. npm dedupes either way.
 3. Root config: single `.prettierrc`, `.prettierignore`, `.npmrc` (`engine-strict=true`),
-   `eslint.config.js` (root flat config linting all packages), `tsconfig.base.json` (promote core's).
+   `eslint.config.js` (root flat config linting all packages). **Do NOT promote `tsconfig.base.json` to root** — it stays inside `packages/chessboard/` (core's `tsconfig.json` extends `./tsconfig.base.json`; moving it up would break that relative path). No TypeScript-config redesign in this migration; a shared root tsconfig can be a separate cleanup later if ever needed.
 4. **Root `README.md` + `LICENSE`** (NEW): README describes the platform + both packages; LICENSE = MIT.
 
 ## Phase 3 — Move core into `packages/chessboard` (`git mv`, history-preserving)
 
 1. `git mv` core content into `packages/chessboard/`: `src/`, `tests/`, `package.json`,
-   `tsconfig.json`, `tsconfig-release.json`, `tsconfig-test.json`, `vitest.config.ts`, `assets/`,
+   `tsconfig.base.json`, `tsconfig.json`, `tsconfig-release.json`, `tsconfig-test.json`, `vitest.config.ts`, `assets/`,
    `openspec/`, `README.md`, `CHANGELOG.md`, `LICENSE`, `.sonarcloud.properties` (+ `sonar-project.properties`
    symlink). Keep core's package-relative tsconfig (`rootDir ./src`, `outDir ./dist`) as-is.
    - `docs/` and `AGENTS.md`: keep at **repo root** (repo-wide), not under the package.
@@ -158,7 +170,9 @@ Changes (per research report Outcome B):
 2. **Delete React's `scripts/npm-link.sh`** (orphaned — React has no `prepare` hook; verified). Do not carry it over.
 3. Keep React `package.json` name/version (`1.1.0`)/exports/peerDeps; keep
    `"@mirasen/chessboard": "^1.4.0"` (do NOT switch to `workspace:*`); remove its `changeset:*` scripts;
-   fix the dangling `npm run example` reference in its README.
+   fix the dangling `npm run example` reference in its README. **Add `"CHANGELOG.md"` to its `files` array**
+   — verified currently `["dist", …, "README.md", "LICENSE"]` (no `CHANGELOG.md`), so React's changelog would
+   otherwise be excluded from the npm tarball (core already lists it; React does not).
 4. Do NOT carry over React's workflows, `dependabot.yml`, or `.changeset/config.json` (root already has an
    identical config). React's `.changeset/` has no pending files (verified).
 
@@ -178,21 +192,30 @@ first** (verified: bare specifier, nodenext, exports→dist; not raw-source). Ex
 
 ```jsonc
 {
+	"build:core": "npm run build -w @mirasen/chessboard",
 	"build": "npm run build -w @mirasen/chessboard && npm run build -w @mirasen/react-chessboard",
 	"build:release": "npm run build:release -w @mirasen/chessboard && npm run build:release -w @mirasen/react-chessboard",
-	"test": "npm run test --workspaces --if-present",
-	"coverage": "npm run coverage --workspaces --if-present",
+	"check": "npm run build:core && npm run check --workspaces --if-present",
+	"test": "npm run build:core && npm run test --workspaces --if-present",
+	"coverage": "npm run build:core && npm run coverage --workspaces --if-present",
 	"lint": "prettier --check . && eslint .",
 	"format": "prettier --write .",
-	"check": "npm run check --workspaces --if-present",
 	"changeset:version": "changeset version && npm install && npm run format && git add --all",
 	"changeset:publish": "changeset publish"
 }
 ```
 
 `changeset:version` regenerates the root lockfile via `npm install` (this is why
-`npm-release-upd-pkg-lock` is unnecessary). CI build/coverage command → `npm run build` (ordered) then
-`npm run coverage` per package (see §Phase 13 for the two-package coverage/Sonar handling).
+`npm-release-upd-pkg-lock` is unnecessary).
+
+**Self-contained after a clean `npm ci` (required invariant):** after a fresh install
+`packages/chessboard/dist` does not exist, and React's `check:test` (tsc) resolves `@mirasen/chessboard`
+via `exports`→`dist`. So `check`/`test`/`coverage` each run `build:core` first — a fresh
+`npm ci && npm run check` (and `test`/`coverage`) works with no separate build step, matching what
+`npm-ci-check` and `.githooks/pre-push` do by default. Core's own tests/coverage read `../src` (no dist
+needed); only React needs core `dist` d.ts, which `build:core` provides, and React is not rebuilt for
+coverage (vitest runs on `src`). Therefore the CI `test`/`sonar` `run-script` is just `npm run coverage`
+(self-contained) — drop the previous separate `npm run build` step to avoid a redundant second core build.
 
 ## Phase 7 — Repository metadata (both packages)
 
@@ -234,8 +257,9 @@ Verified: `.githooks/pre-push` runs `npm ci && npm run check && npm run lint`; *
 configured anywhere** (git config, package.json, CI) — the hook is opt-in only.
 
 1. Keep a single `.githooks/` at repo root (do not nest under packages).
-2. Update `pre-push` to use the **root workspace scripts** (`npm ci && npm run check && npm run lint` at
-   root now fan out across packages).
+2. `pre-push`'s `npm ci && npm run check && npm run lint` now works **self-contained**: root `check` runs
+   `build:core` first (Phase 6), so React's typecheck resolves core `dist` after a clean install. No change
+   to the hook body is needed beyond confirming it calls the root workspace scripts.
 3. Since nothing auto-sets `hooksPath`, no wiring change is required; document `git config core.hooksPath .githooks`
    in root `CONTRIBUTING.md` for contributors who want it.
 
@@ -253,19 +277,26 @@ Use core's workflows (repo stays `mirasen-io/chessboard` → all `github.reposit
 no guard edits). Drop React's copies.
 
 - **`ci.yml`**: `install-script` stays `npm ci && npm ci --prefix examples/sveltekit` (path unchanged; add
-  `&& npm ci --prefix examples/react` only if building that example). `run-script` build/coverage must be
-  workspace-aware (Phase 6). Handle two coverage dirs (Phase 13). Confirm branch-protection required-check
-  names still match `required-main`/`required-contribution`.
+  `&& npm ci --prefix examples/react` only if building that example). `test`/`sonar` `run-script` =
+  `npm run coverage` (self-contained via `build:core`, Phase 6). Produce **package-specific** coverage
+  artifacts and run **two** Sonar scans (core + React) — both per Phase 13. Confirm branch-protection
+  required-check names still match `required-main`/`required-contribution`.
+- **`snyk` job (NEW):** add a Snyk dependency-scan job (see §Security integrations) —
+  `snyk/actions/node@master` with `SNYK_TOKEN`, `args: --all-projects --detection-depth=2 --exclude=examples`,
+  after root `npm ci`, parallel to `check`/`test`, no `npm run build` needed.
 - **`release.yml`**: unchanged (wraps `npm-release` → `changesets/action@v2`, monorepo-native; only root
   scripts changed).
-- **`auto-merge.yml`**: unchanged in wiring; correctness now comes from the Phase-0 action rewrite.
+- **`auto-merge.yml`**: unchanged in wiring; correctness now comes from the Phase 0A action rewrite.
 - **`auto-release.yml`**: unchanged (changeset-file/package-agnostic).
 - **`codeql.yml`, `contribution-reset.yml`, `contribution-update.yml`**: unchanged; `main`/`contribution`
   model kept; migration done on `contribution`.
 - No `working-directory`/`paths:`/`cd`/extra `--prefix`/`cache-dependency-path` assumptions to fix beyond the
   above (grep-verified: only the two `--prefix examples/sveltekit` lines exist, and they stay valid).
-  Cache actions default `cache-dependency-path: **/package-lock.json`; with one root lockfile this hashes the
-  single file correctly (verified in the actions research).
+  Cache actions default `cache-dependency-path: **/package-lock.json`. The repo will have **multiple**
+  lockfiles by design — one root workspace `package-lock.json` plus each standalone example's own
+  (`examples/sveltekit/`, `examples/react/`). Workspace packages share the single root lockfile; the `**`
+  glob hashes root + example lockfiles together, so changing an example lockfile may invalidate the cache —
+  acceptable, not a blocker.
 
 ## Phase 12 — `.github/dependabot.yml`
 
@@ -294,21 +325,137 @@ updates:
   #   ... (own group/ignore) ...
 ```
 
-## Phase 13 — Sonar / coverage / paths
+## Phase 13 — Sonar / coverage / paths (two projects, two scans — decided)
 
-Two SonarCloud projects today (`mirasen-io_chessboard`, `mirasen-io_react-chessboard`), each with
-`sonar.sources=src`, `sonar.tests=tests`, `sonar.javascript.lcov.reportPaths=coverage*/**/lcov.info`
-(verified). Each package's `vitest.config` writes `./coverage-test`.
+**Decision (final): keep the two existing SonarCloud projects and run two CI scans, one per package.** Do
+NOT merge the two npm packages' coverage / issues / quality-gate / history into a single project — core and
+the React wrapper need independent coverage, Quality Gate, issues, and trends.
 
-- **Recommended:** keep two projects; run the Sonar scan **per package** (from each package dir, so its
-  relative `sonar.sources`/`tests`/lcov resolve correctly) — the `.sonarcloud.properties` files move with
-  their packages. The CI `sonar` job scans twice (or uses SonarCloud monorepo/multi-module mode).
-- Coverage: `npm run coverage --workspaces` produces `packages/chessboard/coverage-test` and
-  `packages/react-chessboard/coverage-test`; upload/collect both. Update any `coverage-*` artifact glob to
-  reach the per-package dirs.
-- This is config-only and **non-blocking** (Sonar is gated on `SONAR_TOKEN`; it won't block release).
-- No other repo-wide path assumptions found: tests import core via relative `../src/*` (move together);
-  `.prettierignore`/`.gitignore` entries are package-relative and move with the package.
+```
+mirasen-io/chessboard (one GitHub repo)
+├── packages/chessboard        → SonarCloud project  mirasen-io_chessboard
+└── packages/react-chessboard  → SonarCloud project  mirasen-io_react-chessboard
+```
+
+CI-based analysis is already in use, so SonarCloud's lack of monorepo Automatic Analysis is irrelevant.
+
+1. **Per-package scan via `project-base-dir`** (requires the Phase 0B action change): the `sonar` job runs
+   `npm-ci-sonar` twice — `project-base-dir: packages/chessboard`, then `project-base-dir: packages/react-chessboard`.
+   Each package keeps its own `.sonarcloud.properties` (+ its `sonar-project.properties` symlink), read by the
+   scanner relative to the base dir; its relative `sonar.sources=src` / `sonar.tests=tests` stay correct under
+   that base dir. Verify the exact config filename the scanner consumes today (`sonar-project.properties` →
+   symlink → `.sonarcloud.properties`) and preserve the working form after the move.
+2. **Package-specific coverage artifacts (avoid name collisions).** Today the matrix uploads
+   `coverage-test-node<ver>`. Use package-scoped names so core's Sonar project never ingests React's LCOV and
+   vice-versa, e.g. `coverage-chessboard-node22/24` and `coverage-react-chessboard-node22/24` (or equivalent).
+3. `npm run coverage --workspaces` writes `packages/chessboard/coverage-test` and
+   `packages/react-chessboard/coverage-test`; upload each under its package-scoped artifact name; on the sonar
+   job, download and place them so each package's `sonar.javascript.lcov.reportPaths` glob resolves ONLY its
+   own LCOV. Adjust `reportPaths` per package if the downloaded layout differs from the in-package
+   `coverage*/**/lcov.info` default.
+4. Non-blocking overall (Sonar gated on `SONAR_TOKEN`), but the `project-base-dir` input (Phase 0B) and the
+   artifact naming must be in place before the CI/Sonar merge.
+5. No other repo-wide path assumptions: tests import core via relative `../src/*` (move together);
+   `.prettierignore`/`.gitignore` entries are package-relative and move with the package; standalone
+   `examples/*` must NOT enter either package's Sonar source tree (`sonar.sources=src` scoped by base dir
+   keeps them out).
+
+## Security integrations — Socket.dev (App) · Snyk (CI/CLI) · Sonar (per-package)
+
+**FINAL model (do not reopen):**
+
+```
+Socket.dev → GitHub App only        (no CLI, no CI job)
+Snyk       → GitHub Actions / CLI    (workspace-aware scan from monorepo root)
+Sonar      → two projects, two scans (per package — Phase 13)
+```
+
+Verified: **neither Socket nor Snyk has any in-repo footprint today** — no `socket.yml`/`.socket.yml`, no
+`.snyk`, no Snyk workflow/action, no `SNYK_TOKEN`, no README badges (grep-confirmed across both repos +
+`kt-workflows`). Both are configured at the org/dashboard level. Consequence: the Snyk→CI move **adds a new
+workflow job + a new `SNYK_TOKEN` secret** (it is not relocating an existing in-repo setup).
+
+### Socket.dev — GitHub App only. No CLI. No CI migration.
+
+`Socket.dev requires no CI migration. Post-migration verification only.`
+
+- Keep the GitHub App enabled on `mirasen-io/chessboard`. Do **not** add Socket CLI, a Socket Actions job,
+  or manually-created Socket projects. No `socket.yml` exists — do **not** create monorepo-specific config
+  if default discovery works.
+- **Post-migration verification (no code change):** confirm Socket sees root `package.json` + root
+  `package-lock.json` + `packages/chessboard/package.json` + `packages/react-chessboard/package.json`; on the
+  first dependency PR the Socket status check runs and reflects both core and React dependency changes; the
+  internal edge `@mirasen/react-chessboard → @mirasen/chessboard` is not mis-interpreted; standalone
+  `examples/*` stay under default discovery only if they already are. If a Socket config file later appears,
+  fix its paths after relocation.
+
+### Snyk — GitHub Actions / Snyk CLI from monorepo root (workspace-aware)
+
+`GitHub Actions / CLI from monorepo root. Workspace-aware dependency scan.`
+
+- **Auth:** add repo secret **`SNYK_TOKEN`** (none exists today — verified).
+- **Method / exact command** (official `snyk/actions/node@master`; inputs verified: `command` default `test`,
+  `args`, `json`):
+  ```yaml
+  - name: Snyk dependency scan
+    uses: snyk/actions/node@master
+    env: { SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} }
+    with:
+      command: test        # point-in-time; NOT monitor
+      args: --all-projects --detection-depth=2 --exclude=examples
+  ```
+  Runs after `npm ci` at repo root (single root lockfile). `--all-projects --detection-depth=2` detects root +
+  `packages/chessboard` + `packages/react-chessboard`; `--exclude=examples` keeps the standalone example apps
+  out of scope. Do **not** install separately inside the packages — they share the root lockfile.
+- **Auth model / `test` vs `monitor` (Free-plan aware):** `snyk test` is point-in-time and does **not** create
+  a persistent Snyk Project; only `snyk monitor` creates/updates a dashboard Project (per the `snyk/actions`
+  README). Use `test` only → no persistent Projects, no project-budget consumption. Add `monitor` later only
+  if dashboard history is wanted, scoped to the two publishable packages.
+- **Project scope:** the two publishable packages (`@mirasen/chessboard`, `@mirasen/react-chessboard`). Root
+  is a private orchestrator; standalone `examples/*` are excluded via `--exclude=examples` so they never become
+  separate Snyk targets.
+- **PR check behavior:** `snyk/actions` fails the job by default on findings → the GitHub check fails,
+  acting as the dependency-change security gate. **Preserve current policy:** if the Snyk check is currently
+  required in branch protection, keep it required; if advisory, add `continue-on-error: true`. Do not silently
+  change the gate during migration.
+- **Severity/policy:** no `.snyk` file exists (verified) — nothing to relocate. Preserve org-level
+  policy/threshold; do not raise/lower it as part of the migration. Any future `.snyk` keeps package-relative paths.
+- **Internal workspace edge:** external deps of both core and React must be analyzed; the internal
+  `@mirasen/react-chessboard → @mirasen/chessboard` edge must not double-count/break the graph, and the
+  published core version must not override the local workspace interpretation during the scan. Do **not** add
+  an ignore for the internal package unless a proven mis-scan appears.
+- **Workflow location:** a dedicated **`snyk` job in `ci.yml`** (it is a per-PR security gate → belongs with
+  the required checks), parallel to `check`/`test` after the shared install/setup. Needs `npm ci` at root but
+  **not** `npm run build` (Open Source scanning analyzes the dependency graph, not build output).
+
+### Prerequisite ordering
+
+- **Phase 0A** — fix `dependabot-generate-changesets` (before migration).
+- **Phase 0B** — add `npm-ci-sonar` `project-base-dir` support (before CI/Sonar merge).
+- **Phase 0C** — wire the Snyk `ci.yml` job + `SNYK_TOKEN`. Lands **with** the monorepo CI (not necessarily
+  before it); requirement: the final monorepo CI must not merge until the root workspace Snyk scan is operational.
+- **Socket.dev** — no prerequisite code change; verification only.
+
+### Security verification matrix (first post-migration PRs; use a temp branch/fixture, never a permanent vulnerable dep)
+
+| Scenario                         | Socket (App)             | Snyk (CI/CLI)                          |
+| -------------------------------- | ------------------------ | -------------------------------------- |
+| Core dep patch                   | App status check detects | root scan detects                      |
+| React dep patch                  | App detects              | root scan detects                      |
+| Both packages changed            | one repo check           | one workspace scan covers both         |
+| Root tooling dep change          | handled normally         | no false per-package project           |
+| Internal React→core edge         | not mis-interpreted      | valid workspace graph, no double-count |
+| Lockfile-only update             | status check runs        | root lockfile analyzed                 |
+| Example-only update              | default App behavior     | excluded (`--exclude=examples`)        |
+| Known-vuln fixture (temp branch) | finding appears          | CI fails per current policy            |
+
+**Unknowns (verify on first run):** whether Snyk `--all-projects` fully auto-detects **npm** workspaces — the
+CLI docs explicitly name _Yarn_ workspaces and do not document npm-workspace detection on the flag page. If
+members report out-of-sync against the shared root lockfile, add `--strict-out-of-sync=false` (proven-cause
+only); if `--all-projects` under-detects, fall back to a plain root `snyk test` (the root `package-lock.json`
+is the whole workspace's resolved tree). Current Snyk Free-plan monthly test quota / project caps (Aug 2026
+exact numbers) not verified here — `test`-only avoids persistent projects, so only the monthly test count
+applies; confirm it covers PR volume.
 
 ## Phase 14 — Pre-release dry-run checklist (mandatory before first release)
 
@@ -322,8 +469,9 @@ npm run lint
 npm pack --workspace @mirasen/chessboard
 npm pack --workspace @mirasen/react-chessboard
 # publint runs via each package's prepack; also inspect both tarballs:
-#   correct dist/, README.md, LICENSE, package.json; NO tests/examples/monorepo-only files;
-#   react tarball's @mirasen/chessboard range is a plain semver (no "workspace:").
+#   @mirasen/chessboard:        dist/, assets/, README.md, LICENSE, CHANGELOG.md, package.json
+#   @mirasen/react-chessboard:  dist/, README.md, LICENSE, CHANGELOG.md, package.json  (CHANGELOG needs the Phase 4 files fix)
+#   both: NO tests/examples/monorepo-only files; react's @mirasen/chessboard range is plain semver (no "workspace:").
 ```
 
 Changesets dry-run (no publish): add a temporary `core: minor` + `react: minor` changeset, run
@@ -381,12 +529,13 @@ no paths/references → build-order dependency); `.changeset/config.json` identi
 `file:../..` + vite `fs.allow` + names/privacy; `core.hooksPath` unset anywhere; `scripts/npm-link.sh` present
 in both + `prepare` wired only in core; the #126 mis-attribution + the whole "across 2 directories" series;
 `npm-release-upd-pkg-lock`/`major-release-tag` unreferenced; CI `--prefix examples/sveltekit` (×2) is the only
-path assumption and stays valid; cache-dependency-path `**/package-lock.json` correct for one root lockfile;
+path assumption and stays valid; cache-dependency-path `**/package-lock.json` hashes the root workspace
+lockfile plus standalone example lockfiles (multiple lockfiles by design);
 `cloudflare-site` decoupled (npm-registry consumer).
 
 **Still unknown / validate on first live runs:** whether Dependabot splits `directories:["/","/packages/*"]`
 grouped updates into per-directory PRs vs one combined PR at our 2-package scale (changed-files algorithm is
 correct either way; affects only PR volume); interaction of `open-pull-requests-limit` with grouped
-multi-directory updates; SonarCloud monorepo mode vs two separate scans (config choice, non-blocking).
+multi-directory updates. (Sonar is no longer an unknown — decided in Phase 13: two projects, two scans.)
 `gh pr view --json files` 100-file cap is inference (undocumented) — mitigated by using `gh api --paginate`.
 </content>
