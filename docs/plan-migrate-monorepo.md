@@ -370,10 +370,11 @@ Snyk       → GitHub Actions / CLI    (workspace-aware scan from monorepo root)
 Sonar      → two projects, two scans (per package — Phase 13)
 ```
 
-Verified: **neither Socket nor Snyk has any in-repo footprint today** — no `socket.yml`/`.socket.yml`, no
-`.snyk`, no Snyk workflow/action, no `SNYK_TOKEN`, no README badges (grep-confirmed across both repos +
-`kt-workflows`). Both are configured at the org/dashboard level. Consequence: the Snyk→CI move **adds a new
-workflow job + a new `SNYK_TOKEN` secret** (it is not relocating an existing in-repo setup).
+Verified **in repository source**: no `socket.yml`/`.socket.yml`; no `.snyk`; no Snyk workflow/action; no
+in-repo `SNYK_TOKEN` reference; no related README badge/config. Repository source **cannot** prove whether an
+Actions or Dependabot secret named `SNYK_TOKEN` already exists in GitHub settings. Consequence: the Snyk→CI
+move adds a new workflow job and requires `SNYK_TOKEN` to be available in **both** the Actions and Dependabot
+secret contexts — reuse existing repo/org secrets where available, otherwise provision them.
 
 ### Socket.dev — GitHub App only. No CLI. No CI migration.
 
@@ -393,7 +394,18 @@ workflow job + a new `SNYK_TOKEN` secret** (it is not relocating an existing in-
 
 `GitHub Actions / CLI from monorepo root. Workspace-aware dependency scan.`
 
-- **Auth:** add repo secret **`SNYK_TOKEN`** (none exists today — verified).
+- **Auth (`SNYK_TOKEN`) — must exist in TWO secret stores.** Per GitHub docs, _"when a Dependabot event
+  triggers a workflow, the only secrets available to the workflow are Dependabot secrets. GitHub Actions
+  secrets are not available"_ — and CI also runs on Dependabot PRs (they feed the auto-merge/auto-release
+  flow). So `SNYK_TOKEN` must be present as **both** an **Actions** secret (normal PRs) and a **Dependabot**
+  secret (Dependabot PRs). Same name → the workflow stays `env: { SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} }`
+  unchanged; each trigger resolves it from its own store. Repository source cannot prove a secret exists —
+  check both stores, reuse an existing repo/org value if present, otherwise provision it in both:
+  ```bash
+  gh secret set SNYK_TOKEN --app actions      # normal PR runs
+  gh secret set SNYK_TOKEN --app dependabot    # Dependabot-triggered runs
+  ```
+  (An existing organization-level secret covering this repo may be reused instead of a repo-level secret.)
 - **Method / exact command** (official `snyk/actions/node@master`; inputs verified: `command` default `test`,
   `args`, `json`):
   ```yaml
@@ -404,13 +416,19 @@ workflow job + a new `SNYK_TOKEN` secret** (it is not relocating an existing in-
       command: test        # point-in-time; NOT monitor
       args: --all-projects --detection-depth=2 --exclude=examples
   ```
-  Runs after `npm ci` at repo root (single root lockfile). `--all-projects --detection-depth=2` detects root +
-  `packages/chessboard` + `packages/react-chessboard`; `--exclude=examples` keeps the standalone example apps
-  out of scope. Do **not** install separately inside the packages — they share the root lockfile.
-- **Auth model / `test` vs `monitor` (Free-plan aware):** `snyk test` is point-in-time and does **not** create
-  a persistent Snyk Project; only `snyk monitor` creates/updates a dashboard Project (per the `snyk/actions`
-  README). Use `test` only → no persistent Projects, no project-budget consumption. Add `monitor` later only
-  if dashboard history is wanted, scoped to the two publishable packages.
+  `--all-projects` is Snyk's documented mechanism to "auto-detect all projects in the working directory"
+  (the monorepo / multi-manifest scan mode); `--detection-depth=2` reaches `packages/*/package.json`, and
+  `--exclude=examples` drops the standalone example apps. Per the docs, `--exclude` takes comma-separated
+  **basenames** and **cannot include a path** — so it is `examples`, not `examples/*`. Runs after a single
+  root `npm ci`; do **not** install separately inside the packages — they share the root lockfile.
+- **`test` vs `monitor` (Free-plan sizing, source-backed):** `snyk test` is point-in-time and does **not**
+  create a persistent Snyk Project; only `snyk monitor` creates/updates a dashboard Project (per the
+  `snyk/actions` README). The Snyk **Free plan** allows **200 Open Source (SCA) tests/month and 5 Projects**
+  (snyk.io/plans, Aug 2026); because we use `test` only, **no Projects are created**, so the 5-Project cap is
+  irrelevant — only the 200 tests/month applies (one scan per PR/push, comfortably within budget at this
+  repo's volume; Snyk also runs a free program for open-source maintainers if more is ever needed).
+  **Do NOT add `snyk monitor`** — we need a CI gate, not a dashboard/history migration; that is a separate
+  later task if ever wanted.
 - **Project scope:** the two publishable packages (`@mirasen/chessboard`, `@mirasen/react-chessboard`). Root
   is a private orchestrator; standalone `examples/*` are excluded via `--exclude=examples` so they never become
   separate Snyk targets.
@@ -432,30 +450,54 @@ workflow job + a new `SNYK_TOKEN` secret** (it is not relocating an existing in-
 
 - **Phase 0A** — fix `dependabot-generate-changesets` (before migration).
 - **Phase 0B** — add `npm-ci-sonar` `project-base-dir` support (before CI/Sonar merge).
-- **Phase 0C** — wire the Snyk `ci.yml` job + `SNYK_TOKEN`. Lands **with** the monorepo CI (not necessarily
-  before it); requirement: the final monorepo CI must not merge until the root workspace Snyk scan is operational.
+- **Phase 0C / CI prerequisite** —
+  1. Wire the Snyk job into `ci.yml`.
+  2. Ensure `SNYK_TOKEN` exists for ordinary Actions workflows (**Actions** secret store).
+  3. Ensure `SNYK_TOKEN` also exists for Dependabot-triggered workflows (**Dependabot** secret store).
+  4. Reuse an existing value (repo or org) if already configured; otherwise provision the token in both stores.
+  5. Verify: a normal contribution PR → Snyk succeeds; a Dependabot PR → Snyk receives the token and succeeds.
+
+  This is a **prerequisite for Dependabot auto-merge**, not optional hardening: a missing Dependabot
+  `SNYK_TOKEN` would leave the required Snyk check red on every Dependabot PR and therefore **stop the
+  Dependabot auto-merge / auto-release flow**. Do not consider the monorepo CI ready until Snyk passes on a
+  Dependabot PR. (The Snyk job must not introduce an authentication-only failure on Dependabot PRs.)
+
 - **Socket.dev** — no prerequisite code change; verification only.
 
 ### Security verification matrix (first post-migration PRs; use a temp branch/fixture, never a permanent vulnerable dep)
 
-| Scenario                         | Socket (App)             | Snyk (CI/CLI)                          |
-| -------------------------------- | ------------------------ | -------------------------------------- |
-| Core dep patch                   | App status check detects | root scan detects                      |
-| React dep patch                  | App detects              | root scan detects                      |
-| Both packages changed            | one repo check           | one workspace scan covers both         |
-| Root tooling dep change          | handled normally         | no false per-package project           |
-| Internal React→core edge         | not mis-interpreted      | valid workspace graph, no double-count |
-| Lockfile-only update             | status check runs        | root lockfile analyzed                 |
-| Example-only update              | default App behavior     | excluded (`--exclude=examples`)        |
-| Known-vuln fixture (temp branch) | finding appears          | CI fails per current policy            |
+| Scenario                         | Socket (App)             | Snyk (CI/CLI)                                                                                                           |
+| -------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Core dep patch                   | App status check detects | root scan detects                                                                                                       |
+| React dep patch                  | App detects              | root scan detects                                                                                                       |
+| Both packages changed            | one repo check           | one workspace scan covers both                                                                                          |
+| Root tooling dep change          | handled normally         | no false per-package project                                                                                            |
+| Internal React→core edge         | not mis-interpreted      | valid workspace graph, no double-count                                                                                  |
+| Lockfile-only update             | status check runs        | root lockfile analyzed                                                                                                  |
+| Example-only update              | default App behavior     | excluded (`--exclude=examples`)                                                                                         |
+| Known-vuln fixture (temp branch) | finding appears          | CI fails per current policy                                                                                             |
+| Normal contribution PR           | existing App behavior    | Actions `SNYK_TOKEN` available; scan succeeds                                                                           |
+| Dependabot PR                    | App status works         | Dependabot `SNYK_TOKEN` available; scan succeeds — a missing Dependabot token would fail auth-only and block auto-merge |
 
-**Unknowns (verify on first run):** whether Snyk `--all-projects` fully auto-detects **npm** workspaces — the
-CLI docs explicitly name _Yarn_ workspaces and do not document npm-workspace detection on the flag page. If
-members report out-of-sync against the shared root lockfile, add `--strict-out-of-sync=false` (proven-cause
-only); if `--all-projects` under-detects, fall back to a plain root `snyk test` (the root `package-lock.json`
-is the whole workspace's resolved tree). Current Snyk Free-plan monthly test quota / project caps (Aug 2026
-exact numbers) not verified here — `test`-only avoids persistent projects, so only the monthly test count
-applies; confirm it covers PR volume.
+**First Snyk CI run must confirm (then the configuration is final):**
+
+1. `@mirasen/chessboard` is detected;
+2. `@mirasen/react-chessboard` is detected;
+3. the shared root `package-lock.json` is used/resolved correctly for both;
+4. `examples/*` are excluded from the scan;
+5. the internal `@mirasen/react-chessboard → @mirasen/chessboard` workspace edge does not break or
+   double-count the graph;
+6. no out-of-sync warning occurs;
+7. the expected GitHub check status is produced;
+8. a normal contribution PR receives `SNYK_TOKEN` (Actions secret) and the scan succeeds;
+9. a Dependabot PR receives `SNYK_TOKEN` (Dependabot secret) and the scan succeeds — no auth-only failure that
+   would block auto-merge.
+
+**Runtime contingency (NOT default config):** `--all-projects` is the documented multi-manifest/monorepo scan
+mode; the CLI docs name Yarn workspaces explicitly and do not separately document npm-workspace resolution, so
+#3/#6 above are the only runtime-dependent points. If — and only if — the first real run shows a concrete
+shared-root-lockfile out-of-sync issue, investigate, confirm against current Snyk docs, then add
+`--strict-out-of-sync=false` if justified. Do not add it (or any other workaround) pre-emptively.
 
 ## Phase 14 — Pre-release dry-run checklist (mandatory before first release)
 
