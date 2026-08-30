@@ -7,13 +7,13 @@
 
 ## 0. Decisions (locked)
 
-| # | Decision | Choice |
-|---|----------|--------|
-| 1 | Where the monorepo lives | **Reuse the existing `mirasen-io/chessboard` repo.** Core stays put, React is brought in. Keeps stars/issues/npm-continuity of the core repo. |
-| 2 | React git history | **Not preserved.** React is copied in as a normal feature on the current `contribution` branch. The old `react-chessboard` repo remains as a history archive. |
-| 3 | Package folder names | **`packages/chessboard` + `packages/react-chessboard`** (match current repo names). npm package names **do not change**: `@mirasen/chessboard`, `@mirasen/react-chessboard`. |
-| 4 | Package manager | **npm workspaces** (same as today, same as plywise). No pnpm. |
-| 5 | Examples placement | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`), standalone installs (own lockfiles, `file:` deps), **not** workspace members and **not** under `packages/*`. |
+| #   | Decision                 | Choice                                                                                                                                                                                              |
+| --- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Where the monorepo lives | **Reuse the existing `mirasen-io/chessboard` repo.** Core stays put, React is brought in. Keeps stars/issues/npm-continuity of the core repo.                                                       |
+| 2   | React git history        | **Not preserved.** React is copied in as a normal feature on the current `contribution` branch. The old `react-chessboard` repo remains as a history archive.                                       |
+| 3   | Package folder names     | **`packages/chessboard` + `packages/react-chessboard`** (match current repo names). npm package names **do not change**: `@mirasen/chessboard`, `@mirasen/react-chessboard`.                        |
+| 4   | Package manager          | **npm workspaces** (same as today, same as plywise). No pnpm.                                                                                                                                       |
+| 5   | Examples placement       | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`), standalone installs (own lockfiles, `file:` deps), **not** workspace members and **not** under `packages/*`. |
 
 ## 1. Why the monorepo actually solves the pain (mechanism)
 
@@ -55,6 +55,7 @@ chessboard/                         (repo root; becomes the workspace root — p
 ```
 
 Key invariants:
+
 - **npm package names unchanged** → no consumer breakage, npm continuity preserved.
 - React's `import ... from '@mirasen/chessboard'` (bare specifier, nodenext) resolves
   to the workspace symlink → core's `dist` via its `exports` map. **Core must be built
@@ -80,17 +81,19 @@ Key invariants:
 ## Phase B — Scaffold the workspace root
 
 1. Create the **root `package.json`** (private, not published):
+
    ```json
    {
-     "name": "mirasen-chessboard-workspace",
-     "private": true,
-     "type": "module",
-     "workspaces": ["packages/chessboard", "packages/react-chessboard"],
-     "engines": { "node": ">=20" },
-     "scripts": { /* see §5 */ },
-     "devDependencies": { /* shared tooling, see below */ }
+   	"name": "mirasen-chessboard-workspace",
+   	"private": true,
+   	"type": "module",
+   	"workspaces": ["packages/chessboard", "packages/react-chessboard"],
+   	"engines": { "node": ">=20" },
+   	"scripts": {/* see §5 */},
+   	"devDependencies": {/* shared tooling, see below */}
    }
    ```
+
    **Use concrete workspace paths, NOT the `packages/*` glob.** This is required for the
    dependabot-changeset action to attribute changesets to the right package (see §9 /
    Phase H). Two packages only — the glob buys nothing and breaks the tooling.
@@ -187,19 +190,20 @@ to core's `dist` via `exports`, so core's `dist` must exist first. Do **not** us
 ```jsonc
 // root package.json scripts
 {
-  "build":          "npm run build -w @mirasen/chessboard && npm run build -w @mirasen/react-chessboard",
-  "build:release":  "npm run build:release -w @mirasen/chessboard && npm run build:release -w @mirasen/react-chessboard",
-  "test":           "npm run test --workspaces --if-present",       // order-independent
-  "coverage":       "npm run coverage --workspaces --if-present",    // see §Sonar for per-pkg lcov
-  "lint":           "prettier --check . && eslint .",
-  "format":         "prettier --write .",
-  "check":          "npm run check --workspaces --if-present",
-  "changeset:version": "changeset version && npm install && npm run format && git add --all",
-  "changeset:publish": "changeset publish"
+	"build": "npm run build -w @mirasen/chessboard && npm run build -w @mirasen/react-chessboard",
+	"build:release": "npm run build:release -w @mirasen/chessboard && npm run build:release -w @mirasen/react-chessboard",
+	"test": "npm run test --workspaces --if-present", // order-independent
+	"coverage": "npm run coverage --workspaces --if-present", // see §Sonar for per-pkg lcov
+	"lint": "prettier --check . && eslint .",
+	"format": "prettier --write .",
+	"check": "npm run check --workspaces --if-present",
+	"changeset:version": "changeset version && npm install && npm run format && git add --all",
+	"changeset:publish": "changeset publish"
 }
 ```
 
 Notes:
+
 - `changeset:version` mirrors core's current script (regenerates the root lockfile via
   `npm install`, reformats, stages). This is why **`npm-release-upd-pkg-lock` is not
   needed** — the lockfile is regenerated, not hand-patched.
@@ -276,14 +280,15 @@ Core and React each have their own SonarCloud project
 `sonar.sources=src`, `sonar.tests=tests`, `sonar.javascript.lcov.reportPaths=coverage*/**/lcov.info`.
 
 Options (decision needed, config-only — not blocking):
+
 - **Keep two projects**, run the Sonar scan per package with per-package
   `sonar.sources`/`sonar.tests`/lcov paths (e.g. `packages/chessboard`,
   `packages/react-chessboard`). Requires the CI `sonar` job to scan twice or use
   SonarCloud monorepo mode.
 - **One project** with modules. Simpler CI, coarser reporting.
-Recommend keeping two projects (preserves history/badges); wire per-package lcov paths
-in the CI `sonar` job. This is the messiest CI change and can be deferred (Sonar is
-gated on `SONAR_TOKEN` and won't block release).
+  Recommend keeping two projects (preserves history/badges); wire per-package lcov paths
+  in the CI `sonar` job. This is the messiest CI change and can be deferred (Sonar is
+  gated on `SONAR_TOKEN` and won't block release).
 
 ---
 
@@ -330,16 +335,16 @@ gated on `SONAR_TOKEN` and won't block release).
 
 ## Actions that DO / DON'T need changes (verified)
 
-| Action | Wired into these repos? | Monorepo change |
-|--------|-------------------------|-----------------|
-| `npm-release` | Yes (`release.yml`) | **None** — wraps `changesets/action@v2` (monorepo-native). Only root scripts changed. |
-| `npm-run-script`, `-cache-key`, `-cache-delete`, `setup-node-minmax` | Yes (via ci actions) | **None** — single root lockfile + `**/node_modules` cache + `**/package-lock.json` hash all correct for npm workspaces. |
-| `npm-ci-check` / `-test` / `-sonar` | Yes (`ci.yml`) | **None in the action** — consumer root scripts must be workspace-aware (Phase F). |
-| `dependabot-auto-merge` / `-auto-release` | Yes | **None** in wiring — depend on correct changeset attribution (Phase H). |
-| `dependabot-generate-changesets` | Yes (inside auto-merge) | **Conditional** — OK with concrete workspace paths; needs a glob/walk-up fix only if dependabot reports `/` for members (Phase H.3). |
-| `npm-release-upd-pkg-lock` | **NO** (grep: not referenced) | **N/A** — not in the release path; ignore. `changeset:version` regenerates the lockfile via `npm install`. |
-| `major-release-tag` | **NO** (grep: not referenced) | **N/A** — ignore. |
-| `create-github-app-token`, `get-associated-pr` | Yes | **None** — repo/identity only. |
+| Action                                                               | Wired into these repos?       | Monorepo change                                                                                                                      |
+| -------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm-release`                                                        | Yes (`release.yml`)           | **None** — wraps `changesets/action@v2` (monorepo-native). Only root scripts changed.                                                |
+| `npm-run-script`, `-cache-key`, `-cache-delete`, `setup-node-minmax` | Yes (via ci actions)          | **None** — single root lockfile + `**/node_modules` cache + `**/package-lock.json` hash all correct for npm workspaces.              |
+| `npm-ci-check` / `-test` / `-sonar`                                  | Yes (`ci.yml`)                | **None in the action** — consumer root scripts must be workspace-aware (Phase F).                                                    |
+| `dependabot-auto-merge` / `-auto-release`                            | Yes                           | **None** in wiring — depend on correct changeset attribution (Phase H).                                                              |
+| `dependabot-generate-changesets`                                     | Yes (inside auto-merge)       | **Conditional** — OK with concrete workspace paths; needs a glob/walk-up fix only if dependabot reports `/` for members (Phase H.3). |
+| `npm-release-upd-pkg-lock`                                           | **NO** (grep: not referenced) | **N/A** — not in the release path; ignore. `changeset:version` regenerates the lockfile via `npm install`.                           |
+| `major-release-tag`                                                  | **NO** (grep: not referenced) | **N/A** — ignore.                                                                                                                    |
+| `create-github-app-token`, `get-associated-pr`                       | Yes                           | **None** — repo/identity only.                                                                                                       |
 
 ---
 
@@ -364,14 +369,15 @@ gated on `SONAR_TOKEN` and won't block release).
 ## Verified vs. assumed (so nothing here is hand-waved)
 
 **Verified by reading the actual files:**
+
 - Core `package.json` scripts, exports, deps; version `1.4.0`.
 - Core `dependabot.yml` = `directories: ['/', '/examples/sveltekit']`; `ci.yml`
   install includes `npm ci --prefix examples/sveltekit`; `main`/`contribution` branch model.
 - React `package.json` (`@mirasen/chessboard: ^1.4.0`, version `1.1.0`), tsconfigs
   (nodenext, no paths/references — core resolved via node_modules).
 - React `.changeset/`: **no pending changes** after the latest pull (just `config.json`
-  + `README.md`); React `1.1.0` was released in "Version Packages (#60)". (Earlier this
-  repo sat at `1.0.3` with 19 pending changesets — now released.)
+  - `README.md`); React `1.1.0` was released in "Version Packages (#60)". (Earlier this
+    repo sat at `1.0.3` with 19 pending changesets — now released.)
 - `dependabot-generate-changesets` literal workspace-match logic (glob fails, falls
   back to root package).
 - `npm-release-upd-pkg-lock` and `major-release-tag` are **not referenced** anywhere in
@@ -380,8 +386,10 @@ gated on `SONAR_TOKEN` and won't block release).
   root is `npm@... workspaces: ["packages/*"]`.
 
 **Assumed / must validate during execution:**
+
 - Exact `directory` dependabot reports for npm-workspace member manifests (Phase H.3).
 - Whether SonarCloud stays two projects or one (Phase I) — config choice, non-blocking.
 - Whether to hoist shared devDeps to root or leave per-package (Phase B.2) — either works.
 </content>
+
 </invoke>
