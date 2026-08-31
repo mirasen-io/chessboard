@@ -165,7 +165,7 @@ land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) refere
 
 **Completed (2026-08-31):** `project-base-dir` input (default `.`) added to `npm-ci-sonar/action.yml`; passed to `sonarsource/sonarqube-scan-action@v7` as `projectBaseDir`. Commit `ef4ae8a`. All existing consumers unchanged (default `.`).
 
-## Phase 0C — NEXT: `SNYK_TOKEN` prerequisite
+## Phase 0C — ✅ DONE (2026-08-31): `SNYK_TOKEN` prerequisite
 
 1. Work on the dedicated migration branch `migrate/monorepo` (per decision #2 — a one-off branch for this large change, not the usual `contribution` flow). Clean tree.
 2. Note current SHAs of both repos (react repo becomes an archive).
@@ -516,6 +516,8 @@ GitHub Web UI** (secrets are created by a maintainer in the UI; the CLI is used 
   4. Reuse an existing repo/org value if already configured. Confirm both are present via CLI (verify only, do
      not create): `gh secret list --app actions` and `gh secret list --app dependabot`.
   5. Verify runs: a normal (non-Dependabot) PR → Snyk succeeds; a Dependabot PR → Snyk receives the token and succeeds.
+
+  **Completed (2026-08-31):** `kt-workflows/actions/npm-ci-snyk` action created (commit `c2ceb0b`). `SNYK_TOKEN` org secret created in Actions + Dependabot stores for both `mirasen-io` and `kt-npm-modules` orgs, visibility `ALL`. Verified via CLI.
 
   This is a **prerequisite for Dependabot auto-merge**, not optional hardening: a missing Dependabot
   `SNYK_TOKEN` would leave the required Snyk check red on every Dependabot PR and therefore **stop the
