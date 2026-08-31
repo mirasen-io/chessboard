@@ -10,15 +10,15 @@
 
 ## 0. Decisions (locked)
 
-| #   | Decision                         | Choice                                                                                                                                                                                                    |
-| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Where the monorepo lives         | **Reuse `mirasen-io/chessboard`.** Core stays; React is brought in. Preserves stars/issues/npm-continuity and keeps all `github.repository == 'mirasen-io/chessboard'` workflow guards TRUE.              |
-| 2   | React git history                | **Not preserved.** React copied in as a snapshot on the dedicated migration branch `migrate/monorepo`. Core history preserved via `git mv` (rename-tracked). Old `react-chessboard` repo kept as archive. |
-| 3   | Package folder names             | `packages/chessboard` + `packages/react-chessboard`. npm names unchanged: `@mirasen/chessboard`, `@mirasen/react-chessboard`.                                                                             |
-| 4   | Package manager                  | **npm workspaces.** Single root `package-lock.json`.                                                                                                                                                      |
-| 5   | Examples placement               | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`). Standalone (own lockfiles, `file:` deps), **not** workspace members, **not** under `packages/*`.                   |
-| 6   | Root `workspaces` value          | **`["packages/*"]` glob is fine** (the earlier "concrete-paths-for-Dependabot" constraint is DROPPED — see §Dependabot).                                                                                  |
-| 7   | Dependabot changeset attribution | **By changed `packages/*/package.json` files** (Outcome B), NOT by Dependabot `directory`.                                                                                                                |
+| #   | Decision                         | Choice                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Where the monorepo lives         | **Reuse `mirasen-io/chessboard`.** Core stays; React is brought in. Preserves stars/issues/npm-continuity and keeps all `github.repository == 'mirasen-io/chessboard'` workflow guards TRUE.                                                                                                                                                                                                                          |
+| 2   | React git history                | **Not preserved.** React copied in as a snapshot on the dedicated migration branch `migrate/monorepo`. Core history preserved via `git mv` (rename-tracked). Old `react-chessboard` repo kept as archive.                                                                                                                                                                                                             |
+| 3   | Package folder names             | `packages/chessboard` + `packages/react-chessboard`. npm names unchanged: `@mirasen/chessboard`, `@mirasen/react-chessboard`.                                                                                                                                                                                                                                                                                         |
+| 4   | Package manager                  | **npm workspaces.** Single root `package-lock.json`.                                                                                                                                                                                                                                                                                                                                                                  |
+| 5   | Examples placement               | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`). Standalone (own lockfiles, `file:` deps), **not** workspace members, **not** under `packages/*`.                                                                                                                                                                                                                               |
+| 6   | Root `workspaces` value          | **Explicit: `["packages/chessboard", "packages/react-chessboard"]`** — chosen for a curated 2-package repo (self-documenting, no silent inclusion of a stray `packages/*` dir). A `["packages/*"]` glob also works: the old "concrete-paths-for-Dependabot" constraint is gone (Outcome B attributes by changed manifest, not by literal `workspaces[]` match), so this is now a free style choice, not a workaround. |
+| 7   | Dependabot changeset attribution | **By changed `packages/*/package.json` files** (Outcome B), NOT by Dependabot `directory`.                                                                                                                                                                                                                                                                                                                            |
 
 ## 1. Workspace dependency semantics (precise model — do not paraphrase as "by files not versions")
 
@@ -38,7 +38,7 @@
 
 ```
 chessboard/                          (repo root = private workspace orchestrator)
-├── package.json                     NEW: { private:true, workspaces:["packages/*"], orchestration scripts }
+├── package.json                     NEW: { private:true, workspaces:["packages/chessboard","packages/react-chessboard"], orchestration scripts }
 ├── package-lock.json                single root lockfile (regenerated)
 ├── README.md                        NEW root landing page (repo/platform + links to both packages)
 ├── LICENSE                          root LICENSE (MIT) — GitHub license detection
@@ -86,7 +86,10 @@ Changes (per research report Outcome B):
    - Retrieve changed files with **`gh api --paginate repos/$OWNER/$REPO/pulls/$PR/files --jq '.[].filename'`**
      (guaranteed full pagination). Do NOT rely on `gh pr view --json files` — it is GraphQL `files(first:100)`
      with no auto-pagination (fine for tiny Dependabot PRs, but the shared action must be correct for any repo).
-   - Expand root `package.json#workspaces` globs → member dirs; for each changed `<member>/package.json`,
+   - Expand root `package.json#workspaces` entries → member dirs. This is a **shared action** (used by other
+     repos too), so it must support **both** forms regardless of what our repo uses: explicit paths
+     (`packages/chessboard`) **and** globs (`packages/*` → `readdirSync`). Our repo happens to use explicit;
+     the action stays general. For each changed `<member>/package.json`,
      read `name` + `private`; skip `private:true`; collect publishable names.
    - Compute the deterministic filename `FILE=.changeset/dependabot-pr-<PR>.md` **first, before branching on the affected set.** If the affected set is empty → **`rm -f "$FILE"`** (delete any stale changeset left by an earlier run) and emit `changesets-json=[]`; else write ONE changeset to `FILE`, each affected package `: patch`, body starting with `dependabot:` (kept so `dependabot-auto-release` detection still matches).
    - The commit step must stage `.changeset` such that a **deletion** is committed too (`git add -A .changeset`, not just new files). This makes it idempotent in all directions: `A→A` overwrite · `A→A+B` rewrite · `A+B→B` rewrite · `A→none` delete stale · `none→A` create.
@@ -128,7 +131,7 @@ land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) refere
    	"name": "mirasen-chessboard-workspace",
    	"private": true,
    	"type": "module",
-   	"workspaces": ["packages/*"],
+   	"workspaces": ["packages/chessboard", "packages/react-chessboard"],
    	"engines": { "node": ">=20" },
    	"scripts": {/* §Phase 6 */},
    	"devDependencies": {/* split rationale below */}
