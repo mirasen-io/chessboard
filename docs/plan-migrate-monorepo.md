@@ -78,7 +78,7 @@ are for GitHub only (root is `private`, never published).
 
 # PHASES (execution order)
 
-## Phase 0A — PREREQUISITE: fix + test `dependabot-generate-changesets` (before any monorepo move)
+## Phase 0A — ✅ DONE (2026-08-31) — PREREQUISITE: fix + test `dependabot-generate-changesets`
 
 Rationale: the mis-attribution bug is **already live** in the single repo and must be fixed first, in
 `kt-workflows/actions`, then verified, so the monorepo inherits a working automation.
@@ -143,7 +143,14 @@ aggregated → harmless). No manual cleanup needed.
 `dependabot-auto-release`, `npm-release`, `create-github-app-token`, `get-associated-pr` — **no change**
 (verified). `npm-release-upd-pkg-lock`, `major-release-tag` — **not referenced anywhere** (grep-confirmed), ignore.
 
-## Phase 0B — tooling prerequisite: `npm-ci-sonar` `project-base-dir` support
+**Completed (2026-08-31):**
+
+- `versioning-strategy: increase` added to `dependabot.yml` in 7 active consumers: `cloudflare-site`, `license-gate`, `npm-typescript-template`, `digraph-js`, `typesafe-utilities`, `svelte-adapter-azure-swa`, `assert`.
+- `kt-workflows/actions/dependabot-generate-changesets` — rewritten (commit `5fa8e77`): manifest-based attribution, `~dependabot-pr-<PR>.md`, no directory-based logic, single quotes in frontmatter.
+- `kt-workflows/actions/dependabot-auto-merge` — updated (commit `a0e9bee`): `pr-number` wiring, `git add -A .changeset`.
+- **Verified on live PRs:** single-package (`license-gate` #30 — CI green), multi-workspace with `.` and explicit paths (`svelte-adapter-azure-swa` #262–#267 — all changesets correct, per-manifest attribution verified).
+
+## Phase 0B — NEXT: tooling prerequisite: `npm-ci-sonar` `project-base-dir` support
 
 Verified: `kt-workflows/actions/npm-ci-sonar` runs `sonarsource/sonarqube-scan-action@v7` **with no
 `projectBaseDir`** (no `with:` at all) — it always scans the repo root. Its `working-directory` input only
