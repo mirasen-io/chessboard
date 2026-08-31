@@ -256,7 +256,9 @@ Verified current: `examples/sveltekit` (name `sveltekit`, `file:../..`, vite `fs
 Verified: `.githooks/pre-push` runs `npm ci && npm run check && npm run lint`; **`core.hooksPath` is NOT
 configured anywhere** (git config, package.json, CI) — the hook is opt-in only.
 
-1. Keep a single `.githooks/` at repo root (do not nest under packages).
+1. Keep a single `.githooks/` at repo root (core's — do not nest under packages). React's
+   `.githooks/pre-push` is **identical** (both are `npm ci && npm run check && npm run lint`) and is **not**
+   carried over (Phase 4's copy list already excludes it) — one root copy covers the whole workspace.
 2. `pre-push`'s `npm ci && npm run check && npm run lint` now works **self-contained**: root `check` runs
    `build:core` first (Phase 6), so React's typecheck resolves core `dist` after a clean install. No change
    to the hook body is needed beyond confirming it calls the root workspace scripts.
