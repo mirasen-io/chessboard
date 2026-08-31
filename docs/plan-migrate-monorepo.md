@@ -10,15 +10,15 @@
 
 ## 0. Decisions (locked)
 
-| #   | Decision                         | Choice                                                                                                                                                                                       |
-| --- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Where the monorepo lives         | **Reuse `mirasen-io/chessboard`.** Core stays; React is brought in. Preserves stars/issues/npm-continuity and keeps all `github.repository == 'mirasen-io/chessboard'` workflow guards TRUE. |
-| 2   | React git history                | **Not preserved.** React copied in as a snapshot on `contribution`. Core history preserved via `git mv` (rename-tracked). Old `react-chessboard` repo kept as archive.                       |
-| 3   | Package folder names             | `packages/chessboard` + `packages/react-chessboard`. npm names unchanged: `@mirasen/chessboard`, `@mirasen/react-chessboard`.                                                                |
-| 4   | Package manager                  | **npm workspaces.** Single root `package-lock.json`.                                                                                                                                         |
-| 5   | Examples placement               | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`). Standalone (own lockfiles, `file:` deps), **not** workspace members, **not** under `packages/*`.      |
-| 6   | Root `workspaces` value          | **`["packages/*"]` glob is fine** (the earlier "concrete-paths-for-Dependabot" constraint is DROPPED — see §Dependabot).                                                                     |
-| 7   | Dependabot changeset attribution | **By changed `packages/*/package.json` files** (Outcome B), NOT by Dependabot `directory`.                                                                                                   |
+| #   | Decision                         | Choice                                                                                                                                                                                                    |
+| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Where the monorepo lives         | **Reuse `mirasen-io/chessboard`.** Core stays; React is brought in. Preserves stars/issues/npm-continuity and keeps all `github.repository == 'mirasen-io/chessboard'` workflow guards TRUE.              |
+| 2   | React git history                | **Not preserved.** React copied in as a snapshot on the dedicated migration branch `migrate/monorepo`. Core history preserved via `git mv` (rename-tracked). Old `react-chessboard` repo kept as archive. |
+| 3   | Package folder names             | `packages/chessboard` + `packages/react-chessboard`. npm names unchanged: `@mirasen/chessboard`, `@mirasen/react-chessboard`.                                                                             |
+| 4   | Package manager                  | **npm workspaces.** Single root `package-lock.json`.                                                                                                                                                      |
+| 5   | Examples placement               | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`). Standalone (own lockfiles, `file:` deps), **not** workspace members, **not** under `packages/*`.                   |
+| 6   | Root `workspaces` value          | **`["packages/*"]` glob is fine** (the earlier "concrete-paths-for-Dependabot" constraint is DROPPED — see §Dependabot).                                                                                  |
+| 7   | Dependabot changeset attribution | **By changed `packages/*/package.json` files** (Outcome B), NOT by Dependabot `directory`.                                                                                                                |
 
 ## 1. Workspace dependency semantics (precise model — do not paraphrase as "by files not versions")
 
@@ -115,7 +115,7 @@ land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) refere
 
 ## Phase 1 — Prep
 
-1. Work on `contribution` (decision #2). Clean tree.
+1. Work on the dedicated migration branch `migrate/monorepo` (per decision #2 — a one-off branch for this large change, not the usual `contribution` flow). Clean tree.
 2. Note current SHAs of both repos (react repo becomes an archive).
 3. **Clean starting point (verified):** both packages fully released, **no pending changesets** — core
    `1.4.0`, React `1.1.0` (released in "Version Packages (#60)"). Nothing to migrate/freeze.
@@ -289,7 +289,7 @@ no guard edits). Drop React's copies.
 - **`auto-merge.yml`**: unchanged in wiring; correctness now comes from the Phase 0A action rewrite.
 - **`auto-release.yml`**: unchanged (changeset-file/package-agnostic).
 - **`codeql.yml`, `contribution-reset.yml`, `contribution-update.yml`**: unchanged; `main`/`contribution`
-  model kept; migration done on `contribution`.
+  model kept; the migration itself is done on the dedicated `migrate/monorepo` branch (then PR'd to `main`).
 - No `working-directory`/`paths:`/`cd`/extra `--prefix`/`cache-dependency-path` assumptions to fix beyond the
   above (grep-verified: only the two `--prefix examples/sveltekit` lines exist, and they stay valid).
   Cache actions default `cache-dependency-path: **/package-lock.json`. The repo will have **multiple**
@@ -374,7 +374,8 @@ Verified **in repository source**: no `socket.yml`/`.socket.yml`; no `.snyk`; no
 in-repo `SNYK_TOKEN` reference; no related README badge/config. Repository source **cannot** prove whether an
 Actions or Dependabot secret named `SNYK_TOKEN` already exists in GitHub settings. Consequence: the Snyk→CI
 move adds a new workflow job and requires `SNYK_TOKEN` to be available in **both** the Actions and Dependabot
-secret contexts — reuse existing repo/org secrets where available, otherwise provision them.
+secret contexts — reuse existing repo/org secrets where available, otherwise **create them manually via the
+GitHub Web UI** (secrets are created by a maintainer in the UI; the CLI is used only to verify, never to create).
 
 ### Socket.dev — GitHub App only. No CLI. No CI migration.
 
@@ -399,11 +400,13 @@ secret contexts — reuse existing repo/org secrets where available, otherwise p
   secrets are not available"_ — and CI also runs on Dependabot PRs (they feed the auto-merge/auto-release
   flow). So `SNYK_TOKEN` must be present as **both** an **Actions** secret (normal PRs) and a **Dependabot**
   secret (Dependabot PRs). Same name → the workflow stays `env: { SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} }`
-  unchanged; each trigger resolves it from its own store. Repository source cannot prove a secret exists —
-  check both stores, reuse an existing repo/org value if present, otherwise provision it in both:
+  unchanged; each trigger resolves it from its own store. Repository source cannot prove a secret exists.
+  **Create `SNYK_TOKEN` manually via the GitHub Web UI** — Settings → Secrets and variables → **Actions**,
+  and Settings → Secrets and variables → **Dependabot** — do **not** create secrets via CLI. Reuse an existing
+  repo/org value if present. Use the CLI **only to verify** presence in both stores:
   ```bash
-  gh secret set SNYK_TOKEN --app actions      # normal PR runs
-  gh secret set SNYK_TOKEN --app dependabot    # Dependabot-triggered runs
+  gh secret list --app actions       # expect SNYK_TOKEN listed
+  gh secret list --app dependabot     # expect SNYK_TOKEN listed
   ```
   (An existing organization-level secret covering this repo may be reused instead of a repo-level secret.)
 - **Method / exact command** (official `snyk/actions/node@master`; inputs verified: `command` default `test`,
@@ -452,10 +455,13 @@ secret contexts — reuse existing repo/org secrets where available, otherwise p
 - **Phase 0B** — add `npm-ci-sonar` `project-base-dir` support (before CI/Sonar merge).
 - **Phase 0C / CI prerequisite** —
   1. Wire the Snyk job into `ci.yml`.
-  2. Ensure `SNYK_TOKEN` exists for ordinary Actions workflows (**Actions** secret store).
-  3. Ensure `SNYK_TOKEN` also exists for Dependabot-triggered workflows (**Dependabot** secret store).
-  4. Reuse an existing value (repo or org) if already configured; otherwise provision the token in both stores.
-  5. Verify: a normal contribution PR → Snyk succeeds; a Dependabot PR → Snyk receives the token and succeeds.
+  2. Create `SNYK_TOKEN` for ordinary Actions workflows in the **Actions** secret store — **manually via the
+     GitHub Web UI** (Settings → Secrets and variables → Actions).
+  3. Create `SNYK_TOKEN` for Dependabot-triggered workflows in the **Dependabot** secret store — **manually via
+     the Web UI** (Settings → Secrets and variables → Dependabot).
+  4. Reuse an existing repo/org value if already configured. Confirm both are present via CLI (verify only, do
+     not create): `gh secret list --app actions` and `gh secret list --app dependabot`.
+  5. Verify runs: a normal (non-Dependabot) PR → Snyk succeeds; a Dependabot PR → Snyk receives the token and succeeds.
 
   This is a **prerequisite for Dependabot auto-merge**, not optional hardening: a missing Dependabot
   `SNYK_TOKEN` would leave the required Snyk check red on every Dependabot PR and therefore **stop the
@@ -476,7 +482,7 @@ secret contexts — reuse existing repo/org secrets where available, otherwise p
 | Lockfile-only update             | status check runs        | root lockfile analyzed                                                                                                  |
 | Example-only update              | default App behavior     | excluded (`--exclude=examples`)                                                                                         |
 | Known-vuln fixture (temp branch) | finding appears          | CI fails per current policy                                                                                             |
-| Normal contribution PR           | existing App behavior    | Actions `SNYK_TOKEN` available; scan succeeds                                                                           |
+| Normal (non-Dependabot) PR       | existing App behavior    | Actions `SNYK_TOKEN` available; scan succeeds                                                                           |
 | Dependabot PR                    | App status works         | Dependabot `SNYK_TOKEN` available; scan succeeds — a missing Dependabot token would fail auth-only and block auto-merge |
 
 **First Snyk CI run must confirm (then the configuration is final):**
@@ -489,7 +495,7 @@ secret contexts — reuse existing repo/org secrets where available, otherwise p
    double-count the graph;
 6. no out-of-sync warning occurs;
 7. the expected GitHub check status is produced;
-8. a normal contribution PR receives `SNYK_TOKEN` (Actions secret) and the scan succeeds;
+8. a normal (non-Dependabot) PR receives `SNYK_TOKEN` (Actions secret) and the scan succeeds;
 9. a Dependabot PR receives `SNYK_TOKEN` (Dependabot secret) and the scan succeeds — no auth-only failure that
    would block auto-merge.
 
