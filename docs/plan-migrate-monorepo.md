@@ -30,9 +30,19 @@
 - **During feature development you do NOT hand-edit the range to a future unpublished version.** You
   keep `^1.4.0` (satisfied by the local `1.4.0` build, which already contains the new source), add a
   changeset per package, and let release-time tooling do the bump.
-- At release, with `updateInternalDependencies: "patch"` (already set), `changeset version` performs, in
-  one commit: `core 1.4.0 → 1.5.0`, `react → next`, and rewrites React's `^1.4.0 → ^1.5.0`. Then
-  `changeset publish` publishes core first, then React. You never hold an unpublished version by hand.
+- **Coordinated feature (touches both packages):** add a changeset for **each** package in the same PR
+  (`core: minor` + `react: minor` — one file listing both, or two files; equivalent, verified). `changeset version`
+  then, in one commit, bumps both **and rewrites React's internal range to the just-bumped core version** (e.g.
+  `^1.4.0 → ^1.5.0`). This range rewrite happens whenever React is itself in the release and is governed by
+  `updateInternalDependencies: "patch"` (already set) — it fires even though `^1.4.0` already satisfied `1.5.0`.
+  `changeset publish` then publishes **core first, then React** (dependency order, one run), so React@new ships
+  already declaring the just-published core — no broken window, no hand-editing, no serial cross-repo release.
+- **Core-only change (e.g. Dependabot bumps a core dependency):** only `core` gets a changeset. React is **not**
+  bumped and its range is **not** rewritten — an in-range core bump (`^1.4.0` still satisfies the new core) leaves
+  React's published artifact unaffected, so no React release is warranted. React auto-bumps from core **only** when
+  core moves **out** of React's caret range (a core **major**), which forces `react: patch` + range `→ ^2.0.0`.
+  React therefore stays current via **its own** dependency updates, not core's. (All of the above verified locally
+  against changesets v3.0.1.)
 
 ## 2. Target structure (verified)
 
@@ -80,25 +90,55 @@ changeset even when only the SvelteKit example's deps changed. The whole `#111�
 series has the same defect. Post-fix, such a PR (only `examples/**` + root lock changed, no
 `packages/*/package.json`) must yield **NO changeset**.
 
-Changes (per research report Outcome B):
+**Attribution rule (FINAL — locally verified against changesets v3.0.1):** one changeset per Dependabot PR,
+listing every discovered project package whose `package.json` changed, each `: patch`. Determined **purely from
+changed manifests** — the lockfile is ignored, no dependency-graph/arborist analysis, no per-dependency loop, and
+**no `private` check** (what actually versions/tags/publishes is decided by the repo's `.changeset/config.json`).
 
-1. Rewrite the generator to attribute by **changed workspace manifests**, not `directory`:
+1. Rewrite the generator:
+   - Inputs: `pr-number` + `token`. **Remove** `updated-dependencies-json` and `version-update-map`. **Drop** the
+     dead `if: steps.find-comment.outputs.comment-id == ''` gate.
    - Retrieve changed files with **`gh api --paginate repos/$OWNER/$REPO/pulls/$PR/files --jq '.[].filename'`**
-     (guaranteed full pagination). Do NOT rely on `gh pr view --json files` — it is GraphQL `files(first:100)`
-     with no auto-pagination (fine for tiny Dependabot PRs, but the shared action must be correct for any repo).
-   - Expand root `package.json#workspaces` entries → member dirs. This is a **shared action** (used by other
-     repos too), so it must support **both** forms regardless of what our repo uses: explicit paths
-     (`packages/chessboard`) **and** globs (`packages/*` → `readdirSync`). Our repo happens to use explicit;
-     the action stays general. For each changed `<member>/package.json`,
-     read `name` + `private`; skip `private:true`; collect publishable names.
-   - Compute the deterministic filename `FILE=.changeset/dependabot-pr-<PR>.md` **first, before branching on the affected set.** If the affected set is empty → **`rm -f "$FILE"`** (delete any stale changeset left by an earlier run) and emit `changesets-json=[]`; else write ONE changeset to `FILE`, each affected package `: patch`, body starting with `dependabot:` (kept so `dependabot-auto-release` detection still matches).
-   - The commit step must stage `.changeset` such that a **deletion** is committed too (`git add -A .changeset`, not just new files). This makes it idempotent in all directions: `A→A` overwrite · `A→A+B` rewrite · `A+B→B` rewrite · `A→none` delete stale · `none→A` create.
-   - Drop the dead `if: steps.find-comment.outputs.comment-id == ''` gate.
-2. `dependabot-auto-merge`: pass `pr-number` (and repo/owner) to the generator instead of
-   `updated-dependencies-json`; keep `fetch-metadata` for the minor/patch **merge** gate.
-3. Ignore internal packages in every consuming repo's `dependabot.yml` (`@mirasen/chessboard`,
-   `@mirasen/react-chessboard`).
-4. Test the action against the fixture PR shape before proceeding (see §Phase 16 matrix). Cover every idempotency direction explicitly: `A→A`, `A→A+B`, `A+B→B`, `A→none` (stale changeset deleted), `none→A`.
+     (guaranteed full pagination). Do NOT use `gh pr view --json files` — it is GraphQL `files(first:100)` with no
+     auto-pagination (fine for tiny PRs, but the shared action must be correct for any repo).
+   - **Discover project packages from root `package.json`** (shared action → must handle every shape):
+     - has `workspaces` (array **or** `{ "packages": [...] }`): expand entries → member dirs — explicit paths
+       (`packages/chessboard`), globs (`packages/*` → `readdirSync`), and `.` (root-as-member). Each dir with a
+       `package.json` is a member. The orchestrator root is **not** a member unless `.` is listed.
+     - no `workspaces`: the single package **is** the root (`.`).
+     - Normalize `.` → manifest path `package.json` (strip `./`) so it matches `gh api` output (azure-swa's `["."]`).
+   - `AFFECTED` = `name` (read from the manifest) of every discovered package whose `<dir>/package.json` is in the
+     changed-files list. No `private` filter. (Verified: emitting only discovered-package names never trips
+     changesets' `Found changeset … not in the workspace` error; targeting the **orchestrator root** — a non-member —
+     _does_ error and leaves a **stuck** changeset, so the root is never emitted. A **private member** targets fine:
+     it versions and the changeset is consumed; tag/npm are governed by the repo's `privatePackages`/`ignore` config.)
+   - Deterministic filename — **keep the `~` prefix** so Dependabot entries sort last in each CHANGELOG:
+     `FILE=.changeset/~dependabot-pr-<PR>.md`. Compute it **before** branching on `AFFECTED`.
+   - `AFFECTED` empty (lockfile-only / examples-only / root-tooling-only) → **`rm -f "$FILE"`** (delete any stale
+     changeset from an earlier run) + emit `changesets-json=[]`. Else → write **one** changeset to `FILE`, each
+     affected package `: patch`, body `dependabot: dependency updates for PR #<PR>` (keeps the `dependabot:` marker
+     so `dependabot-auto-release` still detects it) + emit `changesets-json=["<FILE>"]`.
+   - Commit step stages with **`git add -A .changeset`** (so a **deletion** is committed too). Idempotent in all
+     directions: `A→A` · `A→A+B` · `A+B→B` · `A→none` (stale deleted) · `none→A`.
+2. `dependabot-auto-merge`: pass `pr-number` (+ owner/repo/token) to the generator instead of
+   `updated-dependencies-json`; keep `fetch-metadata` for the minor/patch **merge** gate (orthogonal to attribution).
+3. **Prerequisite — `versioning-strategy: increase` in every consuming repo's `dependabot.yml`.** Because attribution
+   is by changed **manifest**, an in-range direct bump that touches only the lockfile would otherwise produce no
+   changeset (no release). `increase` makes Dependabot raise the declared range on every direct update, so the
+   manifest always changes and the update is attributable. Roll this out to **all** active consumers **before** the
+   action lands on `@main` (cloudflare-site is already app→`increase`; public libs need it explicit). Without it, a
+   single-package library silently stops releasing on the common in-range case.
+4. Keep ignoring internal packages in each repo's `dependabot.yml` (`@mirasen/chessboard`, `@mirasen/react-chessboard`)
+   — Changesets owns the internal range; also redundant given the cross-bump behaviour (§1).
+5. Test on live consumers before the migration (diverse canaries — see §Phase 16): **cloudflare-site** (single
+   private, daily, `~` in prod), **npm-typescript-template** (single public), **svelte-adapter-azure-swa**
+   (`workspaces: [".","tests/demo","tests/new-demo"]` — exercises `.`-normalization + a private member), **license-gate**.
+   Cover idempotency directions `A→A`, `A→A+B`, `A+B→B`, `A→none` (stale deleted), `none→A`.
+
+**Transition note:** repos carry pending old-scheme changesets (`~<PR>-<pkg>-<dep>.md`); these are valid and get
+consumed on the next release. New PRs use `~dependabot-pr-<PR>.md`. If an old PR is **rebased** after the action lands,
+its old files remain and a new deterministic file is added → a duplicate changeset for that PR (both `patch`,
+aggregated → harmless). No manual cleanup needed.
 
 `dependabot-auto-release`, `npm-release`, `create-github-app-token`, `get-associated-pr` — **no change**
 (verified). `npm-release-upd-pkg-lock`, `major-release-tag` — **not referenced anywhere** (grep-confirmed), ignore.
@@ -542,18 +582,18 @@ per-package tags + GitHub releases.
 
 Run/observe these on the first live Dependabot PRs (from research report):
 
-| #   | Scenario                                                               | Expected changeset                            | Auto-merge | Release     |
-| --- | ---------------------------------------------------------------------- | --------------------------------------------- | ---------- | ----------- |
-| 1   | core dep patch                                                         | `@mirasen/chessboard: patch`                  | yes        | core patch  |
-| 2   | React dep patch                                                        | `@mirasen/react-chessboard: patch`            | yes        | react patch |
-| 3   | grouped PR touching both                                               | both `: patch` (one changeset)                | yes        | both patch  |
-| 4   | root private tooling only                                              | none                                          | yes        | none        |
-| 5   | lockfile-only transitive                                               | none                                          | yes        | none        |
-| 6   | internal dep (`@mirasen/chessboard` in React)                          | N/A (ignored)                                 | —          | —           |
-| 7   | security manifest update (patch)                                       | affected pkg `: patch`                        | yes        | patch       |
-| 8   | Dependabot rebase / action re-run                                      | overwrite `dependabot-pr-<n>.md` (idempotent) | unchanged  | unchanged   |
-| 9   | existing deterministic changeset present                               | same file overwritten (no dup)                | unchanged  | unchanged   |
-| 10  | no publishable manifest changed (e.g. examples-only, the #126 fixture) | none                                          | yes        | none        |
+| #   | Scenario                                                               | Expected changeset                             | Auto-merge | Release     |
+| --- | ---------------------------------------------------------------------- | ---------------------------------------------- | ---------- | ----------- |
+| 1   | core dep patch                                                         | `@mirasen/chessboard: patch`                   | yes        | core patch  |
+| 2   | React dep patch                                                        | `@mirasen/react-chessboard: patch`             | yes        | react patch |
+| 3   | grouped PR touching both                                               | both `: patch` (one changeset)                 | yes        | both patch  |
+| 4   | root private tooling only                                              | none                                           | yes        | none        |
+| 5   | lockfile-only transitive                                               | none                                           | yes        | none        |
+| 6   | internal dep (`@mirasen/chessboard` in React)                          | N/A (ignored)                                  | —          | —           |
+| 7   | security manifest update (patch)                                       | affected pkg `: patch`                         | yes        | patch       |
+| 8   | Dependabot rebase / action re-run                                      | overwrite `~dependabot-pr-<n>.md` (idempotent) | unchanged  | unchanged   |
+| 9   | existing deterministic changeset present                               | same file overwritten (no dup)                 | unchanged  | unchanged   |
+| 10  | no publishable manifest changed (e.g. examples-only, the #126 fixture) | none                                           | yes        | none        |
 
 Scenario 10 is the concrete regression fixture: a #126-style "across N directories" PR that changes only
 `examples/**` + root lock must produce **no `@mirasen/chessboard` changeset** (the current bug).

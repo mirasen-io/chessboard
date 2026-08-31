@@ -79,12 +79,13 @@ collapses to root. Abandon directory-based attribution entirely.
 
 ```
 Dependabot PR
-  → list changed files (gh pr view --json files)
-  → for each changed  <dir>/package.json  that is a workspace member:
-        read its "name" and "private"
-        skip if private === true            (root tooling, examples)
-        collect name into AFFECTED[]
-  → if AFFECTED is empty:  write NO changeset   (lockfile-only / root-only) → PR still auto-merges, no release
+  → list changed files (gh api --paginate .../pulls/<PR>/files)
+  → discover project packages from root package.json:
+        has workspaces → members (globs packages/*, explicit paths, and "."); orchestrator root NOT a member
+        no workspaces  → the root IS the package (".")
+  → for each discovered package whose  <dir>/package.json  changed:
+        collect its "name" into AFFECTED[]        (NO private check — changesets config decides version/tag/publish)
+  → if AFFECTED is empty:  rm -f the deterministic file (delete stale) → NO changeset (lockfile-only / root-only) → PR still auto-merges, no release
   → else: write ONE changeset listing every AFFECTED package as "patch"
   → commit changeset to the PR head (deterministic filename → idempotent on rebase/re-run)
   → existing approve + auto-merge + monthly auto-release continue unchanged
@@ -150,43 +151,48 @@ Runs inside `dependabot-auto-merge` after the PR head is checked out (it already
 ```bash
 set -euo pipefail
 PR="${{ github.event.pull_request.number }}"
+OWNER_REPO="${{ github.repository }}"
+FILE=".changeset/~dependabot-pr-${PR}.md"   # keep the ~ prefix: Dependabot entries sort LAST in each CHANGELOG
 
-# 1. Changed files in the PR (reliable; uses the app token)
-mapfile -t CHANGED < <(gh pr view "$PR" --json files --jq '.files[].path')
+# 1. Changed files in the PR — FULL pagination (gh pr view --json files caps at 100, no auto-paginate)
+mapfile -t CHANGED < <(gh api --paginate "repos/${OWNER_REPO}/pulls/${PR}/files" --jq '.[].filename')
 
-# 2. Expand workspace globs from root package.json → concrete member dirs
+# 2. Discover project packages from root package.json (support every shape)
 mapfile -t MEMBERS < <(node -e '
   const fs=require("fs"), path=require("path");
   const root=JSON.parse(fs.readFileSync("package.json","utf8"));
-  const globs=root.workspaces?.packages||root.workspaces||[];
+  const ws=root.workspaces?.packages||root.workspaces;
   const out=new Set();
-  for (const g of globs) {
-    if (g.endsWith("/*")) {
+  if (!ws || ws.length===0) {
+    out.add(".");                                   // no workspaces → the root IS the package
+  } else for (const g of ws) {
+    if (g.endsWith("/*")) {                          // glob e.g. packages/*
       const base=g.slice(0,-2);
       if (fs.existsSync(base)) for (const d of fs.readdirSync(base))
         if (fs.existsSync(path.join(base,d,"package.json"))) out.add(path.join(base,d));
-    } else if (fs.existsSync(path.join(g,"package.json"))) out.add(g);
+    } else if (fs.existsSync(path.join(g,"package.json"))) out.add(g);   // explicit path, or "."
   }
   process.stdout.write([...out].join("\n"));
 ')
 
-# 3. Collect affected, PUBLISHABLE members (changed manifest + not private)
+# 3. Collect affected packages: discovered package whose manifest changed.
+#    NO private check — changesets config (privatePackages / ignore) decides what versions/publishes.
 AFFECTED=()
 for m in "${MEMBERS[@]}"; do
-  manifest="$m/package.json"
+  manifest="$m/package.json"; manifest="${manifest#./}"        # normalize "." → "package.json" to match gh api
   printf '%s\n' "${CHANGED[@]}" | grep -qxF "$manifest" || continue
-  [ "$(jq -r '.private // false' "$manifest")" = "true" ] && continue
   AFFECTED+=("$(jq -r '.name' "$manifest")")
 done
 
-# 4. Nothing publishable changed (lockfile-only / root tooling only) → no changeset (PR still merges)
+# 4. Nothing discovered changed (lockfile-only / examples-only / root-tooling-only) → delete any stale
+#    changeset from an earlier run, emit none. PR still auto-merges.
 if [ ${#AFFECTED[@]} -eq 0 ]; then
-  echo "No publishable workspace manifest changed; skipping changeset."
+  rm -f "$FILE"
+  echo "changesets-json=[]" >> "$GITHUB_OUTPUT"
   exit 0
 fi
 
 # 5. One changeset for all affected packages. Deterministic filename → idempotent on rebase/re-run.
-FILE=".changeset/dependabot-pr-${PR}.md"
 {
   echo "---"
   for n in "${AFFECTED[@]}"; do echo "\"$n\": patch"; done
@@ -194,10 +200,22 @@ FILE=".changeset/dependabot-pr-${PR}.md"
   echo
   echo "dependabot: dependency updates for PR #${PR}"
 } > "$FILE"
+echo "changesets-json=[\"$FILE\"]" >> "$GITHUB_OUTPUT"
 ```
 
-The subsequent commit/approve/merge steps of `dependabot-auto-merge` stay as-is (they already
-`git add .changeset` and push only if dirty; approve+auto-merge gated on semver-minor/patch).
+Notes:
+
+- **No `private` filter** — verified against changesets v3.0.1: a discovered **private member** targets fine (it
+  versions; the changeset is consumed; `tag`/npm are governed by the repo's `privatePackages`/`ignore` config). Only
+  the **orchestrator root** (a non-member) errors `Found changeset … not in the workspace` and leaves the changeset
+  **stuck** — and it is never emitted here because it is not in `MEMBERS`.
+- Requires `versioning-strategy: increase` in each consuming repo so in-range direct bumps edit the manifest (else a
+  lockfile-only update produces no changeset).
+
+The subsequent approve/merge steps of `dependabot-auto-merge` stay as-is (approve+auto-merge gated on
+semver-minor/patch). The commit step must stage with **`git add -A .changeset`** (not just `git add .changeset`)
+so a **deletion** of a stale changeset is committed too — this is what makes the deterministic-filename approach
+idempotent in the `A→none` direction (empty affected set), alongside `A→A` / `A→A+B` / `A+B→B` / `none→A`.
 
 ---
 
@@ -228,20 +246,20 @@ The subsequent commit/approve/merge steps of `dependabot-auto-merge` stay as-is 
 Assumes `@mirasen/chessboard` (packages/chessboard, public) and `@mirasen/react-chessboard`
 (packages/react-chessboard, public); root + examples private.
 
-| #   | Scenario                             | Changed files (expected)                             | Expected changeset packages                   | Auto-merge                     | Release                 |
-| --- | ------------------------------------ | ---------------------------------------------------- | --------------------------------------------- | ------------------------------ | ----------------------- |
-| 1   | Core dep patch                       | `packages/chessboard/package.json` + root lock       | `@mirasen/chessboard: patch`                  | yes (patch)                    | core patch              |
-| 2   | React dep patch                      | `packages/react-chessboard/package.json` + root lock | `@mirasen/react-chessboard: patch`            | yes                            | react patch             |
-| 3   | Both packages, grouped PR            | both member manifests + root lock                    | both `: patch` (one changeset)                | yes                            | both patch              |
-| 4   | Root private devDep only             | root `package.json` + root lock                      | **none**                                      | yes                            | none                    |
-| 5   | Lockfile-only transitive             | `package-lock.json` only                             | **none**                                      | yes                            | none                    |
-| 6   | React internal dep on core           | _N/A — ignored in config_ (no PR)                    | —                                             | —                              | —                       |
-| 7   | Security update (patch, manifest)    | affected member manifest + lock                      | that package `: patch`                        | yes                            | patch                   |
-| 7b  | Security update (lockfile-only)      | `package-lock.json` only                             | **none**                                      | yes                            | none                    |
-| 8   | Dependabot rebase / re-run           | same as original                                     | overwrite `dependabot-pr-<n>.md` (idempotent) | unchanged                      | unchanged               |
-| 9   | Existing changeset already committed | same                                                 | same deterministic file overwritten (no dup)  | unchanged                      | unchanged               |
-| 10  | No publishable manifest changed      | root/lock/examples only                              | **none**                                      | yes                            | none                    |
-| —   | Major dep update                     | member manifest + lock                               | that package `: patch` (still generated)      | **no** (major not auto-merged) | on manual merge → patch |
+| #   | Scenario                             | Changed files (expected)                             | Expected changeset packages                    | Auto-merge                     | Release                 |
+| --- | ------------------------------------ | ---------------------------------------------------- | ---------------------------------------------- | ------------------------------ | ----------------------- |
+| 1   | Core dep patch                       | `packages/chessboard/package.json` + root lock       | `@mirasen/chessboard: patch`                   | yes (patch)                    | core patch              |
+| 2   | React dep patch                      | `packages/react-chessboard/package.json` + root lock | `@mirasen/react-chessboard: patch`             | yes                            | react patch             |
+| 3   | Both packages, grouped PR            | both member manifests + root lock                    | both `: patch` (one changeset)                 | yes                            | both patch              |
+| 4   | Root private devDep only             | root `package.json` + root lock                      | **none**                                       | yes                            | none                    |
+| 5   | Lockfile-only transitive             | `package-lock.json` only                             | **none**                                       | yes                            | none                    |
+| 6   | React internal dep on core           | _N/A — ignored in config_ (no PR)                    | —                                              | —                              | —                       |
+| 7   | Security update (patch, manifest)    | affected member manifest + lock                      | that package `: patch`                         | yes                            | patch                   |
+| 7b  | Security update (lockfile-only)      | `package-lock.json` only                             | **none**                                       | yes                            | none                    |
+| 8   | Dependabot rebase / re-run           | same as original                                     | overwrite `~dependabot-pr-<n>.md` (idempotent) | unchanged                      | unchanged               |
+| 9   | Existing changeset already committed | same                                                 | same deterministic file overwritten (no dup)   | unchanged                      | unchanged               |
+| 10  | No publishable manifest changed      | root/lock/examples only                              | **none**                                       | yes                            | none                    |
+| —   | Major dep update                     | member manifest + lock                               | that package `: patch` (still generated)       | **no** (major not auto-merged) | on manual merge → patch |
 
 Auto-merge note: the merge gate stays keyed on `fetch-metadata`'s `update-type`
 (semver-minor/patch merge; major stays open) — this is orthogonal to changeset attribution and needs
