@@ -150,7 +150,7 @@ aggregated → harmless). No manual cleanup needed.
 - `kt-workflows/actions/dependabot-auto-merge` — updated (commit `a0e9bee`): `pr-number` wiring, `git add -A .changeset`.
 - **Verified on live PRs:** single-package (`license-gate` #30 — CI green), multi-workspace with `.` and explicit paths (`svelte-adapter-azure-swa` #262–#267 — all changesets correct, per-manifest attribution verified).
 
-## Phase 0B — NEXT: tooling prerequisite: `npm-ci-sonar` `project-base-dir` support
+## Phase 0B — ✅ DONE (2026-08-31): tooling prerequisite: `npm-ci-sonar` `project-base-dir` support
 
 Verified: `kt-workflows/actions/npm-ci-sonar` runs `sonarsource/sonarqube-scan-action@v7` **with no
 `projectBaseDir`** (no `with:` at all) — it always scans the repo root. Its `working-directory` input only
@@ -163,7 +163,9 @@ affects the npm run-script, not the scanner. The monorepo needs per-package scan
 This is a separate concern from the Dependabot fix (Phase 0A) but is likewise a **prerequisite**: it must
 land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) references the new input.
 
-## Phase 1 — Prep
+**Completed (2026-08-31):** `project-base-dir` input (default `.`) added to `npm-ci-sonar/action.yml`; passed to `sonarsource/sonarqube-scan-action@v7` as `projectBaseDir`. Commit `ef4ae8a`. All existing consumers unchanged (default `.`).
+
+## Phase 0C — NEXT: `SNYK_TOKEN` prerequisite
 
 1. Work on the dedicated migration branch `migrate/monorepo` (per decision #2 — a one-off branch for this large change, not the usual `contribution` flow). Clean tree.
 2. Note current SHAs of both repos (react repo becomes an archive).
