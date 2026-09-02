@@ -309,6 +309,13 @@ describe('check public square property: ColorInput', () => {
 		expect(requestRender).not.toHaveBeenCalled();
 	});
 
+	it('switching from color to SquareString at the same square updates the read-back', () => {
+		const { api } = setupInstanceWithBoard();
+		api.square = 'white';
+		api.square = 'e1';
+		expect(api.square).toBe('e1');
+	});
+
 	it('throws when the king of the given color is not on the board', () => {
 		const { api } = setupInstanceWithBoard([]);
 		expect(() => {

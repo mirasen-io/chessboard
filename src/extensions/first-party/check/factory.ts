@@ -77,10 +77,10 @@ function createCheckInstancePublic(state: CheckInstanceInternal): CheckPublic {
 			} else {
 				throw new TypeError(`Invalid check square: ${String(value)}`);
 			}
+			state.inputSquare = value;
 			if (next === state.square) {
 				return; // no-op: same square (or both null)
 			}
-			state.inputSquare = value;
 			state.square = next;
 			markHighlightDirtyAndRequestRender(state);
 		}
