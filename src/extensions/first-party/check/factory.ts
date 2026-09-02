@@ -1,10 +1,12 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { isSquareString } from '../../../state/board/check.js';
-import { denormalizeSquare } from '../../../state/board/denormalize.js';
-import { normalizeSquare } from '../../../state/board/normalize.js';
-import type { SquareString } from '../../../state/board/types/input.js';
 import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
+import { isColorInput, isSquareString } from '../../../state/board/check.js';
+import { denormalizeSquare } from '../../../state/board/denormalize.js';
+import { normalizeColor, normalizeSquare } from '../../../state/board/normalize.js';
+import type { ColorInput, SquareString } from '../../../state/board/types/input.js';
+import { PieceCode, RoleCode, SQUARE_COUNT } from '../../../state/board/types/internal.js';
+import { Square, toPieceCode } from '../../build/index.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
 import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
@@ -61,11 +63,16 @@ function extensionClean(state: CheckInstanceInternal): void {
 
 function createCheckInstancePublic(state: CheckInstanceInternal): CheckPublic {
 	return {
-		get square(): SquareString | null {
+		get square(): SquareString | ColorInput | null {
 			return state.square === null ? null : denormalizeSquare(state.square);
 		},
-		set square(value: SquareString | null) {
-			const next = value === null ? null : normalizeSquare(assertSquareString(value));
+		set square(value: SquareString | ColorInput | null) {
+			let next: Square | null = null;
+			if (isSquareString(value)) {
+				next = normalizeSquare(value);
+			} else if (isColorInput(value)) {
+				next = findKing(state, value);
+			}
 			if (next === state.square) {
 				return; // no-op: same square (or both null)
 			}
@@ -75,11 +82,18 @@ function createCheckInstancePublic(state: CheckInstanceInternal): CheckPublic {
 	};
 }
 
-function assertSquareString(value: SquareString): SquareString {
-	if (!isSquareString(value)) {
-		throw new TypeError(`Invalid check square: ${String(value)}`);
+function findKing(state: CheckInstanceInternal, color: ColorInput): Square {
+	const snapshot = state.runtimeSurface.commands.getSnapshot();
+	const pieces = snapshot.state.board.pieces;
+	const colorCode = normalizeColor(color);
+	const kingPieceCode = toPieceCode(RoleCode.King, colorCode);
+	for (let sq = 0; sq < SQUARE_COUNT; sq++) {
+		const piece = pieces[sq] as PieceCode;
+		if (piece === kingPieceCode) {
+			return sq as Square;
+		}
 	}
-	return value;
+	throw new Error("King of color '" + color + "' not found");
 }
 
 function removeHighlight(state: CheckInstanceInternal): void {
