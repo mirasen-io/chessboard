@@ -2,7 +2,6 @@ import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isColorInput, isSquareString } from '../../../state/board/check.js';
-import { denormalizeSquare } from '../../../state/board/denormalize.js';
 import { normalizeColor, normalizeSquare } from '../../../state/board/normalize.js';
 import type { ColorInput, SquareString } from '../../../state/board/types/input.js';
 import { PieceCode, RoleCode, SQUARE_COUNT } from '../../../state/board/types/internal.js';
@@ -49,6 +48,7 @@ function createCheckInternal(
 	return {
 		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		square: null,
+		inputSquare: null,
 		svgRect: null,
 		svgGradient: null,
 		runtimeSurface: options.runtimeSurface,
@@ -64,18 +64,23 @@ function extensionClean(state: CheckInstanceInternal): void {
 function createCheckInstancePublic(state: CheckInstanceInternal): CheckPublic {
 	return {
 		get square(): SquareString | ColorInput | null {
-			return state.square === null ? null : denormalizeSquare(state.square);
+			return state.inputSquare;
 		},
 		set square(value: SquareString | ColorInput | null) {
-			let next: Square | null = null;
-			if (isSquareString(value)) {
+			let next: Square | null;
+			if (value === null) {
+				next = null;
+			} else if (isSquareString(value)) {
 				next = normalizeSquare(value);
 			} else if (isColorInput(value)) {
 				next = findKing(state, value);
+			} else {
+				throw new TypeError(`Invalid check square: ${String(value)}`);
 			}
 			if (next === state.square) {
 				return; // no-op: same square (or both null)
 			}
+			state.inputSquare = value;
 			state.square = next;
 			markHighlightDirtyAndRequestRender(state);
 		}

@@ -49,6 +49,7 @@ export type CheckInstance = ExtensionInstance<
 
 export interface CheckInstanceInternal extends ExtensionInternalBase<ExtensionSlotsType> {
 	square: Square | null;
+	inputSquare: SquareString | ColorInput | null;
 	svgRect: SVGRectElement | null;
 	svgGradient: SVGRadialGradientElement | null;
 	readonly runtimeSurface: ExtensionRuntimeSurface;

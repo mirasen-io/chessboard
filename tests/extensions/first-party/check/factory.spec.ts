@@ -6,6 +6,7 @@ import {
 	builtInExtensionFactoryMap,
 	DefaultBuiltinChessboardExtensions
 } from '../../../../src/extensions/types/wrapper.js';
+import { PieceCode } from '../../../../src/state/board/types/internal.js';
 import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -107,6 +108,54 @@ function setupInstance(config?: Parameters<typeof createCheck>[0]) {
 	return { instance, api, roots, markDirty, requestRender };
 }
 
+// e1 = square 4, e8 = square 60
+// PieceCode.WhiteKing = 6, PieceCode.BlackKing = 14
+const WHITE_KING_SQ = 4;
+const BLACK_KING_SQ = 60;
+const DEFAULT_PIECES: Array<[number, number]> = [
+	[WHITE_KING_SQ, PieceCode.WhiteKing],
+	[BLACK_KING_SQ, PieceCode.BlackKing]
+];
+
+function createBoardSnapshot(entries: Array<[number, number]>) {
+	const pieces = new Uint8Array(64);
+	for (const [sq, code] of entries) {
+		pieces[sq] = code;
+	}
+	return { state: { board: { pieces } } };
+}
+
+function setupInstanceWithBoard(
+	pieces: Array<[number, number]> = DEFAULT_PIECES,
+	config?: Parameters<typeof createCheck>[0]
+) {
+	const def = createCheck(config);
+	const markDirty = vi.fn();
+	const requestRender = vi.fn(() => true);
+	const getSnapshot = vi.fn(() => createBoardSnapshot(pieces));
+	const surface: ExtensionRuntimeSurface = {
+		commands: { requestRender, getSnapshot } as never,
+		animation: {} as never,
+		events: { subscribeEvent: vi.fn(), unsubscribeEvent: vi.fn() },
+		transientVisuals: { subscribe: vi.fn(), unsubscribe: vi.fn() },
+		invalidation: {
+			get dirtyLayers() {
+				return 0;
+			},
+			markDirty,
+			clearDirty: vi.fn(),
+			clear: vi.fn()
+		}
+	};
+	const instance = def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+	);
+	const api = instance.getPublic();
+	const roots = createSlotRoots();
+	instance.mount!({ slotRoots: roots } as never);
+	return { instance, api, roots, markDirty, requestRender, getSnapshot };
+}
+
 describe('createCheck', () => {
 	it('creates a definition with the expected extension id', () => {
 		const def = createCheck();
@@ -186,6 +235,85 @@ describe('check public square property', () => {
 		}).toThrow();
 		expect(markDirty).not.toHaveBeenCalled();
 		expect(requestRender).not.toHaveBeenCalled();
+	});
+});
+
+describe('check public square property: ColorInput', () => {
+	it('setting "white" renders the highlight at the white king square', () => {
+		const { instance, api, roots } = setupInstanceWithBoard();
+		api.square = 'white';
+		instance.render!(createRenderContext());
+		const rect = roots.underPieces.children[0];
+		expect(rect).toBeDefined();
+		expect(rect.getAttribute('x')).toBe('200'); // e1: (4 % 8) * 50
+		expect(rect.getAttribute('y')).toBe('0');
+	});
+
+	it('setting "w" (short form) renders the highlight at the white king square', () => {
+		const { instance, api, roots } = setupInstanceWithBoard();
+		api.square = 'w';
+		instance.render!(createRenderContext());
+		const rect = roots.underPieces.children[0];
+		expect(rect.getAttribute('x')).toBe('200');
+		expect(rect.getAttribute('y')).toBe('0');
+	});
+
+	it('setting "black" renders the highlight at the black king square', () => {
+		const { instance, api, roots } = setupInstanceWithBoard();
+		api.square = 'black';
+		instance.render!(createRenderContext());
+		const rect = roots.underPieces.children[0];
+		expect(rect.getAttribute('x')).toBe('200'); // e8: (60 % 8) * 50
+		expect(rect.getAttribute('y')).toBe('350'); // Math.floor(60 / 8) * 50
+	});
+
+	it('setting "b" (short form) renders the highlight at the black king square', () => {
+		const { instance, api, roots } = setupInstanceWithBoard();
+		api.square = 'b';
+		instance.render!(createRenderContext());
+		const rect = roots.underPieces.children[0];
+		expect(rect.getAttribute('x')).toBe('200');
+		expect(rect.getAttribute('y')).toBe('350');
+	});
+
+	it('read-back after setting a color returns the original color input', () => {
+		expect(setupInstanceWithBoard().api.square).toBe(null);
+		const { api: a1 } = setupInstanceWithBoard();
+		a1.square = 'white';
+		expect(a1.square).toBe('white');
+		const { api: a2 } = setupInstanceWithBoard();
+		a2.square = 'w';
+		expect(a2.square).toBe('w');
+		const { api: a3 } = setupInstanceWithBoard();
+		a3.square = 'black';
+		expect(a3.square).toBe('black');
+		const { api: a4 } = setupInstanceWithBoard();
+		a4.square = 'b';
+		expect(a4.square).toBe('b');
+	});
+
+	it('setting a color marks dirty and requests render', () => {
+		const { api, markDirty, requestRender } = setupInstanceWithBoard();
+		api.square = 'white';
+		expect(markDirty).toHaveBeenCalledTimes(1);
+		expect(requestRender).toHaveBeenCalledTimes(1);
+	});
+
+	it('setting the same color again when king has not moved is a no-op', () => {
+		const { api, markDirty, requestRender } = setupInstanceWithBoard();
+		api.square = 'white';
+		markDirty.mockClear();
+		requestRender.mockClear();
+		api.square = 'white';
+		expect(markDirty).not.toHaveBeenCalled();
+		expect(requestRender).not.toHaveBeenCalled();
+	});
+
+	it('throws when the king of the given color is not on the board', () => {
+		const { api } = setupInstanceWithBoard([]);
+		expect(() => {
+			api.square = 'white';
+		}).toThrow();
 	});
 });
 
