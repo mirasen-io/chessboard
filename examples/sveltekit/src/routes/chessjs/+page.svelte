@@ -49,6 +49,7 @@
 		const appliedMove = chess.move(move);
 		board.move(toBoardMove(appliedMove));
 		status = getStatus();
+		refreshCheckHighlight();
 	}
 
 	function resetGame() {
@@ -62,6 +63,17 @@
 			board.setPosition(chess.fen());
 		}
 		status = 'Your move';
+		refreshCheckHighlight();
+	}
+
+	function refreshCheckHighlight() {
+		if (!board) return;
+		if (!chess.isCheck()) {
+			board.extensions.check.square = null;
+			return;
+		}
+		const turn = chess.turn();
+		board.extensions.check.square = turn;
 	}
 
 	onMount(() => {
@@ -81,6 +93,7 @@
 		board.extensions.events.setOnUIMove((move) => {
 			chess.move(toGameMove(move));
 			status = getStatus();
+			refreshCheckHighlight();
 
 			if (!chess.isGameOver()) {
 				const scheduledVersion = gameVersion;

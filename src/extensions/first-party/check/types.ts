@@ -1,9 +1,9 @@
 import { PartialDeep } from 'type-fest';
+import type { ColorInput, SquareString } from '../../../state/board/types/input.js';
 import type { Square } from '../../../state/board/types/internal.js';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
-import { ExtensionInternalBase, OpaqueColor } from '../common/types.js';
 import type { ExtensionRuntimeSurface } from '../../types/surface/main.js';
-import type { SquareString } from '../../../state/board/types/input.js';
+import { ExtensionInternalBase, OpaqueColor } from '../common/types.js';
 
 export const EXTENSION_SLOTS = ['defs', 'underPieces'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
@@ -32,7 +32,7 @@ export const GRADIENT_STOPS = [
 export type CheckInitConfig = PartialDeep<CheckConfig>;
 
 export type CheckPublic = {
-	square: SquareString | null;
+	square: SquareString | ColorInput | null;
 };
 
 export type CheckDefinition = ExtensionDefinition<
@@ -49,6 +49,7 @@ export type CheckInstance = ExtensionInstance<
 
 export interface CheckInstanceInternal extends ExtensionInternalBase<ExtensionSlotsType> {
 	square: Square | null;
+	inputSquare: SquareString | ColorInput | null;
 	svgRect: SVGRectElement | null;
 	svgGradient: SVGRadialGradientElement | null;
 	readonly runtimeSurface: ExtensionRuntimeSurface;
