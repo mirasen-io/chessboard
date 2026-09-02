@@ -3,9 +3,10 @@ import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isColorInput, isSquareString } from '../../../state/board/check.js';
 import { normalizeColor, normalizeSquare } from '../../../state/board/normalize.js';
+import { toPieceCode } from '../../../state/board/piece.js';
 import type { ColorInput, SquareString } from '../../../state/board/types/input.js';
+import type { Square } from '../../../state/board/types/internal.js';
 import { PieceCode, RoleCode, SQUARE_COUNT } from '../../../state/board/types/internal.js';
-import { Square, toPieceCode } from '../../build/index.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
 import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {

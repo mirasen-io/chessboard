@@ -63,6 +63,7 @@
 			board.setPosition(chess.fen());
 		}
 		status = 'Your move';
+		refreshCheckHighlight();
 	}
 
 	function refreshCheckHighlight() {

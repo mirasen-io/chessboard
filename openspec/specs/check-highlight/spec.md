@@ -27,6 +27,8 @@ The extension SHALL expose a public, extension-owned property `square` accessibl
 
 - **WHEN** the consumer has set `board.extensions.check.square = 'e1'`
 - **THEN** reading `board.extensions.check.square` returns `'e1'`
+- **WHEN** the consumer has set `board.extensions.check.square = 'white'`
+- **THEN** reading `board.extensions.check.square` returns `'white'` (the original input, not the king's square string)
 - **AND** when no square is set, reading it returns `null`
 
 #### Scenario: Invalid value is rejected
@@ -44,14 +46,20 @@ The extension SHALL highlight at most one square at any time. Setting `square` t
 - **THEN** the highlight over `e1` is removed
 - **AND** a single highlight is rendered over `e8`
 
-### Requirement: Idempotent updates
+### Requirement: Idempotent re-render
 
-Setting `square` to a value equal to the current value SHALL be a no-op and SHALL NOT trigger a redundant re-render.
+If the new value resolves to the same physical square as the current value, no re-render is triggered. The stored input value is always updated to the new value regardless.
 
-#### Scenario: Setting the same square again is a no-op
+#### Scenario: Setting the same square again skips re-render
 
 - **WHEN** `square` is `'e1'` and the consumer sets `square = 'e1'` again
 - **THEN** no additional render is requested and the existing highlight is left unchanged
+
+#### Scenario: Switching form at the same square updates the read-back
+
+- **WHEN** `square` is `'white'` and the consumer sets `square = 'e1'` (the king's square)
+- **THEN** no additional render is requested
+- **AND** reading `board.extensions.check.square` returns `'e1'`
 
 ### Requirement: Highlight rendered below pieces
 
