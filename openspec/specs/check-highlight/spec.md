@@ -6,12 +6,17 @@ Provides a first-party board extension that highlights a single consumer-supplie
 
 ### Requirement: Consumer-controlled check square
 
-The extension SHALL expose a public, extension-owned property `square` accessible as `board.extensions.check.square`. The property SHALL accept a `SquareString` to highlight that square, or `null` to indicate no highlight. The board SHALL NOT compute whether a king is in check; the highlighted square is entirely determined by the consumer-provided value.
+The extension SHALL expose a public, extension-owned property `square` accessible as `board.extensions.check.square`. The property SHALL accept a `SquareString` to highlight that specific square, a `ColorInput` to highlight the king of that color, or `null` to indicate no highlight. The board SHALL NOT compute whether a king is in check; the highlighted square is entirely determined by the consumer-provided value.
 
 #### Scenario: Setting a square shows the highlight
 
 - **WHEN** the consumer sets `board.extensions.check.square = 'e1'`
 - **THEN** the extension renders a single check highlight over square `e1`
+
+#### Scenario: Setting a color highlights the king of that color
+
+- **WHEN** the consumer sets `board.extensions.check.square = 'white'` (or `'w'`, `'black'`, `'b'`)
+- **THEN** the extension finds the king of that color on the board and renders a check highlight over its square
 
 #### Scenario: Clearing the square removes the highlight
 
@@ -24,9 +29,9 @@ The extension SHALL expose a public, extension-owned property `square` accessibl
 - **THEN** reading `board.extensions.check.square` returns `'e1'`
 - **AND** when no square is set, reading it returns `null`
 
-#### Scenario: Invalid square value is rejected
+#### Scenario: Invalid value is rejected
 
-- **WHEN** the consumer sets `square` to a value that is not a valid `SquareString` and not `null`
+- **WHEN** the consumer sets `square` to a value that is neither a valid `SquareString`, a valid `ColorInput`, nor `null`
 - **THEN** the extension SHALL reject the value rather than rendering an incorrect highlight
 
 ### Requirement: At most one highlighted square
