@@ -1,7 +1,7 @@
 {
 	"name": "@mirasen/chessboard",
 	"description": "Production-grade framework-agnostic TypeScript chessboard platform with real chess interaction built in.",
-	"version": "1.4.0",
+	"version": "1.5.0",
 	"license": "MIT",
 	"author": {
 		"name": "Mirasen"
