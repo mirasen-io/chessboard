@@ -1,5 +1,6 @@
 import {
 	Color,
+	ColorInput,
 	ColorShort,
 	MoveRequestInput,
 	Piece,
@@ -124,6 +125,10 @@ export function isPositionMapString(pos: PiecePositionInput): pos is PiecePositi
 
 export function isColorShort(value: unknown): value is ColorShort {
 	return value === 'w' || value === 'b';
+}
+
+export function isColorInput(value: unknown): value is ColorInput {
+	return isColor(value) || isColorShort(value);
 }
 
 export function isRoleShort(value: unknown): value is RoleShort {
