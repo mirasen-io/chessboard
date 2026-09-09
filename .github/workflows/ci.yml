@@ -19,7 +19,7 @@ permissions:
 
 env:
   # set the default node version to use in the matrix
-  DEFAULT_MATRIX_NODE_VERSION: '["22", "24"]'
+  DEFAULT_MATRIX_NODE_VERSION: '["22", "24", "26"]'
   DEFAULT_CACHE_RESET: false
 
 jobs:
