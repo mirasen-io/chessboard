@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.5.1
+
+### Patch Changes
+
+- 389a732: chore: update deps
+
 ## 1.5.0
 
 ### Minor Changes
