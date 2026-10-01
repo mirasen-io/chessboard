@@ -1,5 +1,13 @@
 # @mirasen/chessboard
 
+## 1.5.1
+
+### Patch Changes
+
+- 389a732: chore: update deps
+- 0dfb7a3: dependabot: dependency updates for PR #137
+- a95ffa0: dependabot: dependency updates for PR #138
+
 ## 1.5.0
 
 ### Minor Changes
