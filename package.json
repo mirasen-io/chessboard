@@ -115,5 +115,8 @@
 		"chess.js": {
 			"optional": true
 		}
+	},
+	"allowScripts": {
+		"fsevents": true
 	}
 }
