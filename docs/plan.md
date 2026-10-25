@@ -3,11 +3,11 @@
 Research date: October 25, 2026. Branch: `migrate/sk-3`.
 Baseline commit: `5b5a70436a6beab4ae4f7001c6f105c1ed1dc557`.
 
-Status: migration complete on October 25, 2026. All implementation steps are committed;
-[PR #147](https://github.com/mirasen-io/chessboard/pull/147) is open for the user's merge.
-Local example checks/build and brief manual sanity passed. CI, Node 22/24/26, Sonar,
-required checks and CodeQL passed for implementation head `cd90f70`. This final record
-is a documentation-only follow-up; its latest remote checks are reported in the PR handoff.
+Status: CLOSED on October 25, 2026. Migration and follow-up agent setup are complete.
+[PR #147](https://github.com/mirasen-io/chessboard/pull/147) was merged into main as
+`5a78206ea767f4c02924b10d61c105f0429121fd`. The user confirmed the example works through
+`npm run dev`. Post-merge CI, CodeQL, contribution synchronization and Release passed.
+No migration work remains; this closure is committed before the plan is removed.
 
 ## References and execution boundary
 
@@ -22,8 +22,9 @@ Technical requirements were checked against the official Svelte MCP documentatio
 
 Execute the steps autonomously through commits, push, PR creation, and CI verification.
 Update this document with actual results as work proceeds; do not inherit the reference
-plan's requirement to stop for review after each step. The user will merge the PR.
-Do not merge, enable auto-merge, publish the library, or trigger a production release.
+plan's requirement to stop for review after each step. The initial boundary left merging
+to the user; on October 25 the user subsequently authorized merge, post-merge verification,
+plan closure/removal in separate commits, and deletion of the local migration branch.
 
 ## Approach and scope
 
@@ -232,7 +233,8 @@ pages are needed now.
       the verified repository default branch. Include scope, validation, intentional route changes,
       type/config changes and any limitations. Do not use `scripts/push-update.sh`, which stages everything.
 - [x] Monitor CI at the latest PR SHA, fix migration regressions, and report the PR link
-      and actual check results. Keep the PR open for the user's merge; no auto-merge or release.
+      and actual check results. Follow the user's subsequent authorization for merge,
+      post-merge verification and plan cleanup; do not enable auto-merge.
 
 ## Completion criteria, risks and rollback
 
@@ -354,3 +356,18 @@ and associated configuration without discarding later user changes.
   passed at the same implementation head. Dependabot auto-merge correctly skipped this PR.
 - Final follow-up only records completion here. No additional application changes,
   automated example suites, publication, deployment or auto-merge were introduced.
+
+## Closure
+
+- PR #147 head ba78e77 passed all PR checks and was merged with a merge commit before
+  the user's later squash preference arrived. The user accepted retaining the published
+  history rather than rewriting main; no force-push was performed.
+- [Post-merge CI](https://github.com/mirasen-io/chessboard/actions/runs/40219669427)
+  passed: root check/lint, Node 22/24/26 tests, Sonar and required aggregate checks.
+- [CodeQL](https://github.com/mirasen-io/chessboard/actions/runs/40219669397),
+  [contribution synchronization](https://github.com/mirasen-io/chessboard/actions/runs/40219669446)
+  and [Release](https://github.com/mirasen-io/chessboard/actions/runs/40219954518) passed.
+- Example-local AGENTS/CLAUDE, Svelte/Playwright skills, references, plugin settings and
+  Codex discovery links are included. Root user changes were preserved.
+- This committed closure is followed by the requested separate plan-removal commit;
+  final push checks and local migration-branch deletion are reported in the handoff.
