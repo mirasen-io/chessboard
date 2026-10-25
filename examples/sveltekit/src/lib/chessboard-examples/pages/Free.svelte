@@ -1,0 +1,62 @@
+<script lang="ts">
+	import { useBoard } from '../use-board.svelte.js';
+	import { randomMove } from '../board-utils.js';
+
+	let boardEl: HTMLDivElement;
+	let orientation: 'white' | 'black' = $state('white');
+
+	const board = useBoard(
+		() => boardEl,
+		(b) => {
+			b.setMovability({ mode: 'free' });
+		}
+	);
+
+	function toggleOrientation() {
+		if (!board.current) return;
+		orientation = orientation === 'white' ? 'black' : 'white';
+		board.current.setOrientation(orientation);
+	}
+
+	function resetPosition() {
+		if (!board.current) return;
+		board.current.setPosition('start');
+	}
+
+	function clearSelection() {
+		if (!board.current) return;
+		board.current.select(null);
+	}
+
+	function doRandomMove() {
+		if (!board.current) return;
+		randomMove(board.current);
+	}
+</script>
+
+<svelte:head>
+	<title>Free Mode</title>
+</svelte:head>
+
+<div class="page">
+	<div class="panel">
+		<h1>Free Mode</h1>
+		<p class="subtitle">Minimal chessboard · movable free · both colors</p>
+
+		<div class="controls">
+			<button onclick={toggleOrientation}>Orientation: {orientation}</button>
+			<button onclick={resetPosition}>Reset position</button>
+			<button onclick={clearSelection}>Clear selection</button>
+			<button onclick={doRandomMove}>Random move</button>
+		</div>
+
+		<div class="board-wrap">
+			<div
+				{@attach (element) => {
+					boardEl = element;
+				}}
+				class="board"
+			></div>
+		</div>
+	</div>
+</div>
