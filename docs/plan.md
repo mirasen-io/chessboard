@@ -3,9 +3,11 @@
 Research date: October 25, 2026. Branch: `migrate/sk-3`.
 Baseline commit: `5b5a70436a6beab4ae4f7001c6f105c1ed1dc557`.
 
-Status: local migration and verification complete on October 25, 2026; steps 1–4 are
-committed. Root guidance/skills are transferred. Step 5 is at the pre-push checkpoint;
-PR creation and live CI verification follow. The user will merge.
+Status: migration complete on October 25, 2026. All implementation steps are committed;
+[PR #147](https://github.com/mirasen-io/chessboard/pull/147) is open for the user's merge.
+Local example checks/build and brief manual sanity passed. CI, Node 22/24/26, Sonar,
+required checks and CodeQL passed for implementation head `cd90f70`. This final record
+is a documentation-only follow-up; its latest remote checks are reported in the PR handoff.
 
 ## References and execution boundary
 
@@ -218,7 +220,7 @@ pages are needed now.
       release/coverage behavior. Do not add example test jobs, browser-install steps or
       automated manual-check scenarios to CI. Preserve existing required aggregate checks
       and root library validation; adjust integration only as required by the migration.
-- [ ] Verify on the actual Node 22/24/26 matrix; Node 22 must be ≥22.17. Inspect the shared
+- [x] Verify on the actual Node 22/24/26 matrix; Node 22 must be ≥22.17. Inspect the shared
       actions' actual commands before editing workflow integration. Keep root tooling scoped
       correctly; adjust root ignores only if evidence shows duplicate or invalid example checks.
 - [x] Run root format/lint/check/test/build and existing CI-equivalent coverage checks;
@@ -226,10 +228,10 @@ pages are needed now.
       export, release, version or unrelated formatting changes; none are intended.
 - [x] Do not add a library version bump solely for a private example migration. Preserve
       pending changesets and follow an explicit repository release requirement if discovered.
-- [ ] Commit only task-owned changes, push the migration branch, and create a PR against
+- [x] Commit only task-owned changes, push the migration branch, and create a PR against
       the verified repository default branch. Include scope, validation, intentional route changes,
       type/config changes and any limitations. Do not use `scripts/push-update.sh`, which stages everything.
-- [ ] Monitor CI at the latest PR SHA, fix migration regressions, and report the PR link
+- [x] Monitor CI at the latest PR SHA, fix migration regressions, and report the PR link
       and actual check results. Keep the PR open for the user's merge; no auto-merge or release.
 
 ## Completion criteria, risks and rollback
@@ -339,3 +341,16 @@ and associated configuration without discarding later user changes.
   No automated example tests were added; old demo-only tests were intentionally omitted.
 - Remaining remote work at this checkpoint: push migrate/sk-3, open a PR to main, and
   verify required checks at its actual head. Report the live result in the PR/final handoff.
+
+### Step 5: PR and remote verification
+
+- Pushed migrate/sk-3 and opened [PR #147](https://github.com/mirasen-io/chessboard/pull/147)
+  against main. GitHub reports it open, ready for review and mergeable; nothing was merged.
+- [CI run 40217277019](https://github.com/mirasen-io/chessboard/actions/runs/40217277019)
+  passed at cd90f708577231ce6470347da36c66fd84faa35c: check, tests on Node 22/24/26,
+  Sonar, required-main and required-contribution. Node 22 used v22.23.3; all 141 library
+  files / 1,618 tests passed there as well.
+- [CodeQL run 40217277024](https://github.com/mirasen-io/chessboard/actions/runs/40217277024)
+  passed at the same implementation head. Dependabot auto-merge correctly skipped this PR.
+- Final follow-up only records completion here. No additional application changes,
+  automated example suites, publication, deployment or auto-merge were introduced.
