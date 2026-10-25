@@ -7,3 +7,7 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Generated agent skills
+/.agents/skills/
+/.claude/skills/
