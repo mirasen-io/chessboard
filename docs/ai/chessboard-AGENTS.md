@@ -195,3 +195,41 @@ When reporting back after implementation:
 - note any contract or type changes
 - note tests added or updated
 - note any remaining risk, limitation, or follow-up
+
+## SvelteKit example workflow
+
+Adapted from `../cloudflare-site/AGENTS.md`. The root remains the TypeScript library;
+SvelteKit application tooling belongs to `examples/sveltekit`.
+
+- Work from this repository root. Use root npm scripts for the library and
+  `npm --prefix examples/sveltekit run <script>` for the example. Build the root library
+  before checking/building the example, whose local package exports use `dist/`.
+- Run formatting after coherent code/configuration changes, using each project's own
+  tooling. Run lint, check and build after a coherent block, not after every small edit.
+  Preserve generated skills with formatting exclusions.
+- The example is for manual checks. Keep Vitest/Playwright tooling installed for future
+  use, but do not generate example tests or test CI jobs unless requested. Preserve and
+  run the root library's existing validation when verifying a migration.
+- Use Svelte MCP `list-sections` first, then fetch relevant documentation. Run
+  `svelte-autofixer` on changed Svelte files and recheck fixes. Keep suggestions within
+  the authorized scope and preserve library architecture/lifecycle boundaries.
+
+### Browser verification
+
+- Apply `.agents/skills/playwright-cli/SKILL.md` for browser interaction guidance.
+  Use `examples/sveltekit/node_modules/.bin/playwright-cli` from the root, or the local
+  binary from inside the example. Check `--help`; never use a global installation.
+- Start the example dev server in the background, use the URL Vite reports, and stop
+  the server you started when finished. Do not build solely to inspect a page.
+- Restart after routing/configuration/dependency changes or stale output, and before
+  final visual verification. Do not leave duplicate servers or close unrelated sessions.
+- Use named browser sessions, targeted `find`/snapshots, limited depth and `--raw` output.
+  Take screenshots only for meaningful visual checks, not after routine edits.
+- For this migration, perform a brief visual sanity check with priority on `/0-debug`,
+  representative desktop/mobile widths, usable navigation and board controls. Do not
+  pursue exhaustive route/state comparisons or pixel matching. DOM snapshots alone
+  do not establish visual correctness.
+- Keep CLI output untracked under `.playwright-cli/`; retain useful migration evidence
+  only under ignored `artifacts/`. Report actual checks and any unavailable results.
+- If browser tooling is missing, report it; do not silently install packages or browsers.
+  The current migration explicitly authorizes local Playwright/Vitest/Tailwind setup.

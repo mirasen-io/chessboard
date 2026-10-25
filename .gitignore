@@ -141,3 +141,5 @@ artifacts
 .claude/settings.local.json
 .claude/cache/
 .claude/sessions/
+
+.playwright-cli/
