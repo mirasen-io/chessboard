@@ -155,17 +155,17 @@ pages are needed now.
 
 ### 2. Create and configure the sibling example
 
-- [ ] Scaffold `examples/sveltekit` with the minimal TypeScript template and equivalent
+- [x] Scaffold `examples/sveltekit` with the minimal TypeScript template and equivalent
       Prettier, ESLint, Vitest unit/component, Playwright and Tailwind forms/typography setup.
       Inspect destination collisions first; do not overwrite an existing user-created scaffold.
-- [ ] Omit generated demo content, including test add-on examples; retain useful test
+- [x] Omit generated demo content, including test add-on examples; retain useful test
       configuration. Do not select the full demo template or port the old demo pages.
-- [ ] Keep the scaffold inside the current Git repository. Preserve the example's private
+- [x] Keep the scaffold inside the current Git repository. Preserve the example's private
       identity/version; avoid new generated AI instructions or unrelated add-ons.
-- [ ] Apply the target configuration above and restore the three existing application
+- [x] Apply the target configuration above and restore the three existing application
       dependencies. Resolve a consistent lockfile; ensure generated tooling does not
       downgrade the existing Vitest 5 stack without a demonstrated compatibility reason.
-- [ ] Preserve `.npmrc`, ignore rules and `.vscode` settings/MCP setup; copy no generated
+- [x] Preserve `.npmrc`, ignore rules and `.vscode` settings/MCP setup; copy no generated
       output, caches, dependencies, secrets, local environment files or nested `.git`.
 
 ### 3. Port pages, helpers and assets
@@ -275,3 +275,18 @@ and associated configuration without discarding later user changes.
   and interaction snapshot. Screenshot: ignored artifacts/migration/baseline-debug.png.
 - Verified sv 1.1.1 create help and registry requirements: Kit 3.1.0 needs Node >=22.17;
   adapter-auto 8.0.0 peers with Kit 3. Repository default PR base is main.
+
+### Step 2: Kit 3 scaffold and configuration
+
+- Generated minimal TypeScript scaffold using sv 1.1.1 with Prettier, ESLint, Vitest
+  unit/component, Playwright (demo:no) and Tailwind forms/typography; no nested Git repo.
+- Removed generated specs/Vitest greetings; retained runner scripts/configurations without
+  running empty test suites. Replaced the welcome page with an example placeholder.
+- Kit 3.1.0, adapter-auto 8.0.0, Svelte 5.57.2, Vitest/provider 5.0.5 and
+  Playwright/test 1.64.1 are locked. Added local @playwright/cli 0.1.22 for manual inspection.
+- Restored local file:../.. library integration, filesystem access, npm/editor settings;
+  example engine is >=22.17. No library engine/export/version changes.
+- Scaffold format, check (0 errors/warnings), lint and build passed. Svelte autofixer
+  passed for the layout/placeholder. No tests or browser downloads were run.
+- Initial no-install scaffold formatting lacked plugins; formatting passed after install.
+  Adapter-auto's local no-host-detected message is expected for this manual example.
