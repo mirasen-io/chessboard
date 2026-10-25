@@ -11,3 +11,4 @@ bun.lockb
 # Generated agent skills
 /.agents/skills/
 /.claude/skills/
+/.github/skills/

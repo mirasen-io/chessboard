@@ -12,6 +12,20 @@ Run the commands below from `examples/sveltekit`; from the repository root, use
 build the root library with `npm run build` from the repository root before checking
 or building the example. Preserve root architectural contracts and user edits.
 
+## Local skills and integrations
+
+- `.github/skills/svelte-code-writer/SKILL.md`: Svelte documentation lookup and autofixer
+  workflow. Also linked under `.agents/skills/` for Codex discovery.
+- `.github/skills/svelte-core-bestpractices/SKILL.md`: modern Svelte practices and reference
+  documents. Also linked under `.agents/skills/` for Codex discovery.
+- `.agents/skills/playwright-cli/SKILL.md` and `.claude/skills/playwright-cli/SKILL.md`:
+  local browser CLI guidance. Prefer the project-local executable specified below.
+- `.claude/settings.json` enables the Svelte plugin; `.vscode/mcp.json` provides the
+  existing Svelte MCP connection. Prefer connected MCP tools over CLI downloads.
+- Generated skill copies remain verbatim. For Kit 3, configuration lives in
+  `vite.config.ts`; follow current official documentation if a copied reference uses
+  the older `svelte.config.js` layout.
+
 ## Validation Workflow
 
 - Run `npm run format` after code or configuration changes. Preserve generated skills and existing specification archives using the repository's formatting exclusions.

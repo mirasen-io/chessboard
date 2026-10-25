@@ -65,6 +65,8 @@ For a brief interactive browser check from the repository root, use
 `examples/sveltekit/node_modules/.bin/playwright-cli --help` and the root Playwright
 skill. Example-local `AGENTS.md`, `CLAUDE.md`, Playwright skills and Claude Svelte
 plugin settings are also available when opening this directory as a separate project.
+Svelte code-writer/best-practices skills live in `.github/skills/` with Codex discovery
+links in `.agents/skills/`.
 Use named sessions and close the browser/server you start when done.
 
 Adapter-auto is retained; no deployment target is configured for this local example.
