@@ -3,9 +3,9 @@
 Research date: October 25, 2026. Branch: `migrate/sk-3`.
 Baseline commit: `5b5a70436a6beab4ae4f7001c6f105c1ed1dc557`.
 
-Status: implementation authorized on October 25, 2026. Commit after each step; push and
-open the PR at the end. Root Svelte/browser guidance and the sibling website's Playwright
-skill/plugin setup are being transferred before migration.
+Status: local migration and verification complete on October 25, 2026; steps 1–4 are
+committed. Root guidance/skills are transferred. Step 5 is at the pre-push checkpoint;
+PR creation and live CI verification follow. The user will merge.
 
 ## References and execution boundary
 
@@ -214,17 +214,17 @@ pages are needed now.
 
 ### 5. Integrate CI and open the PR
 
-- [ ] Preserve CI/Dependabot paths already pointing at `examples/sveltekit` and root
+- [x] Preserve CI/Dependabot paths already pointing at `examples/sveltekit` and root
       release/coverage behavior. Do not add example test jobs, browser-install steps or
       automated manual-check scenarios to CI. Preserve existing required aggregate checks
       and root library validation; adjust integration only as required by the migration.
 - [ ] Verify on the actual Node 22/24/26 matrix; Node 22 must be ≥22.17. Inspect the shared
       actions' actual commands before editing workflow integration. Keep root tooling scoped
       correctly; adjust root ignores only if evidence shows duplicate or invalid example checks.
-- [ ] Run root format/lint/check/test/build and existing CI-equivalent coverage checks;
+- [x] Run root format/lint/check/test/build and existing CI-equivalent coverage checks;
       use the example's own tooling for Svelte. Inspect the final diff for library source,
       export, release, version or unrelated formatting changes; none are intended.
-- [ ] Do not add a library version bump solely for a private example migration. Preserve
+- [x] Do not add a library version bump solely for a private example migration. Preserve
       pending changesets and follow an explicit repository release requirement if discovered.
 - [ ] Commit only task-owned changes, push the migration branch, and create a PR against
       the verified repository default branch. Include scope, validation, intentional route changes,
@@ -322,3 +322,20 @@ and associated configuration without discarding later user changes.
   no other user-local files were found. New README documents manual checks and embedding.
 - Root lint passed once the old tree was removed; no root lint/config adjustment was needed.
   Browser sessions and dev servers started for inspection were stopped.
+
+### Step 5: pre-push verification checkpoint
+
+- Root format, lint, check, build/publint and coverage passed. All 141 existing library
+  spec files / 1,618 tests passed, including the coverage run (96% line coverage).
+- Example clean install, format, lint, check and build passed; lockfile SHA-256 stayed
+  95246104ca787024a03eeb87ba88f1e6b2fa011987275cf65f0d9d79f8ac259a.
+- Built preview returned 200 for the index and all seven numbered examples; removed
+  /demo and /demo/playwright returned 404. The local library symlink resolves to this
+  checkout. Preview/dev servers and both named browser sessions were stopped.
+- Inspected shared CI action commands. Existing root check/lint and library build/coverage
+  flow, Node 22/24/26 matrix, required aggregate names, Dependabot and release configuration
+  are unchanged. No example test automation, browser download job or release changeset.
+- Final diff has no root library source, package manifest/lockfile or workflow changes.
+  No automated example tests were added; old demo-only tests were intentionally omitted.
+- Remaining remote work at this checkpoint: push migrate/sk-3, open a PR to main, and
+  verify required checks at its actual head. Report the live result in the PR/final handoff.
