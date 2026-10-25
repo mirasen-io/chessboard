@@ -143,15 +143,15 @@ pages are needed now.
 
 ### 1. Record reproducible baseline results
 
-- [ ] Recheck branch, HEAD, instructions and user edits; preserve this plan and unrelated work.
-- [ ] Inspect installed tooling and CLI help before scaffolding; record Node/npm and
+- [x] Recheck branch, HEAD, instructions and user edits; preserve this plan and unrelated work.
+- [x] Inspect installed tooling and CLI help before scaffolding; record Node/npm and
       exact framework/test versions. Use a pinned `sv` version supporting Kit 3.
-- [ ] Build the root library, then run the old example's check, lint and build. Verify
+- [x] Build the root library, then run the old example's check, lint and build. Verify
       chessboard behavior interactively; do not run its generated demo test suites.
       Record existing failures separately from migration regressions.
-- [ ] Perform only a brief baseline visual sanity check, prioritizing Debug. The user
+- [x] Perform only a brief baseline visual sanity check, prioritizing Debug. The user
       explicitly reduced visual scope; no exhaustive screenshot matrix is required.
-- [ ] Store local logs/screenshots under ignored `artifacts/`; keep baseline files unchanged.
+- [x] Store local logs/screenshots under ignored `artifacts/`; keep baseline files unchanged.
 
 ### 2. Create and configure the sibling example
 
@@ -265,3 +265,13 @@ and associated configuration without discarding later user changes.
 - Initial sandbox build compiled TypeScript but publint could not write the default npm
   cache. Network/npm operations use authorized execution outside the sandbox;
   no ownership or global npm configuration changes are needed.
+
+### Step 1: baseline
+
+- Node 24.21.0 / npm 11.19.0; branch migrate/sk-3; no unrelated working-tree edits.
+- Root build (including publint) passed outside the sandbox. Old example clean install,
+  check (0 errors/warnings), lint and build passed. No demo tests were executed.
+- Brief baseline inspection: Debug at 1440×900 renders the board, annotations, controls
+  and interaction snapshot. Screenshot: ignored artifacts/migration/baseline-debug.png.
+- Verified sv 1.1.1 create help and registry requirements: Kit 3.1.0 needs Node >=22.17;
+  adapter-auto 8.0.0 peers with Kit 3. Repository default PR base is main.
