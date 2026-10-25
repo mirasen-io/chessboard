@@ -1,1 +1,1 @@
-// place files you want to import through the `#lib` alias in this folder.
+// Shared example components and helpers live in chessboard-examples/.

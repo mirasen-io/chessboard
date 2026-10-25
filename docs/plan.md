@@ -170,21 +170,21 @@ pages are needed now.
 
 ### 3. Port pages, helpers and assets
 
-- [ ] Transfer only the chessboard components/helpers into the portable folder, create
+- [x] Transfer only the chessboard components/helpers into the portable folder, create
       the seven numbered route wrappers and replace the root debug page with the index.
       Retain necessary app shell/types/assets; do not copy the old `src/` tree wholesale.
-- [ ] Extract shared and inline chessboard CSS into the separate scoped stylesheet,
+- [x] Extract shared and inline chessboard CSS into the separate scoped stylesheet,
       and integrate the simple reusable navigation for all seven examples.
-- [ ] Limit other application edits to required Kit 3 imports/configuration/API adjustments.
+- [x] Limit other application edits to required Kit 3 imports/configuration/API adjustments.
       Keep `useBoard`, setup callbacks, raw snapshots, custom extension order, timer
       cleanup and chess.js reset/version guard responsibilities unchanged.
-- [ ] Retain Vitest unit/component and Playwright dependencies/configuration/scripts for
+- [x] Retain Vitest unit/component and Playwright dependencies/configuration/scripts for
       future use, including local build/preview on port 4173. Exclude all old/generated
       demo specs and components; do not replace them with new automated tests or fixtures.
-- [ ] Keep Tailwind, its Vite integration, forms/typography plugins and formatter support.
+- [x] Keep Tailwind, its Vite integration, forms/typography plugins and formatter support.
       Compare the sibling website's actual tooling configuration and reuse only relevant
       setup; do not import its product dependencies or automated website test suite.
-- [ ] Run Svelte MCP autofixer on changed Svelte files, recheck corrections, and assess
+- [x] Run Svelte MCP autofixer on changed Svelte files, recheck corrections, and assess
       suggestions against migration scope rather than rewriting working interaction code.
 
 ### 4. Verify parity and finalize the directory replacement
@@ -290,3 +290,17 @@ and associated configuration without discarding later user changes.
   passed for the layout/placeholder. No tests or browser downloads were run.
 - Initial no-install scaffold formatting lacked plugins; formatting passed after install.
   Adapter-auto's local no-host-detected message is expected for this manual example.
+
+### Step 3: chessboard components and numbered routes
+
+- Ported seven separate page components with thin numbered route wrappers, portable
+  helpers, scoped external CSS, shared links and a Kit-independent navigation component.
+  Home is now an index; Debug lives at /0-debug. No scaffold demos/specs were copied.
+- Kept existing board setup, extension lists, controls, raw snapshots, helper teardown,
+  polling cleanup and chess.js timeout/reset guards. Root library source is unchanged.
+- Svelte autofixer passed all 18 components plus the lifecycle helper. Applied simple
+  DOM-reference attachments and class attributes without moving lifecycle responsibilities.
+- Example check (0 errors/warnings), lint and build passed. Navigation accepts URLs
+  resolved by the host; its single anchor has a documented local Kit-lint exception.
+- CSS is isolated under .chessboard-examples; board width is constrained to the panel
+  and narrow navigation wraps, so the transferred layout can fit its embedding container.
