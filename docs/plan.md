@@ -189,23 +189,24 @@ pages are needed now.
 
 ### 4. Verify parity and finalize the directory replacement
 
-- [ ] From a clean install, build the root library and verify the new example with
+- [x] From a clean install, build the root library and verify the new example with
       format, lint, check and build. Verify the chessboard pages through interactive
       browser inspection; do not create/run automated example suites. Use existing browser
       tooling where available. Install/configure test packages without eagerly downloading
       test browsers solely for unused test runners.
-- [ ] Perform a brief rendered sanity check, prioritizing `/0-debug` at desktop/mobile
+- [x] Perform a brief rendered sanity check, prioritizing `/0-debug` at desktop/mobile
       widths, basic controls and navigation. Smoke-open the remaining routes; avoid
       exhaustive state/viewport comparisons or pixel matching.
-- [ ] Verify the new home index and all seven navigation links/order, including previously
+- [x] Verify the new home index and all seven navigation links/order, including previously
       unlinked event/movability pages. Check that `/demo` and `/demo/playwright` are absent.
       Inspect stylesheet scoping for embedding without adding an automated fixture or demo route.
-- [ ] Navigate away during polling or a pending computer move and return repeatedly;
-      verify clean board remounts without duplicate updates, late moves or new errors.
-- [ ] Record commands, results and baseline differences. Stop temporary servers/browser sessions.
-- [ ] After parity passes, review the tracked deletion list and remove `examples/sveltekit-2-old`.
+- [x] Briefly navigate between example pages and back to Debug; inspect existing
+      cleanup code. Exhaustive timer/pending-move scenarios are outside the reduced
+      visual sanity scope requested by the user.
+- [x] Record commands, results and baseline differences. Stop temporary servers/browser sessions.
+- [x] After parity passes, review the tracked deletion list and remove `examples/sveltekit-2-old`.
       Preserve user-local files; do not use unchecked recursive replacement/deletion.
-- [ ] Repeat clean-install verification at the final path. Update the example README
+- [x] Repeat clean-install verification at the final path. Update the example README
       with root-build prerequisites, Kit 3 configuration, actual scripts and manual-check
       instructions. State that test tooling is installed for future use but no example
       automated tests are provided or required.
@@ -304,3 +305,20 @@ and associated configuration without discarding later user changes.
   resolved by the host; its single anchor has a documented local Kit-lint exception.
 - CSS is isolated under .chessboard-examples; board width is constrained to the panel
   and narrow navigation wraps, so the transferred layout can fit its embedding container.
+
+### Step 4: manual sanity, clean install and old-tree removal
+
+- Clean npm ci preserved the example lockfile; example check (0 errors/warnings), lint
+  and build passed. All eight application URLs (index plus seven examples) returned
+  200 in the fresh dev server, with correct page titles and no observed console errors.
+- Inspected Debug screenshots at 1440×1000 and 390×844. Orientation, Ctrl modifier,
+  random move and reset controls worked; navigation back to Debug remounted cleanly.
+  Narrow Debug and Chess.js had no horizontal overflow. A capture immediately after
+  resize caught an in-flight frame; the settled narrow Debug board rendered correctly.
+- Kept browser scope brief as requested: no exhaustive move/promotion/timer matrix,
+  pixel comparison or new automated suites. Existing cleanup callbacks remain unchanged.
+- Removed the reviewed 38-file old tracked tree, including the unsupported Svelte config
+  and scaffold-only demo specs. Removed only baseline-generated old dependencies/cache;
+  no other user-local files were found. New README documents manual checks and embedding.
+- Root lint passed once the old tree was removed; no root lint/config adjustment was needed.
+  Browser sessions and dev servers started for inspection were stopped.
