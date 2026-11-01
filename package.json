@@ -1,7 +1,7 @@
 {
 	"name": "@mirasen/react-chessboard",
 	"description": "A React chessboard component with built-in interaction, promotion, animation, and chess.js integration.",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"license": "MIT",
 	"keywords": [
 		"mirasen",

@@ -1,5 +1,13 @@
 # @mirasen/react-chessboard
 
+## 2.0.1
+
+### Patch Changes
+
+- 203e689: dependabot: dependency updates for PR #119
+- f25ea15: dependabot: dependency updates for PR #121
+- 0977154: dependabot: dependency updates for PR #122
+
 ## 2.0.0
 
 ### Major Changes
