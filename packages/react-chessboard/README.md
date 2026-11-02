@@ -1,10 +1,12 @@
 [![NPM Version](https://img.shields.io/npm/v/%40mirasen%2Freact-chessboard)](https://www.npmjs.com/package/@mirasen/react-chessboard)
-[![CI](https://github.com/mirasen-io/react-chessboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mirasen-io/react-chessboard/actions/workflows/ci.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_react-chessboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mirasen-io_react-chessboard)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_react-chessboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mirasen-io_react-chessboard)
-[![License](https://img.shields.io/npm/l/@mirasen/react-chessboard)](./LICENSE)
+[![CI](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
+[![License](https://img.shields.io/npm/l/%40mirasen%2Freact-chessboard)](./LICENSE)
 
 # @mirasen/react-chessboard
+
+[Monorepo home](../../README.md) · [Contribution guide](../../CONTRIBUTING.md)
 
 A React chessboard component with built-in interaction, promotion, animation, and chess.js integration.
 
@@ -195,7 +197,7 @@ export function App() {
 }
 ```
 
-For a complete local smoke example, see [`examples/app`](./examples/app).
+For a complete local smoke example, see [`examples/react`](../../examples/react).
 
 ## Request-based props
 
@@ -443,7 +445,7 @@ Use this route when you need lower-level runtime access than the React component
 ## Local example app
 
 ```bash
-cd examples/app
+cd examples/react
 npm install
 npm run dev
 ```
@@ -451,7 +453,7 @@ npm run dev
 Production build:
 
 ```bash
-cd examples/app
+cd examples/react
 npm run build
 ```
 

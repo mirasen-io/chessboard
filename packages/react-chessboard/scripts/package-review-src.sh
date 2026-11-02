@@ -12,11 +12,12 @@ set -euo pipefail
 # Output:
 #   ./artifacts/<name>-YYYYMMDD-HHMMSS.tgz
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"
+PACKAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(git -C "$PACKAGE_DIR" rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
 
-ARTIFACTS_DIR="$ROOT_DIR/artifacts"
-STAGING_DIR="$ARTIFACTS_DIR/.review-src-staging"
+ARTIFACTS_DIR="$REPO_ROOT/artifacts"
+STAGING_DIR="$ARTIFACTS_DIR/.review-src-staging/react-chessboard"
 
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
 NAME_PREFIX="react-chessboard-src-review"
@@ -42,35 +43,31 @@ mkdir -p "$ARTIFACTS_DIR"
 
 copy_if_exists() {
   local path="$1"
-  if [[ -e "$ROOT_DIR/$path" ]]; then
+  if [[ -e "$PACKAGE_DIR/$path" ]]; then
     mkdir -p "$STAGING_DIR/$(dirname "$path")"
-    cp -R "$ROOT_DIR/$path" "$STAGING_DIR/$path"
+    cp -R "$PACKAGE_DIR/$path" "$STAGING_DIR/$path"
   fi
 }
 
 echo "Preparing review package..."
 echo "Mode: $([[ "$FULL_MODE" == "true" ]] && echo full || echo standard)"
 
-if [[ ! -d "$ROOT_DIR/src" ]]; then
+if [[ ! -d "$PACKAGE_DIR/src" ]]; then
   echo "Error: src directory not found"
   exit 1
 fi
 
 # Standard payload
-cp -R "$ROOT_DIR/src" "$STAGING_DIR/src"
+cp -R "$PACKAGE_DIR/src" "$STAGING_DIR/src"
 copy_if_exists "tests"
 copy_if_exists "scripts"
 copy_if_exists "docs"
-copy_if_exists ".github"
 copy_if_exists "CHANGELOG.md"
 
 copy_if_exists "src-old"
 copy_if_exists "tests-old"
 
 copy_if_exists "package.json"
-copy_if_exists "package-lock.json"
-copy_if_exists "pnpm-lock.yaml"
-copy_if_exists "yarn.lock"
 
 copy_if_exists "tsconfig.json"
 copy_if_exists "tsconfig-test.json"
@@ -84,7 +81,10 @@ copy_if_exists ".npmignore"
 
 # Optional extras in full mode
 if [[ "$FULL_MODE" == "true" ]]; then
-  copy_if_exists "examples"
+  if [[ -d "$REPO_ROOT/examples/react" ]]; then
+    mkdir -p "$STAGING_DIR/examples"
+    cp -R "$REPO_ROOT/examples/react" "$STAGING_DIR/examples/react"
+  fi
 fi
 
 find "$STAGING_DIR" -type d \( \

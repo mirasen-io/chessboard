@@ -26,7 +26,8 @@
 	"homepage": "https://mirasen.k-tarmyshov.workers.dev/chessboard",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/mirasen-io/chessboard.git"
+		"url": "git+https://github.com/mirasen-io/chessboard.git",
+		"directory": "packages/chessboard"
 	},
 	"bugs": {
 		"url": "https://github.com/mirasen-io/chessboard/issues"

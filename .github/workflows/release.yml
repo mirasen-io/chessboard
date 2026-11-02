@@ -40,6 +40,10 @@ jobs:
         with:
           app-id: ${{ secrets.WORKFLOW_APP_ID }}
           private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
-          matrix-node-version: ${{ vars.MATRIX_NODE_VERSION }}
+          matrix-node-version: ${{ vars.MATRIX_NODE_VERSION || '["22", "24", "26"]' }}
+          install-script: npm ci
+          build-script: npm run build:release
+          version-script: npm run changeset:version
+          publish-script: npm run changeset:publish
           # cache-reset: true
           npm-token: ${{ secrets.NPM_TOKEN }}

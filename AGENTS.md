@@ -2,7 +2,9 @@
 
 ## Project
 
-`@mirasen/chessboard` is a TypeScript chessboard library focused on clean architecture, predictable rendering, explicit contracts, and future extension support.
+This repository is an npm workspaces monorepo for `@mirasen/chessboard` and
+`@mirasen/react-chessboard`. The core TypeScript chessboard library focuses on
+clean architecture, predictable rendering, explicit contracts, and extension support.
 
 ## Instructions
 
@@ -198,10 +200,10 @@ When reporting back after implementation:
 
 ## SvelteKit example workflow
 
-Adapted from `../cloudflare-site/AGENTS.md`. The root remains the TypeScript library;
-SvelteKit application tooling belongs to `examples/sveltekit`.
+Adapted from `../cloudflare-site/AGENTS.md`. Package tooling belongs to the two
+workspace packages; SvelteKit application tooling belongs to `examples/sveltekit`.
 
-- Work from this repository root. Use root npm scripts for the library and
+- Work from this repository root. Use root npm scripts for the workspace and
   `npm --prefix examples/sveltekit run <script>` for the example. Build the root library
   before checking/building the example, whose local package exports use `dist/`.
 - Run formatting after coherent code/configuration changes, using each project's own
@@ -209,7 +211,7 @@ SvelteKit application tooling belongs to `examples/sveltekit`.
   Preserve generated skills with formatting exclusions.
 - The example is for manual checks. Keep Vitest/Playwright tooling installed for future
   use, but do not generate example tests or test CI jobs unless requested. Preserve and
-  run the root library's existing validation when verifying a migration.
+  run the workspace packages' existing validation when changing the example.
 - Use Svelte MCP `list-sections` first, then fetch relevant documentation. Run
   `svelte-autofixer` on changed Svelte files and recheck fixes. Keep suggestions within
   the authorized scope and preserve library architecture/lifecycle boundaries.
@@ -225,7 +227,7 @@ SvelteKit application tooling belongs to `examples/sveltekit`.
   final visual verification. Do not leave duplicate servers or close unrelated sessions.
 - Use named browser sessions, targeted `find`/snapshots, limited depth and `--raw` output.
   Take screenshots only for meaningful visual checks, not after routine edits.
-- For this migration, perform a brief visual sanity check with priority on `/0-debug`,
+- When validating the SvelteKit example, perform a brief visual sanity check with priority on `/0-debug`,
   representative desktop/mobile widths, usable navigation and board controls. Do not
   pursue exhaustive route/state comparisons or pixel matching. DOM snapshots alone
   do not establish visual correctness.

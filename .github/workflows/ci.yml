@@ -142,7 +142,14 @@ jobs:
     steps:
       - uses: kt-workflows/actions/npm-ci-check@main
         with:
-          install-script: npm ci && npm ci --prefix examples/sveltekit
+          install-script: npm ci && npm ci --prefix examples/sveltekit && npm ci --prefix examples/react
+          run-script: |
+            npm run check
+            npm run lint
+            npm run build -w @mirasen/react-chessboard
+            npm --prefix examples/sveltekit run check
+            npm --prefix examples/sveltekit run build
+            npm --prefix examples/react run build
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
@@ -152,26 +159,47 @@ jobs:
     strategy:
       matrix:
         node-version: ${{ fromJson(needs.config.outputs.matrix-node-version) }}
-    env:
-      COVERAGE_DIR: coverage-test-node${{ matrix.node-version }}
     steps:
       - uses: kt-workflows/actions/npm-ci-test@main
         with:
-          install-script: npm ci && npm ci --prefix examples/sveltekit
-          # run tests with coverage for SonarCloud
-          run-script: |
-            npm run build
-            npm run coverage
-            mv coverage-test "${COVERAGE_DIR}"
+          install-script: npm ci
+          run-script: npm run coverage
           node-version: ${{ matrix.node-version }}
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
-      - name: Upload coverage artifact
+      - name: Map package coverage sources to monorepo paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          for package in chessboard react-chessboard; do
+            report="packages/${package}/coverage-test/lcov.info"
+            test -s "$report"
+            sed -i "s#^SF:src/#SF:packages/${package}/src/#" "$report"
+            if grep -q '^SF:src/' "$report"; then
+              echo "Unmapped LCOV source path remains in $report" >&2
+              exit 1
+            fi
+          done
+
+      - name: Upload package coverage artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.COVERAGE_DIR }}
-          path: ${{ env.COVERAGE_DIR }}
+          name: coverage-node-${{ matrix.node-version }}
+          path: |
+            packages/chessboard/coverage-test/lcov.info
+            packages/react-chessboard/coverage-test/lcov.info
           if-no-files-found: error
+
+  snyk:
+    needs: config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kt-workflows/actions/npm-ci-snyk@main
+        with:
+          matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
+          snyk-token: ${{ secrets.SNYK_TOKEN }}
+          args: --all-projects --detection-depth=2 --exclude=examples
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
 
   sonar:
     needs:
@@ -184,26 +212,25 @@ jobs:
         with:
           fetch-depth: 0 # fetch all history for accurate SonarCloud analysis
 
-      - name: Download all coverage artifacts to repo root
+      - name: Download coverage artifacts from every Node.js job
         uses: actions/download-artifact@v8
         with:
-          pattern: 'coverage-*'
-          path: .
+          pattern: coverage-node-*
+          path: coverage-reports
+          merge-multiple: false
 
-      - uses: kt-workflows/actions/npm-ci-sonar@main
+      - name: Scan monorepo SonarQube Cloud project
+        uses: kt-workflows/actions/npm-ci-sonar@main
         with:
           checkout: false # already checked out in previous step
+          skip-npm-setup: true
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           fail-on-empty-token: true
           cache-reset: ${{ needs.config.outputs.cache-reset }}
-          install-script: exit 0
-          run-script: |
-            echo 'Workspace root:'
-            ls -la
-            echo
-            echo 'Coverage reports:'
-            find . -maxdepth 2 -name lcov.info | sort
+          install-script: ''
+          run-script: echo 'Scanning both packages with coverage from every Node.js matrix job'
+          project-base-dir: .
 
   # Stable aggregate required-* checks for branch protection rules.
   # This avoids depending directly on individual matrix job statuses.
@@ -212,6 +239,7 @@ jobs:
     needs:
       - check
       - test
+      - snyk
       - sonar
     runs-on: ubuntu-latest
     steps:
@@ -225,6 +253,7 @@ jobs:
     needs:
       - check
       - test
+      - snyk
     runs-on: ubuntu-latest
     steps:
       - name: Verify required jobs for contribution

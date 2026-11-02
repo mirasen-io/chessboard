@@ -1,8 +1,9 @@
 # Chessboard manual examples
 
 SvelteKit 3 example for manually checking this repository's chessboard library.
-Requires Node 22.17 or newer and npm. The library dependency is `file:../..` and
-resolves its public exports from the root `dist/` directory.
+Requires Node 22.17 or newer and npm. The library dependency is
+`file:../../packages/chessboard` and resolves its public exports from the package's
+`dist/` directory.
 
 Run from the repository root:
 
@@ -13,7 +14,7 @@ npm ci --prefix examples/sveltekit
 npm --prefix examples/sveltekit run dev
 ```
 
-Use the URL Vite reports. Rebuild the root library after changing its source;
+Use the URL Vite reports. Rebuild the workspace packages after changing their source;
 restart the example server if linked output or dependencies appear stale.
 
 ## Manual routes
@@ -59,7 +60,7 @@ Vitest unit/component tooling, Playwright, local `@playwright/cli` and Tailwind 
 forms/typography are installed and configured for future use. There are intentionally
 no automated example tests. The `test:*` scripts are reserved for future suites;
 no-tests results are expected until tests are added. `test:e2e` also downloads browsers.
-The root library's automated tests are independent and remain unchanged.
+The core and React packages have their own automated tests and validation scripts.
 
 For a brief interactive browser check from the repository root, use
 `examples/sveltekit/node_modules/.bin/playwright-cli --help` and the root Playwright

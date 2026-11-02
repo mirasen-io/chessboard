@@ -5,16 +5,12 @@ Minimal Vite React app to smoke-test `@mirasen/react-chessboard` with chess.js.
 ## Run
 
 ```bash
-cd examples/app
+cd examples/react
 npm install
 npm run dev
 ```
 
-Or from the repository root:
-
-```bash
-npm run example
-```
+The example is a standalone project; install its dependencies from its own directory.
 
 ## What it does
 
