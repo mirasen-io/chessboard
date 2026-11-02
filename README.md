@@ -10,10 +10,10 @@ A production-grade, framework-agnostic TypeScript chessboard platform with real 
 
 ## Try it live (including annotations)
 
-- [Play a chess.js game](https://mirasen.io/chessboard/examples/chessjs.html)
-- [Watch 12 live boards](https://mirasen.io/chessboard/examples/live-games-grid.html)
-- [Try the promotion flow](https://mirasen.io/chessboard/examples/promotion.html)
-- [Try the minimal example](https://mirasen.io/chessboard/examples/minimal.html)
+- [Play a chess.js game](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/chessjs)
+- [Watch 12 live boards](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/live-games-grid)
+- [Try the promotion flow](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/promotion)
+- [Try the minimal example](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/minimal)
 
 ## Using React?
 
@@ -64,7 +64,7 @@ That means the board already covers a meaningful baseline chess UX instead of st
 
 ### Built-in chessboard behavior
 
-Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, circles and arrows, promotion, auto-promotion, and state-diff animation.
+The `@mirasen/chessboard` package provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, circles and arrows, promotion, auto-promotion, and state-diff animation.
 
 Moves are resolved on release rather than committed immediately on press, giving users a more forgiving interaction flow. Because animation is driven by board-state transitions, pieces can move, appear, disappear, promote, castle, or return smoothly without app-level rendering glue code.
 
@@ -393,11 +393,11 @@ Configured built-in extensions can be provided either as declarative `{ builtin,
 
 ### Default visual identity and attribution
 
-The default first-party extension baseline includes a subtle Mirasen board watermark.
+The default first-party extension baseline includes a subtle mirasen board watermark.
 
 If you want full control over the visual baseline, use an explicit extension list and omit the `watermark` extension.
 
-Attribution is not required by the MIT license, but it is appreciated. If Mirasen Chessboard helps your project, please consider keeping the default watermark or linking to `@mirasen/chessboard`.
+Attribution is not required by the MIT license, but it is appreciated. If the mirasen chessboard library helps your project, please consider keeping the default watermark or linking to `@mirasen/chessboard`.
 
 ## Documentation
 
