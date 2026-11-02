@@ -200,7 +200,7 @@ jobs:
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           snyk-token: ${{ secrets.SNYK_TOKEN }}
           args: >-
-            --all-projects --fail-fast --detection-depth=3 --dev --org=mirasen
+            --all-projects --fail-fast --detection-depth=3 --org=mirasen
             --strict-out-of-sync=true --json-file-output=snyk-results.json
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
@@ -212,14 +212,27 @@ jobs:
           const fs = require('node:fs');
 
           const results = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
-          const manifests = new Map();
-          const expected = [
-            'package.json',
-            'packages/chessboard/package.json',
-            'packages/react-chessboard/package.json',
-            'examples/sveltekit/package.json',
-            'examples/react/package.json',
-          ];
+          const reports = Array.isArray(results) ? results : [results];
+          const expected = new Map([
+            ['package.json', { projectName: 'mirasen-chessboard-workspace', manifest: 'package.json' }],
+            [
+              'packages/chessboard/package.json',
+              { projectName: '@mirasen/chessboard', manifest: 'packages/chessboard/package.json' },
+            ],
+            [
+              'packages/react-chessboard/package.json',
+              { projectName: '@mirasen/react-chessboard', manifest: 'packages/react-chessboard/package.json' },
+            ],
+            [
+              'examples/react/package-lock.json',
+              { projectName: 'react-chessboard-example', manifest: 'examples/react/package.json' },
+            ],
+            [
+              'examples/sveltekit/package-lock.json',
+              { projectName: 'sveltekit', manifest: 'examples/sveltekit/package.json' },
+            ],
+          ]);
+          const byTarget = new Map();
 
           function normalizeTarget(targetFile) {
             const normalized = targetFile.replaceAll('\\', '/').replace(/^\.\//, '');
@@ -229,44 +242,42 @@ jobs:
             return normalized;
           }
 
-          function visit(value) {
-            if (Array.isArray(value)) {
-              value.forEach(visit);
-              return;
-            }
-            if (!value || typeof value !== 'object') return;
-
-            const targetFile = value.targetFile || value.displayTargetFile || value.meta?.targetFile;
-            if (typeof targetFile === 'string' && targetFile.endsWith('package.json')) {
-              const normalized = normalizeTarget(targetFile);
-              const dependencyCount = value.dependencyCount ?? value.depGraphData?.graph?.nodes?.length;
-              manifests.set(normalized, {
-                projectName: value.projectName ?? value.name ?? 'unknown',
-                dependencyCount: Number.isFinite(dependencyCount) ? dependencyCount : null,
-              });
-            }
-
-            Object.values(value).forEach(visit);
+          for (const report of reports) {
+            const targetFile = report.displayTargetFile || report.targetFile;
+            if (typeof targetFile !== 'string' || targetFile.length === 0) continue;
+            const target = normalizeTarget(targetFile);
+            byTarget.set(target, report);
           }
 
-          visit(results);
-          const missing = expected.filter((manifest) => !manifests.has(manifest));
-          if (missing.length > 0) {
-            console.error(`Snyk did not return results for expected manifests: ${missing.join(', ')}`);
-            process.exitCode = 1;
-          }
-
-          for (const manifest of expected) {
-            const details = manifests.get(manifest);
-            if (details && !(details.dependencyCount > 0)) {
-              console.error(`Snyk did not report a resolved dependency tree for ${manifest}`);
+          for (const [target, expectedProject] of expected) {
+            const report = byTarget.get(target);
+            if (!report) {
+              console.error(`Snyk did not return a result for ${expectedProject.manifest} (target ${target})`);
+              process.exitCode = 1;
+              continue;
+            }
+            if (report.projectName !== expectedProject.projectName) {
+              console.error(
+                `Unexpected Snyk project for ${target}: ${report.projectName} (expected ${expectedProject.projectName})`,
+              );
               process.exitCode = 1;
             }
+            const dependencyCount = report.dependencyCount;
+            if (
+              expectedProject.projectName !== 'mirasen-chessboard-workspace' &&
+              !(Number.isFinite(dependencyCount) && dependencyCount > 0)
+            ) {
+              console.error(`Snyk did not report production dependencies for ${expectedProject.manifest}`);
+              process.exitCode = 1;
+            }
+            console.log(
+              `- ${expectedProject.manifest}: ${report.projectName} (${dependencyCount ?? 'no production dependencies'} dependencies)`,
+            );
           }
 
-          console.log(`Snyk JSON contains ${manifests.size} distinct npm package manifests:`);
-          for (const [manifest, details] of [...manifests.entries()].sort()) {
-            console.log(`- ${manifest}: ${details.projectName} (${details.dependencyCount ?? 'unknown'} dependencies)`);
+          if (reports.length !== expected.size) {
+            console.error(`Snyk returned ${reports.length} projects; expected ${expected.size}`);
+            process.exitCode = 1;
           }
           NODE
 
