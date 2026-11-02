@@ -271,39 +271,42 @@ needed); only React needs core `dist` d.ts, which `build:core` provides, and Rea
 coverage (vitest runs on `src`). Therefore the CI `test`/`sonar` `run-script` is just `npm run coverage`
 (self-contained) — drop the previous separate `npm run build` step to avoid a redundant second core build.
 
+
 ## Phase 7 — Repository metadata (both packages)
 
-Set `repository.directory` on each publishable package and point both at the monorepo:
+Keep npm names unchanged, but point both publishable package manifests to the consolidated repository using `repository.directory`:
 
 ```jsonc
 // packages/chessboard/package.json
-"repository": { "type": "git", "url": "git+https://github.com/mirasen-io/chessboard.git", "directory": "packages/chessboard" }
+"repository": {
+  "type": "git",
+  "url": "git+https://github.com/mirasen-io/chessboard.git",
+  "directory": "packages/chessboard"
+}
 // packages/react-chessboard/package.json
-"repository": { "type": "git", "url": "git+https://github.com/mirasen-io/chessboard.git", "directory": "packages/react-chessboard" }
+"repository": {
+  "type": "git",
+  "url": "git+https://github.com/mirasen-io/chessboard.git",
+  "directory": "packages/react-chessboard"
+}
 ```
 
-- **React `bugs.url`/`homepage`/`repository.url`** currently point at `mirasen-io/react-chessboard` — update
-  `repository.url` + `bugs.url` to `mirasen-io/chessboard`. Keep `homepage` (`https://mirasen.io/chessboard/`) as-is.
-- Core metadata already targets `mirasen-io/chessboard`; just add `directory`.
-- Re-check `keywords`, `license` (MIT both), `author` (Mirasen), `funding` (none present). No renames of npm names.
+- Set React `repository.url` and `bugs.url` to the consolidated GitHub repository.
+- Preserve **current** published-package homepage URLs pointing to the working Worker origin; do not restore obsolete `mirasen.io` canonical links from the historical plan.
+- Keep npm package names, exported API, license, peer dependencies and actual package versions unchanged unless the migration requires an explicitly justified release.
+- Use lowercase `mirasen` author branding. Verify per-package README, LICENSE and `files` metadata from the **current** manifests, then include CHANGELOG in the React npm tarball only if that is the intended package policy.
 
-## Phase 8 — Examples (top-level, standalone) — corrected `file:` depth
 
-Verified current: `examples/sveltekit` (name `sveltekit`, `file:../..`, vite `fs.allow:['../..']`),
-`examples/colors` (static `index.html`, no manifest), React `examples/app` (name `react-chessboard-example`,
-`file:../..`, vite `optimizeDeps.exclude:['@mirasen/chessboard']`, `fs.allow:['../..','../../..']`).
+## Phase 8 — Examples (top-level, standalone)
 
-1. Move to top-level: `examples/sveltekit`, `examples/colors`, and React's `examples/app` → **`examples/react`**.
-2. **Fix `file:` deps (depth corrected):** from `examples/<x>/package.json` the package is two levels up + into `packages/`:
-   - `examples/sveltekit`: `"@mirasen/chessboard": "file:../../packages/chessboard"` (was `file:../..`).
-   - `examples/react`: `"@mirasen/react-chessboard": "file:../../packages/react-chessboard"` (was `file:../..`).
-3. **Regenerate each example's standalone `package-lock.json`** (`npm install` inside each example dir) after the `file:` change.
-4. Vite `server.fs.allow`: `['../..']` from a top-level `examples/<x>` already resolves to the **monorepo
-   root** (which contains `packages/`), so it keeps working; drop the now-redundant `'../../..'` in the React example.
-5. **CI `--prefix` paths are UNCHANGED**: `examples/sveltekit` is still at repo-root-relative
-   `examples/sveltekit`, so `npm ci --prefix examples/sveltekit` stays valid. Optionally add
-   `npm ci --prefix examples/react` if CI should also install/build the React example (React's old CI did not).
-6. Keep examples **standalone** (own lockfiles; not workspace members); glob `packages/*` does not match `examples/*`.
+`examples/sveltekit`, `examples/colors`, and `examples/react` are top-level, standalone projects with their own lockfiles. The React example is already in `examples/react` after the React preparation branch's tracked move; **do not import it a second time**.
+
+1. Validate the current `file:` dependencies and change their relative paths to:
+   - `examples/sveltekit`: `"@mirasen/chessboard": "file:../../packages/chessboard"`.
+   - `examples/react`: `"@mirasen/react-chessboard": "file:../../packages/react-chessboard"`.
+2. Regenerate each standalone example's lockfile after `file:` path updates, and verify a fresh example install/build.
+3. Verify Vite `server.fs.allow` relative to the example's current working directory; remove obsolete extra paths without breaking module resolution.
+4. Keep `examples/*` outside npm `workspaces`. In CI, preserve working SvelteKit example checks and decide explicitly whether to add React example build coverage. Check any current path references instead of assuming the old `examples/app` location still exists.
 
 ## Phase 9 — `.githooks` at repo root
 
@@ -319,20 +322,21 @@ configured anywhere** (git config, package.json, CI) — the hook is opt-in only
 3. Since nothing auto-sets `hooksPath`, no wiring change is required; document `git config core.hooksPath .githooks`
    in root `CONTRIBUTING.md` for contributors who want it.
 
+
 ## Phase 10 — Changesets consolidation
 
-- One root `.changeset/config.json` (core's; identical to React's — verified: `access:public`,
-  `baseBranch:main`, `updateInternalDependencies:patch`, `changelog:@changesets/cli/changelog`). No pending files to move.
-- Independent versions retained (`fixed:[]`, `linked:[]`). Per-package `CHANGELOG.md` generated in each package dir.
-- `changeset version` bumps only changed packages; React's internal core range auto-rewrites on a coordinated release.
-- `changeset publish` publishes each workspace package needing a release, in dependency order.
+- Use one shared root `.changeset/config.json` (from core), keeping independent package versions (`fixed: []`, `linked: []`) and current changelog generation.
+- After manual merge, remove React's **nested staged** `.changeset/config.json`. Migrate any real pending React changeset files into the root queue without duplicating or discarding release intent.
+- Keep per-package `CHANGELOG.md` inside `packages/chessboard` and `packages/react-chessboard`. Root `changeset version` / `changeset publish` run for both packages.
+- The directory restructure alone should not cause a release. Confirm the live root Changesets queue and existing Version Packages PRs are clear (or handled deliberately) before final PR merge.
+- Use temporary **non-publishing** Changesets to verify independent and coordinated package versioning, then restore the pre-test working tree.
 
 ## Phase 11 — Workflows consolidation (single `.github/workflows/`)
 
 Use core's workflows (repo stays `mirasen-io/chessboard` → all `github.repository` guards remain TRUE;
 no guard edits). Drop React's copies.
 
-- **`ci.yml`**: `install-script` stays `npm ci && npm ci --prefix examples/sveltekit` (path unchanged; add
+- **`ci.yml`**: validate `install-script` with the new root workspace; SvelteKit stays under `examples/sveltekit` (add
   `&& npm ci --prefix examples/react` only if building that example). `test`/`sonar` `run-script` =
   `npm run coverage` (self-contained via `build:core`, Phase 6). Produce **package-specific** coverage
   artifacts and run **two** Sonar scans (core + React) — both per Phase 13. Confirm branch-protection
@@ -340,12 +344,10 @@ no guard edits). Drop React's copies.
 - **`snyk` job (NEW):** add a Snyk dependency-scan job (see §Security integrations) —
   `snyk/actions/node@master` with `SNYK_TOKEN`, `args: --all-projects --detection-depth=2 --exclude=examples`,
   after root `npm ci`, parallel to `check`/`test`, no `npm run build` needed.
-- **`release.yml`**: unchanged (wraps `npm-release` → `changesets/action@v2`, monorepo-native; only root
-  scripts changed).
+- **`release.yml`**: start from core's existing `npm-release` workflow; verify the wrapper is workspace-aware at the **root** and correctly handles two npm packages, package-qualified tags, GitHub Releases, independent versions and trusted publishing before relying on it. Do not import React's workflow.
 - **`auto-merge.yml`**: unchanged in wiring; correctness now comes from the Phase 0A action rewrite.
-- **`auto-release.yml`**: unchanged (changeset-file/package-agnostic).
-- **`codeql.yml`, `contribution-reset.yml`, `contribution-update.yml`**: unchanged; `main`/`contribution`
-  model kept; the migration itself is done on the dedicated `migrate/monorepo` branch (then PR'd to `main`).
+- **`auto-release.yml`**: preserve the existing monthly Dependabot-only release policy; verify it works for either package and does not trigger an immediate migration release.
+- **`codeql.yml`, `contribution-reset.yml`, `contribution-update.yml`**: keep core's `main`/`contribution` branch model. Only open a migration PR to `main` **after** the owner has merged both Git histories; PR CI is the first full integration gate (ordinary staging-branch pushes do not trigger it).
 - No `working-directory`/`paths:`/`cd`/extra `--prefix`/`cache-dependency-path` assumptions to fix beyond the
   above (grep-verified: only the two `--prefix examples/sveltekit` lines exist, and they stay valid).
   Cache actions default `cache-dependency-path: **/package-lock.json`. The repo will have **multiple**
@@ -375,7 +377,7 @@ updates:
       - dependency-name: 'npm'
         versions: ['<10.0.0', '>=11.0.0']
     commit-message: { prefix: 'dependabot', prefix-development: 'dependabot' }
-  # Optional standalone example scopes (own lockfiles), mirroring today's /examples/sveltekit tracking:
+  # Optional standalone example scopes (own lockfiles); preserve current example tracking if appropriate:
   # - package-ecosystem: "npm"
   #   directories: ["/examples/sveltekit", "/examples/react"]
   #   ... (own group/ignore) ...
@@ -563,33 +565,34 @@ mode; the CLI docs name Yarn workspaces explicitly and do not separately documen
 shared-root-lockfile out-of-sync issue, investigate, confirm against current Snyk docs, then add
 `--strict-out-of-sync=false` if justified. Do not add it (or any other workaround) pre-emptively.
 
+
 ## Phase 14 — Pre-release dry-run checklist (mandatory before first release)
 
-```
+```bash
 npm ci
-npm ls                         # confirm @mirasen/chessboard resolves to the workspace symlink
-npm run build                  # ordered core → react
+npm ls                        # confirm both workspaces link locally
+npm run build                 # ordered core -> React
 npm test
-npm run check                  # typecheck all
+npm run check
 npm run lint
 npm pack --workspace @mirasen/chessboard
 npm pack --workspace @mirasen/react-chessboard
-# publint runs via each package's prepack; also inspect both tarballs:
-#   @mirasen/chessboard:        dist/, assets/, README.md, LICENSE, CHANGELOG.md, package.json
-#   @mirasen/react-chessboard:  dist/, README.md, LICENSE, CHANGELOG.md, package.json  (CHANGELOG needs the Phase 4 files fix)
-#   both: NO tests/examples/monorepo-only files; react's @mirasen/chessboard range is plain semver (no "workspace:").
 ```
 
-Changesets dry-run (no publish): add a temporary `core: minor` + `react: minor` changeset, run
-`npm run changeset:version`, verify core `1.4.0→1.5.0`, react bumped, react's `^1.4.0→^1.5.0`, and per-package
-changelogs; then **revert** the versioning + delete the temp changeset.
+Check each tarball for its own `dist/`, assets if applicable, README, LICENSE, CHANGELOG if intended, correct exports and publishable semver dependency ranges; no tests/examples/monorepo-only files.
+
+**Changesets rehearsal (no publish):** create temporary changesets for core-only, React-only and coordinated releases. Run root `changeset version`, verify the relative version changes, root lockfile, internal dependency range, changelogs and intended package-qualified tag behavior. Reset all version/lock/changelog changes and remove the temporary changesets afterward.
+
+**History and CI checkpoint:** check that Git history includes both original graphs, every expected folder exists, no nested redundant React CI configuration remains, and the final migration PR passes current CI, CodeQL, per-package Sonar, Snyk and Socket checks. Never publish while testing the migration.
+
 
 ## Phase 15 — First release from the monorepo
 
-Merging the migration to `main` is **release-neutral** (no pending changesets → `changesets/action` no-ops or
-opens an empty version PR). Prove CI-green first, publish nothing by accident. The first real release comes with
-the next feature's changeset → `release.yml` → `npm-release` bumps + publishes affected packages in order with
-per-package tags + GitHub releases.
+1. The final migration merge into `chessboard/main` should be **release-neutral if no pending changesets exist**. Recheck the actual queue and any Version Packages PRs immediately beforehand; do not rely on the historical assumption of an empty queue.
+2. The owner manually merges the React Git histories on the preparation branch and later decides when to merge the validated final migration PR. No implementation agent should merge either automatically.
+3. Before the first **intentional** npm publication from the monorepo, configure and verify trusted publishing/provenance for **both** existing npm packages and the new source repository. React's existing trusted-publishing setup does not transfer through Git history alone.
+4. Verify `changesets/action` publishes affected packages in dependency order, creates distinct per-package Git tags and GitHub Releases, and does not bump unrelated packages. Never assume the old single-package release settings apply unchanged.
+5. Leave historical React GitHub Releases in the React repository; they cannot be transferred through a normal Git merge.
 
 ## Phase 16 — Dependabot post-migration verification (test matrix — required)
 
@@ -611,37 +614,26 @@ Run/observe these on the first live Dependabot PRs (from research report):
 Scenario 10 is the concrete regression fixture: a #126-style "across N directories" PR that changes only
 `examples/**` + root lock must produce **no `@mirasen/chessboard` changeset** (the current bug).
 
+
 ## Phase 17 — Retire the old React repository (only after successful release verification)
 
-- npm package `@mirasen/react-chessboard` is **not renamed** — it simply publishes from `mirasen-io/chessboard` now.
-- Archive `mirasen-io/react-chessboard`: README banner pointing to the monorepo, repo description updated,
-  no further releases, GitHub "Archive" toggle. Do this only after Phase 14–16 pass.
+- Keep `mirasen-io/react-chessboard` accessible for original issue/PR links, old tags and GitHub Releases. Retain it until publication is verified from the consolidated repository.
+- After successful validation, optionally add a README banner pointing to `mirasen-io/chessboard/tree/main/packages/react-chessboard`, update repository description and archive the old repo. No further releases from the archived repository.
+- Do not delete its GitHub releases or repository merely because all Git commits are now reachable from the monorepo.
 
----
 
-## Tags / releases behavior (verified)
+## Tags / releases behavior
 
-`changesets/action` (via `npm-release`, `create-github-releases: true`) creates **per-package** git tags
-and GitHub Releases: `@mirasen/chessboard@X.Y.Z`, `@mirasen/react-chessboard@A.B.C`. Distinct names → no
-collisions. Per-package `CHANGELOG.md`. **No downstream coupling to break:** `cloudflare-site` consumes
-`@mirasen/chessboard` from the npm registry and triggers on its own CI (verified in its `release.yml`), not on
-chessboard tags/releases. Monthly `auto-release` aggregates dependabot patch changesets across both packages
-transparently.
+- **Git commits:** the owner's manual `--allow-unrelated-histories` merge has both histories as parents/ancestors; no squash, so original commits are retained.
+- **Old tags:** the two standalone repositories already use overlapping `v*` tag names. Fetch only the React preparation branch with `--no-tags`, **not** `git fetch --tags`. Do not rename or overwrite existing core tags during import. Leave original React tags in its own repository.
+- **Old GitHub Releases:** release objects remain associated with their original GitHub repository, even when Git commits are imported. React's old Release URLs stay valid while the old repository stays accessible.
+- **New tags and releases:** after workspace migration, verify the installed Changesets/action tooling generates **distinct package-qualified** tag names (e.g., `@mirasen/chessboard@<version>` and `@mirasen/react-chessboard@<version>`). Test before the first actual publication.
+- **npm:** names and independent semver histories stay unchanged; move React's authorized publishing origin/workflow to the destination as a separate setup/check.
 
 ## Verified vs. still-unknown
 
-**Verified against current source/config/history:** package.json scripts & deps (both); tsconfigs (nodenext,
-no paths/references → build-order dependency); `.changeset/config.json` identical in both repos; examples’
-`file:../..` + vite `fs.allow` + names/privacy; `core.hooksPath` unset anywhere; `scripts/npm-link.sh` present
-in both + `prepare` wired only in core; the #126 mis-attribution + the whole "across 2 directories" series;
-`npm-release-upd-pkg-lock`/`major-release-tag` unreferenced; CI `--prefix examples/sveltekit` (×2) is the only
-path assumption and stays valid; cache-dependency-path `**/package-lock.json` hashes the root workspace
-lockfile plus standalone example lockfiles (multiple lockfiles by design);
-`cloudflare-site` decoupled (npm-registry consumer).
+**Verified in the source branches before implementation:** the repository and migration branch exist; the old plan had not moved package files; both packages have standalone manifests and release pipelines; the current package paths are rooted in their respective repositories; the destination GitHub repository remains `mirasen-io/chessboard`. The 2026-11-02 merge of core `main` into `migrate/monorepo` is complete. Companion Dependabot research and past shared-action prerequisites are historical evidence, not fresh validation of the future merged workspace.
 
-**Still unknown / validate on first live runs:** whether Dependabot splits `directories:["/","/packages/*"]`
-grouped updates into per-directory PRs vs one combined PR at our 2-package scale (changed-files algorithm is
-correct either way; affects only PR volume); interaction of `open-pull-requests-limit` with grouped
-multi-directory updates. (Sonar is no longer an unknown — decided in Phase 13: two projects, two scans.)
-`gh pr view --json files` 100-file cap is inference (undocumented) — mitigated by using `gh api --paginate`.
-</content>
+**To verify during implementation:** each move-only staging tree; the real two-parent cross-repo merge; Git ancestry and tag collision avoidance; current Changesets queue and internal semver resolution; combined CI/Dependabot/CodeQL, per-package Sonar and coverage; npm trusted publishing for both packages; independent releases and package-specific GitHub tags; historical React GitHub Release availability.
+
+**Out of scope:** developing new adapters or features, automatic merging into `main`, rewriting original Git histories, moving GitHub Release objects, and publishing npm versions only because files were reorganized.
