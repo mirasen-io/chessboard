@@ -51,7 +51,7 @@
 	},
 	"dependencies": {
 		"@ktarmyshov/assert": "^0.1.15",
-		"@mirasen/chessboard": "file:../..",
+		"@mirasen/chessboard": "file:../../packages/chessboard",
 		"chess.js": "^1.4.0"
 	},
 	"engines": {

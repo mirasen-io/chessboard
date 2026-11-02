@@ -8,9 +8,10 @@
 
 These instructions apply inside this example alongside the repository's root instructions.
 Run the commands below from `examples/sveltekit`; from the repository root, use
-`npm --prefix examples/sveltekit run <script>`. The chessboard dependency is `file:../..`:
-build the root library with `npm run build` from the repository root before checking
-or building the example. Preserve root architectural contracts and user edits.
+`npm --prefix examples/sveltekit run <script>`. The chessboard dependency is
+`file:../../packages/chessboard`: build the workspace with `npm run build` from the
+repository root before checking or building the example. Preserve package contracts
+and user edits.
 
 ## Local skills and integrations
 
@@ -30,7 +31,7 @@ or building the example. Preserve root architectural contracts and user edits.
 
 - Run `npm run format` after code or configuration changes. Preserve generated skills and existing specification archives using the repository's formatting exclusions.
 - Run `npm run lint`, `npm run check`, and `npm run build` after a coherent block of work or a dependency/configuration change, not after every small edit.
-- Vitest unit/component and Playwright are configured for future use. There are no automated example tests; do not create or require them unless requested. The root library has its own existing tests and validation.
+- Vitest unit/component and Playwright are configured for future use. There are no automated example tests; do not create or require them unless requested. The workspace packages have their own tests and validation.
 - Use manual browser sanity checks for this example. Prioritize `/0-debug`, basic controls and navigation; keep visual verification brief unless the task explicitly requires broader review.
 - In the final response, briefly report formatting and the checks actually run, including any unavailable checks.
 

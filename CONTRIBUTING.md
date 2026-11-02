@@ -1,5 +1,15 @@
 ## Contributing
 
+This repository is an npm workspaces monorepo. Run shared validation from the root;
+use `npm run <script> -w @mirasen/chessboard` or
+`npm run <script> -w @mirasen/react-chessboard` for package-specific commands.
+
+To enable the optional root pre-push checks, run:
+
+```sh
+git config core.hooksPath .githooks
+```
+
 Thanks for your interest in contributing!
 
 If you found a bug, want to improve something, explore an idea, or validate a platform feature, please open a Pull Request directly.

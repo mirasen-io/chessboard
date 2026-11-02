@@ -142,7 +142,14 @@ jobs:
     steps:
       - uses: kt-workflows/actions/npm-ci-check@main
         with:
-          install-script: npm ci && npm ci --prefix examples/sveltekit
+          install-script: npm ci && npm ci --prefix examples/sveltekit && npm ci --prefix examples/react
+          run-script: |
+            npm run check
+            npm run lint
+            npm run build -w @mirasen/react-chessboard
+            npm --prefix examples/sveltekit run check
+            npm --prefix examples/sveltekit run build
+            npm --prefix examples/react run build
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
@@ -152,26 +159,136 @@ jobs:
     strategy:
       matrix:
         node-version: ${{ fromJson(needs.config.outputs.matrix-node-version) }}
-    env:
-      COVERAGE_DIR: coverage-test-node${{ matrix.node-version }}
     steps:
       - uses: kt-workflows/actions/npm-ci-test@main
         with:
-          install-script: npm ci && npm ci --prefix examples/sveltekit
-          # run tests with coverage for SonarCloud
-          run-script: |
-            npm run build
-            npm run coverage
-            mv coverage-test "${COVERAGE_DIR}"
+          install-script: npm ci
+          run-script: npm run coverage
           node-version: ${{ matrix.node-version }}
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
-      - name: Upload coverage artifact
+      - name: Stage package coverage reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          for package in chessboard react-chessboard; do
+            report="packages/${package}/coverage-test/lcov.info"
+            test -s "$report"
+            if grep -q '^SF:src/' "$report"; then
+              echo "LCOV reporter emitted package-relative paths in $report" >&2
+              exit 1
+            fi
+            grep -q "^SF:packages/${package}/src/" "$report"
+            artifact_report="coverage-artifacts/packages/${package}/coverage-test/lcov.info"
+            mkdir -p "$(dirname "$artifact_report")"
+            cp "$report" "$artifact_report"
+          done
+
+      - name: Upload package coverage artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.COVERAGE_DIR }}
-          path: ${{ env.COVERAGE_DIR }}
+          name: coverage-node-${{ matrix.node-version }}
+          path: coverage-artifacts/
           if-no-files-found: error
+
+  snyk:
+    needs: config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kt-workflows/actions/npm-ci-snyk@main
+        with:
+          matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
+          snyk-token: ${{ secrets.SNYK_TOKEN }}
+          args: >-
+            --all-projects --fail-fast --detection-depth=3 --org=mirasen
+            --strict-out-of-sync=true --json-file-output=snyk-results.json
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
+
+      - name: Summarize structured Snyk scan results
+        if: always() && hashFiles('snyk-results.json') != ''
+        shell: bash
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+
+          const results = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
+          const reports = Array.isArray(results) ? results : [results];
+          const expected = new Map([
+            ['package.json', { projectName: 'mirasen-chessboard-workspace', manifest: 'package.json' }],
+            [
+              'packages/chessboard/package.json',
+              { projectName: '@mirasen/chessboard', manifest: 'packages/chessboard/package.json' },
+            ],
+            [
+              'packages/react-chessboard/package.json',
+              { projectName: '@mirasen/react-chessboard', manifest: 'packages/react-chessboard/package.json' },
+            ],
+            [
+              'examples/react/package-lock.json',
+              { projectName: 'react-chessboard-example', manifest: 'examples/react/package.json' },
+            ],
+            [
+              'examples/sveltekit/package-lock.json',
+              { projectName: 'sveltekit', manifest: 'examples/sveltekit/package.json' },
+            ],
+          ]);
+          const byTarget = new Map();
+
+          function normalizeTarget(targetFile) {
+            const normalized = targetFile.replaceAll('\\', '/').replace(/^\.\//, '');
+            for (const root of ['/github/workspace/', `${process.cwd().replaceAll('\\', '/')}/`]) {
+              if (normalized.startsWith(root)) return normalized.slice(root.length);
+            }
+            return normalized;
+          }
+
+          for (const report of reports) {
+            const targetFile = report.displayTargetFile || report.targetFile;
+            if (typeof targetFile !== 'string' || targetFile.length === 0) continue;
+            const target = normalizeTarget(targetFile);
+            byTarget.set(target, report);
+          }
+
+          for (const [target, expectedProject] of expected) {
+            const report = byTarget.get(target);
+            if (!report) {
+              console.error(`Snyk did not return a result for ${expectedProject.manifest} (target ${target})`);
+              process.exitCode = 1;
+              continue;
+            }
+            if (report.projectName !== expectedProject.projectName) {
+              console.error(
+                `Unexpected Snyk project for ${target}: ${report.projectName} (expected ${expectedProject.projectName})`,
+              );
+              process.exitCode = 1;
+            }
+            const dependencyCount = report.dependencyCount;
+            if (
+              expectedProject.projectName !== 'mirasen-chessboard-workspace' &&
+              !(Number.isFinite(dependencyCount) && dependencyCount > 0)
+            ) {
+              console.error(`Snyk did not report production dependencies for ${expectedProject.manifest}`);
+              process.exitCode = 1;
+            }
+            console.log(
+              `- ${expectedProject.manifest}: ${report.projectName} (${dependencyCount ?? 'no production dependencies'} dependencies)`,
+            );
+          }
+
+          if (reports.length !== expected.size) {
+            console.error(`Snyk returned ${reports.length} projects; expected ${expected.size}`);
+            process.exitCode = 1;
+          }
+          NODE
+
+      - name: Upload structured Snyk results
+        if: always() && hashFiles('snyk-results.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: snyk-results-${{ github.run_id }}
+          path: snyk-results.json
+          if-no-files-found: error
+          retention-days: 1
 
   sonar:
     needs:
@@ -184,26 +301,42 @@ jobs:
         with:
           fetch-depth: 0 # fetch all history for accurate SonarCloud analysis
 
-      - name: Download all coverage artifacts to repo root
+      - name: Download coverage artifacts from every Node.js job
         uses: actions/download-artifact@v8
         with:
-          pattern: 'coverage-*'
-          path: .
+          pattern: coverage-node-*
+          path: coverage-reports
+          merge-multiple: false
 
-      - uses: kt-workflows/actions/npm-ci-sonar@main
+      - name: Verify downloaded coverage reports from each matrix job
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_count=0
+          for artifact in coverage-reports/*; do
+            test -d "$artifact"
+            test -s "$artifact/packages/chessboard/coverage-test/lcov.info"
+            test -s "$artifact/packages/react-chessboard/coverage-test/lcov.info"
+            artifact_count=$((artifact_count + 1))
+          done
+          test "$artifact_count" -gt 0
+          report_count="$(find coverage-reports -type f -name lcov.info | wc -l)"
+          test "$report_count" -eq "$((artifact_count * 2))"
+          echo "Verified $report_count LCOV reports from $artifact_count Node.js matrix jobs"
+
+      - name: Scan monorepo SonarQube Cloud project
+        uses: kt-workflows/actions/npm-ci-sonar@main
         with:
           checkout: false # already checked out in previous step
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           fail-on-empty-token: true
           cache-reset: ${{ needs.config.outputs.cache-reset }}
-          install-script: exit 0
+          install-script: npm ci && npm ci --prefix examples/sveltekit && npm ci --prefix examples/react
           run-script: |
-            echo 'Workspace root:'
-            ls -la
-            echo
-            echo 'Coverage reports:'
-            find . -maxdepth 2 -name lcov.info | sort
+            npm run check
+            npm --prefix examples/sveltekit run check
+          project-base-dir: .
 
   # Stable aggregate required-* checks for branch protection rules.
   # This avoids depending directly on individual matrix job statuses.
@@ -212,6 +345,7 @@ jobs:
     needs:
       - check
       - test
+      - snyk
       - sonar
     runs-on: ubuntu-latest
     steps:
@@ -225,6 +359,7 @@ jobs:
     needs:
       - check
       - test
+      - snyk
     runs-on: ubuntu-latest
     steps:
       - name: Verify required jobs for contribution

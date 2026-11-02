@@ -1,0 +1,112 @@
+{
+	"name": "@mirasen/chessboard",
+	"description": "Production-grade framework-agnostic TypeScript chessboard platform with real chess interaction built in.",
+	"version": "1.5.3",
+	"license": "MIT",
+	"author": {
+		"name": "mirasen"
+	},
+	"keywords": [
+		"mirasen",
+		"chessboard",
+		"chess",
+		"chess-ui",
+		"chessboard-ui",
+		"typescript",
+		"framework-agnostic",
+		"svg",
+		"drag-and-drop",
+		"click-to-move",
+		"animation",
+		"annotations",
+		"chessjs",
+		"legal-moves",
+		"touch"
+	],
+	"homepage": "https://mirasen.k-tarmyshov.workers.dev/chessboard",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mirasen-io/chessboard.git",
+		"directory": "packages/chessboard"
+	},
+	"bugs": {
+		"url": "https://github.com/mirasen-io/chessboard/issues"
+	},
+	"type": "module",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./extensions": {
+			"types": "./dist/extensions/index.d.ts",
+			"import": "./dist/extensions/index.js"
+		},
+		"./extensions/build": {
+			"types": "./dist/extensions/build/index.d.ts",
+			"import": "./dist/extensions/build/index.js"
+		},
+		"./adapters/chessjs": {
+			"types": "./dist/adapters/chessjs/index.d.ts",
+			"import": "./dist/adapters/chessjs/index.js"
+		},
+		"./unstable/*": {
+			"types": "./dist/*.d.ts",
+			"import": "./dist/*.js"
+		}
+	},
+	"scripts": {
+		"build": "rimraf ./dist && tsc --project tsconfig.json && npm run prepack",
+		"build:release": "rimraf ./dist && tsc --project tsconfig-release.json && npm run prepack",
+		"prepack": "publint",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint .",
+		"check": "tsc --project tsconfig.json --noEmit",
+		"check:test": "tsc --project tsconfig-test.json",
+		"test": "npm run check:test && vitest run --run",
+		"coverage": "npm run check:test && vitest run --coverage"
+	},
+	"files": [
+		"dist",
+		"assets",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*",
+		"!tests",
+		"!examples",
+		"!benchmarks"
+	],
+	"devDependencies": {
+		"@types/node": "^26.6.5",
+		"@vitest/coverage-v8": "^5.0.5",
+		"chess.js": "^1.4.0",
+		"jsdom": "^30.1.3",
+		"publint": "^0.3.25",
+		"rimraf": "^6.1.3",
+		"serve": "^14.2.6",
+		"typescript": "^6.0.3",
+		"vitest": "^5.0.5"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"dependencies": {
+		"@ktarmyshov/assert": "^0.1.15",
+		"es-toolkit": "^1.53.0",
+		"type-fest": "^5.10.0"
+	},
+	"peerDependencies": {
+		"chess.js": "^1.4.0"
+	},
+	"peerDependenciesMeta": {
+		"chess.js": {
+			"optional": true
+		}
+	},
+	"allowScripts": {
+		"fsevents": true
+	}
+}
