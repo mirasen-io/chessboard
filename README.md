@@ -12,12 +12,12 @@ Start with a working chessboard, not a board primitive.
 
 ## Try it live
 
-These examples use the same Mirasen chessboard runtime that powers the React component.
+These examples use the same mirasen chessboard runtime that powers the React component.
 
-- [Play a chess.js game](https://mirasen.io/chessboard/examples/chessjs)
-- [Watch 12 live boards](https://mirasen.io/chessboard/examples/live-games-grid)
-- [Try the promotion flow](https://mirasen.io/chessboard/examples/promotion)
-- [Try the minimal example](https://mirasen.io/chessboard/examples/minimal)
+- [Play a chess.js game](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/chessjs)
+- [Watch 12 live boards](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/live-games-grid)
+- [Try the promotion flow](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/promotion)
+- [Try the minimal example](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/minimal)
 
 ## Why this exists
 
@@ -32,11 +32,11 @@ Most React chessboard components give you a board primitive and leave the real c
 
 `@mirasen/react-chessboard` wraps `@mirasen/chessboard` in a small React component so React apps can start from a working chessboard instead.
 
-React owns lifecycle and props. Mirasen owns board rendering, input, interaction, animation, promotion, and extension behavior.
+React owns lifecycle and props. mirasen owns board rendering, input, interaction, animation, promotion, and extension behavior.
 
 ## Real-world migration feedback
 
-After initially using `react-chessboard` and implementing click-to-move and move highlighting in application code, [TheUnemployedHobo](https://github.com/TheUnemployedHobo) explained why he migrated to Mirasen:
+After initially using `react-chessboard` and implementing click-to-move and move highlighting in application code, [TheUnemployedHobo](https://github.com/TheUnemployedHobo) explained why he migrated to mirasen:
 
 > "But the code ended up getting so messy that I didn't even want to look at it anymore. It was painful to read. That's when I decided I needed a library that handled those things properly out of the box, and that's how I ended up switching to yours."
 
@@ -81,7 +81,7 @@ User moves are disabled unless you provide `movability`. For a playable chess ga
 `@mirasen/react-chessboard` owns board interaction and UI move output.  
 `chess.js` owns legality and game state.
 
-The package re-exports the Mirasen chess.js adapter helpers:
+The package re-exports the mirasen chess.js adapter helpers:
 
 ```tsx
 import {
@@ -344,7 +344,7 @@ This keeps the integration boundary explicit:
 
 - `chess.js` decides which moves are legal.
 - The React component displays and collects user moves.
-- Mirasen handles board interaction, target feedback, promotion UI, special-move board updates, and animation.
+- mirasen handles board interaction, target feedback, promotion UI, special-move board updates, and animation.
 
 ## Board handle (ref)
 
@@ -378,7 +378,7 @@ Convenience props (`autoPromoteToQueen`, `checkSquare`, `onUIMove`) cover the mo
 
 ## What you get out of the box
 
-The underlying Mirasen board provides the default first-party chessboard baseline:
+The underlying mirasen board provides the default first-party chessboard baseline:
 
 - SVG rendering
 - pointer-based click and drag interaction
@@ -394,7 +394,7 @@ The underlying Mirasen board provides the default first-party chessboard baselin
 
 ## Styling and customization
 
-The React component intentionally exposes a small high-level API and uses the default Mirasen board appearance.
+The React component intentionally exposes a small high-level API and uses the default mirasen board appearance.
 
 It does not expose color, square, piece, renderer, or extension customization props in v1.
 

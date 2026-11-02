@@ -15,7 +15,7 @@
 		"typescript",
 		"svg"
 	],
-	"homepage": "https://mirasen.io/chessboard",
+	"homepage": "https://mirasen.k-tarmyshov.workers.dev/chessboard",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/mirasen-io/react-chessboard.git"
