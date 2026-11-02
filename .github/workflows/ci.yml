@@ -200,7 +200,7 @@ jobs:
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           snyk-token: ${{ secrets.SNYK_TOKEN }}
           args: >-
-            --all-projects --fail-fast --detection-depth=2 --dev --org=mirasen
+            --all-projects --fail-fast --detection-depth=3 --dev --org=mirasen
             --strict-out-of-sync=true --json-file-output=snyk-results.json
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
@@ -236,7 +236,7 @@ jobs:
             }
             if (!value || typeof value !== 'object') return;
 
-            const targetFile = value.targetFile ?? value.displayTargetFile ?? value.meta?.targetFile;
+            const targetFile = value.targetFile || value.displayTargetFile || value.meta?.targetFile;
             if (typeof targetFile === 'string' && targetFile.endsWith('package.json')) {
               const normalized = normalizeTarget(targetFile);
               const dependencyCount = value.dependencyCount ?? value.depGraphData?.graph?.nodes?.length;
