@@ -4,7 +4,7 @@
 	"version": "1.5.3",
 	"license": "MIT",
 	"author": {
-		"name": "Mirasen"
+		"name": "mirasen"
 	},
 	"keywords": [
 		"mirasen",
@@ -23,7 +23,7 @@
 		"legal-moves",
 		"touch"
 	],
-	"homepage": "https://mirasen.io/chessboard",
+	"homepage": "https://mirasen.k-tarmyshov.workers.dev/chessboard",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/mirasen-io/chessboard.git"
