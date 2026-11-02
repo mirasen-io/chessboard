@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: 'npm'
-    directories: ['/', '/packages/*']
+    directories: ['/', '/packages/*', '/examples/sveltekit', '/examples/react']
     schedule:
       interval: 'weekly'
       time: '03:18'
@@ -21,26 +21,6 @@ updates:
       - dependency-name: '@mirasen/react-chessboard'
       - dependency-name: 'npm'
         versions: ['<10.0.0', '>=11.0.0']
-    commit-message:
-      prefix: 'dependabot'
-      prefix-development: 'dependabot'
-
-  - package-ecosystem: 'npm'
-    directories: ['/examples/sveltekit', '/examples/react']
-    schedule:
-      interval: 'weekly'
-      time: '03:18'
-      timezone: 'Europe/Berlin'
-    versioning-strategy: increase
-    open-pull-requests-limit: 10
-    groups:
-      minor-and-patch:
-        patterns: ['*']
-        update-types: ['minor', 'patch']
-      major:
-        patterns: ['*']
-        update-types: ['major']
-        group-by: dependency-name
     commit-message:
       prefix: 'dependabot'
       prefix-development: 'dependabot'
