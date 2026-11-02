@@ -1,80 +1,70 @@
 # Migration plan: `@mirasen/chessboard` + `@mirasen/react-chessboard` → npm-workspaces monorepo
 
-> Status: **plan / not started** — verified & hardened runbook, ready for a coding agent to execute
-> phase-by-phase without architectural guesswork.
-> Goal: consolidate the two repos so a core feature and its React-wrapper prop are developed and
-> released together, removing the manual "bump the wrapper to an unreleased core version" and the
-> global `npm link` dev workflow.
+> Status: **plan / not started**. Updated 2026-11-02 after merging `main` into `migrate/monorepo`.
+> This plan does not mean the workspace migration is implemented.
+> Goal: consolidate core and React development and release workflows **while preserving both Git commit
+> histories**, maintaining independent published package identities, and removing the manual cross-repository linking workflow.
 > Companion doc: [`research-dependabot-monorepo-changesets.md`](./research-dependabot-monorepo-changesets.md)
 > (Dependabot decision is FINAL — Outcome B; do not re-open it).
 
-## 0. Decisions (locked)
 
-| #   | Decision                         | Choice                                                                                                                                                                                                                                                                                                                                                                                                                |
-| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Where the monorepo lives         | **Reuse `mirasen-io/chessboard`.** Core stays; React is brought in. Preserves stars/issues/npm-continuity and keeps all `github.repository == 'mirasen-io/chessboard'` workflow guards TRUE.                                                                                                                                                                                                                          |
-| 2   | React git history                | **Not preserved.** React copied in as a snapshot on the dedicated migration branch `migrate/monorepo`. Core history preserved via `git mv` (rename-tracked). Old `react-chessboard` repo kept as archive.                                                                                                                                                                                                             |
-| 3   | Package folder names             | `packages/chessboard` + `packages/react-chessboard`. npm names unchanged: `@mirasen/chessboard`, `@mirasen/react-chessboard`.                                                                                                                                                                                                                                                                                         |
-| 4   | Package manager                  | **npm workspaces.** Single root `package-lock.json`.                                                                                                                                                                                                                                                                                                                                                                  |
-| 5   | Examples placement               | **Top-level `examples/`** (`examples/sveltekit`, `examples/colors`, `examples/react`). Standalone (own lockfiles, `file:` deps), **not** workspace members, **not** under `packages/*`.                                                                                                                                                                                                                               |
-| 6   | Root `workspaces` value          | **Explicit: `["packages/chessboard", "packages/react-chessboard"]`** — chosen for a curated 2-package repo (self-documenting, no silent inclusion of a stray `packages/*` dir). A `["packages/*"]` glob also works: the old "concrete-paths-for-Dependabot" constraint is gone (Outcome B attributes by changed manifest, not by literal `workspaces[]` match), so this is now a free style choice, not a workaround. |
-| 7   | Dependabot changeset attribution | **By changed `packages/*/package.json` files** (Outcome B), NOT by Dependabot `directory`.                                                                                                                                                                                                                                                                                                                            |
+## 0. Decisions (current)
 
-## 1. Workspace dependency semantics (precise model — do not paraphrase as "by files not versions")
+1. **Destination:** retain `mirasen-io/chessboard`. Do not touch either repository's `main` during preparation.
+2. **Both Git histories must be preserved:** neither snapshot-only import nor squash/history rewrite. The React repository stays accessible for original GitHub releases/issues/PRs.
+3. **Preparation branches:** `chessboard:migrate/monorepo` is the destination integration branch; prepare React moves on a separate dedicated branch from the current `react-chessboard/main`. Neither preparation branch is merged into its own `main` before integration.
+4. **Manual integration:** the owner, not the coding agent, adds `react-chessboard` as a second Git remote in a local `chessboard` clone and merges the prepared React branch into `migrate/monorepo` using `--allow-unrelated-histories`, **no squash**. Only resolve actual conflicts after inspecting them. Canonical root workspace/workflow files come from core.
+5. **Package folders:** `packages/chessboard` and `packages/react-chessboard`, corresponding exactly to npm names `@mirasen/chessboard` and `@mirasen/react-chessboard`. No artificial `core-` naming.
+6. **Examples:** standalone root `examples/sveltekit`, `examples/colors`, `examples/react` (moved from React's `examples/app`), not workspace members.
+7. **Package manager:** npm workspaces, private root orchestrator, single shared root lockfile, explicit members `["packages/chessboard", "packages/react-chessboard"]`. Package versions remain independent.
+8. **Dependabot changesets:** attribute by changed `packages/*/package.json` manifests (companion research, Outcome B), not reported Dependabot directory.
+9. **Git tags/releases:** both histories contain legacy unscoped `v*` tags; do not fetch React tags during the manual history merge. GitHub Releases do not move between GitHub repositories by merging commits. Validate package-specific future tag naming and React npm trusted publishing in the destination.
+10. **Scope:** repository and release infrastructure migration only; no new Solid/Svelte adapters or unrelated features.
 
-- npm workspaces **symlink** the sibling package into `node_modules`; React resolves `@mirasen/chessboard`
-  through that symlink **to the package's `exports` → `dist`** (see §Build order — it is NOT raw-source resolution).
-- The **declared semver range still governs**: React's `"@mirasen/chessboard": "^1.4.0"` must be satisfied
-  by the on-disk core version (`1.4.0`) for npm to link the workspace copy. If the range no longer
-  matches the local version, npm falls back to the registry.
-- **During feature development you do NOT hand-edit the range to a future unpublished version.** You
-  keep `^1.4.0` (satisfied by the local `1.4.0` build, which already contains the new source), add a
-  changeset per package, and let release-time tooling do the bump.
-- **Coordinated feature (touches both packages):** add a changeset for **each** package in the same PR
-  (`core: minor` + `react: minor` — one file listing both, or two files; equivalent, verified). `changeset version`
-  then, in one commit, bumps both **and rewrites React's internal range to the just-bumped core version** (e.g.
-  `^1.4.0 → ^1.5.0`). This range rewrite happens whenever React is itself in the release and is governed by
-  `updateInternalDependencies: "patch"` (already set) — it fires even though `^1.4.0` already satisfied `1.5.0`.
-  `changeset publish` then publishes **core first, then React** (dependency order, one run), so React@new ships
-  already declaring the just-published core — no broken window, no hand-editing, no serial cross-repo release.
-- **Core-only change (e.g. Dependabot bumps a core dependency):** only `core` gets a changeset. React is **not**
-  bumped and its range is **not** rewritten — an in-range core bump (`^1.4.0` still satisfies the new core) leaves
-  React's published artifact unaffected, so no React release is warranted. React auto-bumps from core **only** when
-  core moves **out** of React's caret range (a core **major**), which forces `react: patch` + range `→ ^2.0.0`.
-  React therefore stays current via **its own** dependency updates, not core's. (All of the above verified locally
-  against changesets v3.0.1.)
+**Do not pin current package versions in this plan.** Read `package.json`, lockfiles, Changesets and the current publication state from the actual branches at execution time. Historical version examples are not implementation baselines.
 
-## 2. Target structure (verified)
 
-```
-chessboard/                          (repo root = private workspace orchestrator)
-├── package.json                     NEW: { private:true, workspaces:["packages/chessboard","packages/react-chessboard"], orchestration scripts }
-├── package-lock.json                single root lockfile (regenerated)
-├── README.md                        NEW root landing page (repo/platform + links to both packages)
-├── LICENSE                          root LICENSE (MIT) — GitHub license detection
-├── .changeset/                      single shared dir (config.json identical in both repos today)
-├── .githooks/                       ONE at repo root (pre-push) — NOT nested per package
-├── .github/workflows/               chessboard's workflows, made workspace-aware
-├── .github/dependabot.yml           directories: ["/","/packages/*", (+examples if watched)]
-├── docs/                            (this plan + research report live here)
-├── examples/                        standalone apps (own lockfiles; NOT workspace members)
-│   ├── sveltekit/                   file: → ../../packages/chessboard   (was ../..)
-│   ├── colors/                      static index.html (no package.json)
-│   └── react/                       (renamed from react-chessboard/examples/app) file: → ../../packages/react-chessboard
+## 1. Workspace dependency semantics
+
+- npm workspaces link local sibling packages into root `node_modules`, but the published internal dependency remains ordinary **semver** (not `workspace:*`).
+- Verify the React package's **current** core dependency range satisfies the local core version before relying on local linking. If it does not, resolve explicitly during migration rather than silently falling back to registry resolution.
+- React resolves core through its `exports` and built declarations: the orchestrator must build core before React checks/builds.
+- For coordinated changes, include appropriate Changesets for both packages. Root Changesets versions and publishes affected packages in dependency order and updates internal ranges when required.
+- For core-only changes, do not force a React release without a dependency-range or semantic reason; test how the installed Changesets version handles dependent changes.
+- Keep independent versioning (`fixed: []`, `linked: []`) and the existing `updateInternalDependencies` policy. Use temporary, **non-publishing** changesets to test release orchestration before the first production publish.
+
+
+## 2. Target structure
+
+```text
+chessboard/                           # existing GitHub destination
+├── package.json                      # private npm-workspaces orchestrator
+├── package-lock.json                 # shared workspace lockfile
+├── README.md / LICENSE / AGENTS.md   # repository-wide
+├── .changeset/                       # one shared configuration
+├── .github/                           # one shared CI / release setup
+├── .githooks/                        # one root hook configuration
+├── docs/
+├── examples/                         # standalone, not workspace members
+│   ├── sveltekit/
+│   ├── colors/
+│   └── react/
 └── packages/
-    ├── chessboard/                  today's core repo content (src, tests, tsconfig*, package.json,
-    │   ├── README.md · LICENSE · CHANGELOG.md   assets, openspec, .sonarcloud.properties, vitest.config)
-    │   └── ...
-    └── react-chessboard/            today's react repo content
-        ├── README.md · LICENSE · CHANGELOG.md
-        └── ...
+    ├── chessboard/                   # @mirasen/chessboard
+    │   ├── package.json
+    │   ├── README.md / CHANGELOG.md / LICENSE
+    │   ├── src/
+    │   └── tests/
+    └── react-chessboard/             # @mirasen/react-chessboard
+        ├── package.json
+        ├── README.md / CHANGELOG.md / LICENSE
+        ├── src/
+        └── tests/
 ```
 
-Invariants (verified): npm names unchanged; each package keeps its own `README.md`+`LICENSE`(+`CHANGELOG.md`)
-so `npm pack` ships the correct ones (npm shows the in-tarball README per package); root README/LICENSE
-are for GitHub only (root is `private`, never published).
+Keep package-owned configuration, source, tests and published assets within each package; root configuration controls workspaces, workflows and releases. Root is private, never published.
 
----
+**Before integration:** the React preparation branch is not a second functioning monorepo. Move *all* its tracked root files out of its root, under `packages/react-chessboard/` and `examples/react/`. Temporary legacy root configs (for example `.github/`, `.changeset/`, `.githooks/`) can be parked under `packages/react-chessboard/` to avoid root collisions; remove or consolidate them after manual merge. Root of the prepared React branch contains only `packages/` and `examples/` directories, not tracked root files. Its transitional CI need not pass.
 
 # PHASES (execution order)
 
@@ -165,12 +155,18 @@ land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) refere
 
 **Completed (2026-08-31):** `project-base-dir` input (default `.`) added to `npm-ci-sonar/action.yml`; passed to `sonarsource/sonarqube-scan-action@v7` as `projectBaseDir`. Commit `ef4ae8a`. All existing consumers unchanged (default `.`).
 
-## Phase 0C — ✅ DONE (2026-08-31): `SNYK_TOKEN` prerequisite
 
-1. Work on the dedicated migration branch `migrate/monorepo` (per decision #2 — a one-off branch for this large change, not the usual `contribution` flow). Clean tree.
-2. Note current SHAs of both repos (react repo becomes an archive).
-3. **Clean starting point (verified):** both packages fully released, **no pending changesets** — core
-   `1.4.0`, React `1.1.0` (released in "Version Packages (#60)"). Nothing to migrate/freeze.
+## Phase 0C — Previously completed: Snyk token prerequisite
+
+The historical shared tooling and secrets setup is recorded below. Revalidate it when running the migrated CI; prior completion is not evidence the new workspace CI has passed.
+
+## Phase 1 — Prepare independent branches and current baselines
+
+1. Continue core implementation on `chessboard:migrate/monorepo` (the latest `main` was merged here on 2026-11-02); merge any later upstream changes before editing. Keep `main` untouched.
+2. Create or refresh a dedicated React preparation branch from the current `react-chessboard/main`. Do not merge that branch back into React `main`.
+3. Inspect current package manifests, workspaces, `AGENTS.md` where available, release workflows, lockfiles, file layout, pending changesets and tags. Note changing baseline versions only in execution notes, **not in this plan**.
+4. Do not assume there are no pending Changesets. Reconcile them safely before the integration release workflow is enabled.
+5. Work in stages. GitHub CI is configured for PRs and `main` pushes, so do not expect PR CI on preparatory branch pushes. Open the final core migration PR only after the owner has manually combined histories.
 
 ## Phase 2 — Scaffold the workspace root
 
@@ -214,23 +210,29 @@ land on `kt-workflows/actions@main` before the monorepo CI (Phases 11/13) refere
    `build`, `build:release`, `test`, `coverage`, `lint`, `check`, `check:test`, `prepack` (publint).
 4. `.githooks/` → do NOT move under the package (see Phase 9).
 
-## Phase 4 — Bring React into `packages/react-chessboard` (snapshot copy)
 
-1. Copy React content (no history) into `packages/react-chessboard/`: `src/`, `tests/`,
-   `package.json`, `tsconfig.json`, `tsconfig-release.json`, `tsconfig-test.json`, `vitest.config.ts`,
-   `openspec/`, `README.md`, `LICENSE`, `CHANGELOG.md`, `.sonarcloud.properties` (+ symlink).
-2. **Delete React's `scripts/npm-link.sh`** (orphaned — React has no `prepare` hook; verified). Do not carry it over.
-3. Keep React `package.json` name/version (`1.1.0`)/exports/peerDeps; keep
-   `"@mirasen/chessboard": "^1.4.0"` (do NOT switch to `workspace:*`); remove its `changeset:*` scripts;
-   fix the dangling `npm run example` reference in its README. **Add `"CHANGELOG.md"` to its `files` array**
-   — verified currently `["dist", …, "README.md", "LICENSE"]` (no `CHANGELOG.md`), so React's changelog would
-   otherwise be excluded from the npm tarball (core already lists it; React does not).
-4. Do NOT carry over React's workflows, `dependabot.yml`, or `.changeset/config.json` (root already has an
-   identical config). React's `.changeset/` has no pending files (verified).
+## Phase 4 — React preparation branch and owner-performed history merge
+
+**React preparation (coding agent may implement on a dedicated `mirasen-io/react-chessboard` branch):**
+
+1. Move tracked package-owned files with `git mv` to `packages/react-chessboard/`: `src/`, `tests/`, `package.json`, README, LICENSE, CHANGELOG, TypeScript/Vitest/ESLint configs, docs, scripts, `openspec/`, package metadata and other package-specific files.
+2. Move React's `examples/app/` to top-level `examples/react/`, preserving tracked history.
+3. Move remaining tracked root files and folders, including `.github/`, `.changeset/`, `.githooks/`, legacy root configuration, lockfile and other dotfiles, into `packages/react-chessboard/` as **temporary staging content**. Do not create a second root `package.json` or workspace scaffold. The React branch root should have **no tracked files**, only the `packages/` and `examples/` trees.
+4. Commit and push the move-only preparation. Do not fix/rebuild a standalone React workspace or require CI on this temporary layout; the integrated repository will perform all path/configuration fixes.
+5. Preserve any pending React changesets until they can be reconciled, and do not change React `main`, release tags or npm publication.
+
+**Manual integration (OWNER ACTION, not to be done by the coding agent):**
+
+6. Prepare core workspace root and `packages/chessboard/` in `chessboard:migrate/monorepo` (Phases 2–3). In the owner’s local `chessboard` clone, add the React repository as a second remote; `git fetch --no-tags` its preparation branch, then `git merge --no-ff --allow-unrelated-histories` that branch into `migrate/monorepo` (without squash or rebase).
+7. Conflict rule: inspect each conflict and choose core's side for canonical **root-level** configuration when appropriate; preserve React-specific package/example content. Do not use `git merge -s ours` (it drops the other tree), or blindly take `ours` for package files.
+8. Check the new merge commit has parents from both repositories and `git log` can reach React's original commits. Avoid fetching colliding legacy `v*` tags.
+9. After integration, remove/consolidate redundant nested React staging files (`packages/react-chessboard/.github`, `.changeset`, `.githooks`, redundant lockfile, obsolete scripts). Preserve package-owned files and any pending release intent. Then proceed with Phases 5–17.
+
+Git history and GitHub Release objects are different. The former is preserved by this merge; the latter remain in the old React repository and do not automatically move.
 
 ## Phase 5 — Workspace-linking checkpoint (go/no-go, before CI work)
 
-1. Root `npm install`. Confirm `node_modules/@mirasen/chessboard` is a **symlink** to `packages/chessboard`.
+1. After the owner has merged both Git histories and duplicate staging configuration has been reconciled, run root `npm install`. Confirm `node_modules/@mirasen/chessboard` is a **symlink** to `packages/chessboard`.
 2. `npm run build -w @mirasen/chessboard` then `npm run build -w @mirasen/react-chessboard`.
 3. `npm test -w @mirasen/react-chessboard` (React mocks the board and imports core **types** only —
    still needs core `dist/*.d.ts`).
