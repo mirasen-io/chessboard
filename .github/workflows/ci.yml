@@ -225,11 +225,11 @@ jobs:
             ],
             [
               'examples/react/package-lock.json',
-              { projectName: 'react-chessboard-example', manifest: 'examples/react/package.json' },
+              { projectName: 'chessboard-react-example', manifest: 'examples/react/package.json' },
             ],
             [
               'examples/sveltekit/package-lock.json',
-              { projectName: 'sveltekit', manifest: 'examples/sveltekit/package.json' },
+              { projectName: 'chessboard-sveltekit-example', manifest: 'examples/sveltekit/package.json' },
             ],
           ]);
           const byTarget = new Map();
