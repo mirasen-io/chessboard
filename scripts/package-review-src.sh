@@ -94,7 +94,6 @@ EXTRA_EXCLUDES=(
 #   '.prettierignore'
 #   '.npmrc'
 #   '.nvmrc'
-#   '.sonarcloud.properties'
 #   'sonar-project.properties'
 # )
 

@@ -167,18 +167,18 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
-      - name: Map package coverage sources to monorepo paths
+      - name: Stage package coverage reports
         shell: bash
         run: |
           set -euo pipefail
           for package in chessboard react-chessboard; do
             report="packages/${package}/coverage-test/lcov.info"
             test -s "$report"
-            sed -i "s#^SF:src/#SF:packages/${package}/src/#" "$report"
             if grep -q '^SF:src/' "$report"; then
-              echo "Unmapped LCOV source path remains in $report" >&2
+              echo "LCOV reporter emitted package-relative paths in $report" >&2
               exit 1
             fi
+            grep -q "^SF:packages/${package}/src/" "$report"
             artifact_report="coverage-artifacts/packages/${package}/coverage-test/lcov.info"
             mkdir -p "$(dirname "$artifact_report")"
             cp "$report" "$artifact_report"
@@ -240,13 +240,14 @@ jobs:
         uses: kt-workflows/actions/npm-ci-sonar@main
         with:
           checkout: false # already checked out in previous step
-          skip-npm-setup: true
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           fail-on-empty-token: true
           cache-reset: ${{ needs.config.outputs.cache-reset }}
-          install-script: ''
-          run-script: echo 'Scanning both packages with coverage from every Node.js matrix job'
+          install-script: npm ci && npm ci --prefix examples/sveltekit && npm ci --prefix examples/react
+          run-script: |
+            npm run check
+            npm --prefix examples/sveltekit run check
           project-base-dir: .
 
   # Stable aggregate required-* checks for branch protection rules.
