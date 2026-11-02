@@ -1,8 +1,7 @@
 # Research report: Dependabot + npm workspaces + automatic Changesets (monorepo)
 
 > Scope: **Dependabot → auto-generated Changeset → auto-merge/auto-release** only.
-> This is a standalone investigation. The main `plan-migrate-monorepo.md` is intentionally
-> NOT modified; decide the Dependabot architecture from this report first.
+> The monorepo migration and first production release are complete; this remains the standalone record of the Dependabot design decision.
 > Hard requirement being tested: **no manually-authored changesets for Dependabot PRs, ever.**
 > Date of investigation: 2026-08. Current tool/action versions checked against `main`.
 
