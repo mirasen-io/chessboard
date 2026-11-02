@@ -177,7 +177,7 @@ The historical shared tooling and secrets setup is recorded below. Revalidate it
    	"private": true,
    	"type": "module",
    	"workspaces": ["packages/chessboard", "packages/react-chessboard"],
-   	"engines": { "node": ">=20" },
+   	"engines": {/* determine from the current package/CI compatibility baseline */},
    	"scripts": {/* §Phase 6 */},
    	"devDependencies": {/* split rationale below */}
    }
@@ -313,9 +313,7 @@ Keep npm names unchanged, but point both publishable package manifests to the co
 Verified: `.githooks/pre-push` runs `npm ci && npm run check && npm run lint`; **`core.hooksPath` is NOT
 configured anywhere** (git config, package.json, CI) — the hook is opt-in only.
 
-1. Keep a single `.githooks/` at repo root (core's — do not nest under packages). React's
-   `.githooks/pre-push` is **identical** (both are `npm ci && npm run check && npm run lint`) and is **not**
-   carried over (Phase 4's copy list already excludes it) — one root copy covers the whole workspace.
+1. Keep one `.githooks/` at repository root (core's). The React preparation branch temporarily parks its legacy hook under `packages/react-chessboard/.githooks/`; remove that redundant copy **after** the manual merge. Confirm root hook behavior against the new workspace scripts.
 2. `pre-push`'s `npm ci && npm run check && npm run lint` now works **self-contained**: root `check` runs
    `build:core` first (Phase 6), so React's typecheck resolves core `dist` after a clean install. No change
    to the hook body is needed beyond confirming it calls the root workspace scripts.
@@ -348,8 +346,7 @@ no guard edits). Drop React's copies.
 - **`auto-merge.yml`**: unchanged in wiring; correctness now comes from the Phase 0A action rewrite.
 - **`auto-release.yml`**: preserve the existing monthly Dependabot-only release policy; verify it works for either package and does not trigger an immediate migration release.
 - **`codeql.yml`, `contribution-reset.yml`, `contribution-update.yml`**: keep core's `main`/`contribution` branch model. Only open a migration PR to `main` **after** the owner has merged both Git histories; PR CI is the first full integration gate (ordinary staging-branch pushes do not trigger it).
-- No `working-directory`/`paths:`/`cd`/extra `--prefix`/`cache-dependency-path` assumptions to fix beyond the
-  above (grep-verified: only the two `--prefix examples/sveltekit` lines exist, and they stay valid).
+- Re-audit `working-directory`, `paths:`, `cd`, `--prefix` and `cache-dependency-path` after restructuring: old single-package audits do not prove new workspace paths are correct. Keep working SvelteKit paths where still valid.
   Cache actions default `cache-dependency-path: **/package-lock.json`. The repo will have **multiple**
   lockfiles by design — one root workspace `package-lock.json` plus each standalone example's own
   (`examples/sveltekit/`, `examples/react/`). Workspace packages share the single root lockfile; the `**`
@@ -405,7 +402,7 @@ CI-based analysis is already in use, so SonarCloud's lack of monorepo Automatic 
    symlink → `.sonarcloud.properties`) and preserve the working form after the move.
 2. **Package-specific coverage artifacts (avoid name collisions).** Today the matrix uploads
    `coverage-test-node<ver>`. Use package-scoped names so core's Sonar project never ingests React's LCOV and
-   vice-versa, e.g. `coverage-chessboard-node22/24` and `coverage-react-chessboard-node22/24` (or equivalent).
+   vice-versa, e.g. `coverage-chessboard-node<ver>` and `coverage-react-chessboard-node<ver>`.
 3. `npm run coverage --workspaces` writes `packages/chessboard/coverage-test` and
    `packages/react-chessboard/coverage-test`; upload each under its package-scoped artifact name; on the sonar
    job, download and place them so each package's `sonar.javascript.lcov.reportPaths` glob resolves ONLY its
