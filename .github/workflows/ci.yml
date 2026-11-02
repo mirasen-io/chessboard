@@ -205,6 +205,7 @@ jobs:
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
       - name: Summarize structured Snyk scan results
+        id: snyk_summary
         if: always() && hashFiles('snyk-results.json') != ''
         shell: bash
         run: |
@@ -280,6 +281,18 @@ jobs:
             process.exitCode = 1;
           }
           NODE
+
+      - name: Monitor Snyk projects
+        if: >-
+          success() &&
+          steps.snyk_summary.outcome == 'success' &&
+          (
+            github.event_name == 'pull_request' ||
+            (github.event_name == 'push' && github.ref == 'refs/heads/main')
+          )
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: npx --no-install snyk monitor --all-projects --detection-depth=3 --org=d06649e6-d24f-447c-a066-1ac2ef91ee94
 
       - name: Upload structured Snyk results
         if: always() && hashFiles('snyk-results.json') != ''
