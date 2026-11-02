@@ -10,10 +10,10 @@ A production-grade, framework-agnostic TypeScript chessboard platform with real 
 
 ## Try it live (including annotations)
 
-- [Play a chess.js game](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/chessjs)
-- [Watch 12 live boards](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/live-games-grid)
-- [Try the promotion flow](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/promotion)
-- [Try the minimal example](https://chessboard.k-tarmyshov.workers.dev/chessboard/examples/minimal)
+- [Play a chess.js game](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/chessjs)
+- [Watch 12 live boards](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/live-games-grid)
+- [Try the promotion flow](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/promotion)
+- [Try the minimal example](https://mirasen.k-tarmyshov.workers.dev/chessboard/examples/minimal)
 
 ## Using React?
 

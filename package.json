@@ -23,7 +23,7 @@
 		"legal-moves",
 		"touch"
 	],
-	"homepage": "https://chessboard.k-tarmyshov.workers.dev/chessboard",
+	"homepage": "https://mirasen.k-tarmyshov.workers.dev/chessboard",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/mirasen-io/chessboard.git"
