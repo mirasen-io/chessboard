@@ -446,13 +446,18 @@ GitHub Web UI** (secrets are created by a maintainer in the UI; the CLI is used 
     env: { SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} }
     with:
       command: test        # point-in-time; NOT monitor
-      args: --all-projects --detection-depth=2 --exclude=examples
+      args: --all-projects --fail-fast --detection-depth=3 --org=mirasen --strict-out-of-sync=true
   ```
   `--all-projects` is Snyk's documented mechanism to "auto-detect all projects in the working directory"
-  (the monorepo / multi-manifest scan mode); `--detection-depth=2` reaches `packages/*/package.json`, and
-  `--exclude=examples` drops the standalone example apps. Per the docs, `--exclude` takes comma-separated
-  **basenames** and **cannot include a path** — so it is `examples`, not `examples/*`. Runs after a single
-  root `npm ci`; do **not** install separately inside the packages — they share the root lockfile.
+  (the monorepo / multi-manifest scan mode). `--detection-depth=3` reaches the package manifests two
+  directories below the repository root. `--fail-fast` makes a project-resolution error fail the scan, and
+  `--strict-out-of-sync=true` retains lockfile consistency validation. Do not pass `--dev`: Snyk scans
+  production dependencies only. The single root scan covers the root manifest, both workspaces resolved
+  against the shared root lockfile, and both standalone examples using their independent lockfiles.
+  `--json-file-output` records structured results; CI verifies all five project identities and requires
+  non-empty production graphs for the four manifests that declare production dependencies. The private root
+  orchestrator has no production dependencies and may correctly report zero. Runs after a single root `npm ci`;
+  the Snyk package scanner reads the example lockfiles directly and does not need separate example installs.
 - **`test` vs `monitor` (Free-plan sizing, source-backed):** `snyk test` is point-in-time and does **not**
   create a persistent Snyk Project; only `snyk monitor` creates/updates a dashboard Project (per the
   `snyk/actions` README). The Snyk **Free plan** allows **200 Open Source (SCA) tests/month and 5 Projects**
@@ -461,9 +466,9 @@ GitHub Web UI** (secrets are created by a maintainer in the UI; the CLI is used 
   repo's volume; Snyk also runs a free program for open-source maintainers if more is ever needed).
   **Do NOT add `snyk monitor`** — we need a CI gate, not a dashboard/history migration; that is a separate
   later task if ever wanted.
-- **Project scope:** the two publishable packages (`@mirasen/chessboard`, `@mirasen/react-chessboard`). Root
-  is a private orchestrator; standalone `examples/*` are excluded via `--exclude=examples` so they never become
-  separate Snyk targets.
+- **Project scope:** all five npm manifests: the private root, both publishable packages
+  (`@mirasen/chessboard`, `@mirasen/react-chessboard`), and the standalone SvelteKit and React examples. Examples
+  remain outside npm workspaces but their independent lockfiles are included in the all-projects scan.
 - **PR check behavior:** `snyk/actions` fails the job by default on findings → the GitHub check fails,
   acting as the dependency-change security gate. **Preserve current policy:** if the Snyk check is currently
   required in branch protection, keep it required; if advisory, add `continue-on-error: true`. Do not silently
@@ -503,38 +508,26 @@ GitHub Web UI** (secrets are created by a maintainer in the UI; the CLI is used 
 
 ### Security verification matrix (first post-migration PRs; use a temp branch/fixture, never a permanent vulnerable dep)
 
-| Scenario                         | Socket (App)             | Snyk (CI/CLI)                                                                                                           |
-| -------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Core dep patch                   | App status check detects | root scan detects                                                                                                       |
-| React dep patch                  | App detects              | root scan detects                                                                                                       |
-| Both packages changed            | one repo check           | one workspace scan covers both                                                                                          |
-| Root tooling dep change          | handled normally         | no false per-package project                                                                                            |
-| Internal React→core edge         | not mis-interpreted      | valid workspace graph, no double-count                                                                                  |
-| Lockfile-only update             | status check runs        | root lockfile analyzed                                                                                                  |
-| Example-only update              | default App behavior     | excluded (`--exclude=examples`)                                                                                         |
-| Known-vuln fixture (temp branch) | finding appears          | CI fails per current policy                                                                                             |
-| Normal (non-Dependabot) PR       | existing App behavior    | Actions `SNYK_TOKEN` available; scan succeeds                                                                           |
-| Dependabot PR                    | App status works         | Dependabot `SNYK_TOKEN` available; scan succeeds — a missing Dependabot token would fail auth-only and block auto-merge |
+| Scenario                             | Socket (App)             | Snyk (CI/CLI)                                                                                                           |
+| ------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Core dep patch                       | App status check detects | root scan detects                                                                                                       |
+| React dep patch                      | App detects              | root scan detects                                                                                                       |
+| Both packages changed                | one repo check           | one workspace scan covers both                                                                                          |
+| Root tooling dep change              | handled normally         | no false per-package project                                                                                            |
+| Internal React→core edge             | not mis-interpreted      | valid workspace graph, no double-count                                                                                  |
+| Lockfile-only update                 | status check runs        | root lockfile analyzed                                                                                                  |
+| Example production-dependency update | default App behavior     | standalone example lockfile is scanned                                                                                  |
+| Known-vuln fixture (temp branch)     | finding appears          | CI fails per current policy                                                                                             |
+| Normal (non-Dependabot) PR           | existing App behavior    | Actions `SNYK_TOKEN` available; scan succeeds                                                                           |
+| Dependabot PR                        | App status works         | Dependabot `SNYK_TOKEN` available; scan succeeds — a missing Dependabot token would fail auth-only and block auto-merge |
 
-**First Snyk CI run must confirm (then the configuration is final):**
-
-1. `@mirasen/chessboard` is detected;
-2. `@mirasen/react-chessboard` is detected;
-3. the shared root `package-lock.json` is used/resolved correctly for both;
-4. `examples/*` are excluded from the scan;
-5. the internal `@mirasen/react-chessboard → @mirasen/chessboard` workspace edge does not break or
-   double-count the graph;
-6. no out-of-sync warning occurs;
-7. the expected GitHub check status is produced;
-8. a normal (non-Dependabot) PR receives `SNYK_TOKEN` (Actions secret) and the scan succeeds;
-9. a Dependabot PR receives `SNYK_TOKEN` (Dependabot secret) and the scan succeeds — no auth-only failure that
-   would block auto-merge.
-
-**Runtime contingency (NOT default config):** `--all-projects` is the documented multi-manifest/monorepo scan
-mode; the CLI docs name Yarn workspaces explicitly and do not separately document npm-workspace resolution, so
-#3/#6 above are the only runtime-dependent points. If — and only if — the first real run shows a concrete
-shared-root-lockfile out-of-sync issue, investigate, confirm against current Snyk docs, then add
-`--strict-out-of-sync=false` if justified. Do not add it (or any other workaround) pre-emptively.
+**Snyk CI verification (completed on `8bb1882`):** the authenticated run reported five projects across all
+three lockfile domains: root `package.json` (zero production dependencies), core workspace (4 dependencies),
+React workspace (6), React example (5), and SvelteKit example (3). It used the shared root lockfile for both
+workspaces and each example's own lockfile, with strict out-of-sync validation enabled. All five reports had
+zero production vulnerabilities, and the CI result validation passed. The run exercised the Actions token;
+verify the Dependabot token on a future Dependabot PR. If a later scan encounters a lockfile mismatch, keep
+strict validation and resolve the mismatch rather than disabling the check.
 
 ## Phase 14 — Pre-release dry-run checklist — migration verification complete; still applies before first release
 
