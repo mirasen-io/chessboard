@@ -179,15 +179,16 @@ jobs:
               echo "Unmapped LCOV source path remains in $report" >&2
               exit 1
             fi
+            artifact_report="coverage-artifacts/packages/${package}/coverage-test/lcov.info"
+            mkdir -p "$(dirname "$artifact_report")"
+            cp "$report" "$artifact_report"
           done
 
       - name: Upload package coverage artifacts
         uses: actions/upload-artifact@v7
         with:
           name: coverage-node-${{ matrix.node-version }}
-          path: |
-            packages/chessboard/coverage-test/lcov.info
-            packages/react-chessboard/coverage-test/lcov.info
+          path: coverage-artifacts/
           if-no-files-found: error
 
   snyk:
@@ -218,6 +219,22 @@ jobs:
           pattern: coverage-node-*
           path: coverage-reports
           merge-multiple: false
+
+      - name: Verify downloaded coverage reports from each matrix job
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_count=0
+          for artifact in coverage-reports/*; do
+            test -d "$artifact"
+            test -s "$artifact/packages/chessboard/coverage-test/lcov.info"
+            test -s "$artifact/packages/react-chessboard/coverage-test/lcov.info"
+            artifact_count=$((artifact_count + 1))
+          done
+          test "$artifact_count" -gt 0
+          report_count="$(find coverage-reports -type f -name lcov.info | wc -l)"
+          test "$report_count" -eq "$((artifact_count * 2))"
+          echo "Verified $report_count LCOV reports from $artifact_count Node.js matrix jobs"
 
       - name: Scan monorepo SonarQube Cloud project
         uses: kt-workflows/actions/npm-ci-sonar@main
