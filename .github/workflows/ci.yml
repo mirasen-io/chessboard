@@ -199,8 +199,85 @@ jobs:
         with:
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           snyk-token: ${{ secrets.SNYK_TOKEN }}
-          args: --all-projects --detection-depth=2 --exclude=examples
+          args: >-
+            --all-projects --fail-fast --detection-depth=2 --dev --org=mirasen
+            --strict-out-of-sync=true --json-file-output=snyk-results.json
           cache-reset: ${{ needs.config.outputs.cache-reset }}
+
+      - name: Summarize structured Snyk scan results
+        if: always() && hashFiles('snyk-results.json') != ''
+        shell: bash
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+
+          const results = JSON.parse(fs.readFileSync('snyk-results.json', 'utf8'));
+          const manifests = new Map();
+          const expected = [
+            'package.json',
+            'packages/chessboard/package.json',
+            'packages/react-chessboard/package.json',
+            'examples/sveltekit/package.json',
+            'examples/react/package.json',
+          ];
+
+          function normalizeTarget(targetFile) {
+            const normalized = targetFile.replaceAll('\\', '/').replace(/^\.\//, '');
+            for (const root of ['/github/workspace/', `${process.cwd().replaceAll('\\', '/')}/`]) {
+              if (normalized.startsWith(root)) return normalized.slice(root.length);
+            }
+            return normalized;
+          }
+
+          function visit(value) {
+            if (Array.isArray(value)) {
+              value.forEach(visit);
+              return;
+            }
+            if (!value || typeof value !== 'object') return;
+
+            const targetFile = value.targetFile ?? value.displayTargetFile ?? value.meta?.targetFile;
+            if (typeof targetFile === 'string' && targetFile.endsWith('package.json')) {
+              const normalized = normalizeTarget(targetFile);
+              const dependencyCount = value.dependencyCount ?? value.depGraphData?.graph?.nodes?.length;
+              manifests.set(normalized, {
+                projectName: value.projectName ?? value.name ?? 'unknown',
+                dependencyCount: Number.isFinite(dependencyCount) ? dependencyCount : null,
+              });
+            }
+
+            Object.values(value).forEach(visit);
+          }
+
+          visit(results);
+          const missing = expected.filter((manifest) => !manifests.has(manifest));
+          if (missing.length > 0) {
+            console.error(`Snyk did not return results for expected manifests: ${missing.join(', ')}`);
+            process.exitCode = 1;
+          }
+
+          for (const manifest of expected) {
+            const details = manifests.get(manifest);
+            if (details && !(details.dependencyCount > 0)) {
+              console.error(`Snyk did not report a resolved dependency tree for ${manifest}`);
+              process.exitCode = 1;
+            }
+          }
+
+          console.log(`Snyk JSON contains ${manifests.size} distinct npm package manifests:`);
+          for (const [manifest, details] of [...manifests.entries()].sort()) {
+            console.log(`- ${manifest}: ${details.projectName} (${details.dependencyCount ?? 'unknown'} dependencies)`);
+          }
+          NODE
+
+      - name: Upload structured Snyk results
+        if: always() && hashFiles('snyk-results.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: snyk-results-${{ github.run_id }}
+          path: snyk-results.json
+          if-no-files-found: error
+          retention-days: 1
 
   sonar:
     needs:
