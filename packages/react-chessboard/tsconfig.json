@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"lib": ["es2023", "dom", "dom.iterable"],
+		"target": "es2022",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"jsx": "react-jsx",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"declaration": true,
+		"sourceMap": true,
+		"declarationMap": true
+	},
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", "coverage", "coverage-test"]
+}
