@@ -5,3 +5,6 @@ yarn.lock
 bun.lock
 bun.lockb
 examples/sveltekit
+
+/.agents/skills/
+/.claude/skills/

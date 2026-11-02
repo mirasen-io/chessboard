@@ -1,5 +1,29 @@
 # @mirasen/chessboard
 
+## 1.5.3
+
+### Patch Changes
+
+- 48354b1: dependabot: dependency updates for PR #148
+
+## 1.5.2
+
+### Patch Changes
+
+- bb9e1af: Fix extension event listener cleanup by unmounting extensions before destroying the input adapter.
+- fa5f9d7: dependabot: dependency updates for PR #139
+- 68eee00: dependabot: dependency updates for PR #141
+- 530f01c: dependabot: dependency updates for PR #144
+- 6e8859c: dependabot: dependency updates for PR #145
+
+## 1.5.1
+
+### Patch Changes
+
+- 389a732: chore: update deps
+- 0dfb7a3: dependabot: dependency updates for PR #137
+- a95ffa0: dependabot: dependency updates for PR #138
+
 ## 1.5.0
 
 ### Minor Changes

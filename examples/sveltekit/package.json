@@ -17,37 +17,44 @@
 		"test:e2e": "playwright install && playwright test"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^2.0.4",
 		"@eslint/js": "^10.0.1",
-		"@playwright/test": "^1.62.1",
-		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/kit": "^2.70.3",
-		"@sveltejs/vite-plugin-svelte": "^7.3.0",
+		"@playwright/test": "^1.64.1",
+		"@sveltejs/adapter-auto": "^8.0.0",
+		"@sveltejs/kit": "^3.1.0",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.3",
-		"@types/node": "^26.0.1",
-		"@vitest/browser-playwright": "^5.0.0",
-		"eslint": "^10.2.0",
+		"@types/node": "^26.6.5",
+		"@vitest/browser-playwright": "^5.0.5",
+		"eslint": "^10.13.0",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-svelte": "^3.23.0",
-		"globals": "^17.4.0",
-		"playwright": "^1.59.1",
-		"prettier": "^3.8.1",
+		"eslint-plugin-svelte": "^3.23.1",
+		"globals": "^17.13.0",
+		"playwright": "^1.64.1",
+		"prettier": "^3.9.10",
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.1",
-		"svelte": "^5.57.0",
-		"svelte-check": "^4.7.6",
-		"tailwindcss": "^4.2.2",
+		"svelte": "^5.57.3",
+		"svelte-check": "^4.7.7",
+		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.2",
-		"typescript-eslint": "^8.58.1",
-		"vite": "^8.2.2",
-		"vitest": "^5.0.0",
-		"vitest-browser-svelte": "^3.0.0"
+		"typescript-eslint": "^8.72.0",
+		"vite": "^8.3.5",
+		"vitest": "^5.0.5",
+		"vitest-browser-svelte": "^3.1.0",
+		"@playwright/cli": "^0.1.22"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
-		"@ktarmyshov/assert": "^0.1.10",
+		"@ktarmyshov/assert": "^0.1.15",
 		"@mirasen/chessboard": "file:../..",
 		"chess.js": "^1.4.0"
+	},
+	"engines": {
+		"node": ">=22.17"
 	}
 }

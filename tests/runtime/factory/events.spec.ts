@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createAnnotations } from '../../../src/extensions/first-party/annotations/factory.js';
 import type {
 	AnyExtensionDefinition,
 	AnyExtensionInstance
@@ -89,6 +90,36 @@ describe('runtime factory events surface', () => {
 			capturedEvents!.subscribeEvent('click');
 			runtime.unmount();
 			expect(() => capturedEvents!.unsubscribeEvent('click')).not.toThrow();
+		});
+	});
+
+	describe('extension teardown', () => {
+		it('removes annotations contextmenu listeners across unmount and destroy', () => {
+			const annotationsRuntime = createRuntime({
+				element: document.createElement('div'),
+				extensions: [createAnnotations()]
+			});
+			const addSpy = vi.spyOn(container, 'addEventListener');
+			const removeSpy = vi.spyOn(container, 'removeEventListener');
+
+			annotationsRuntime.mount(container);
+			const firstHandler = addSpy.mock.calls.find(([type]) => type === 'contextmenu')?.[1];
+			expect(firstHandler).toBeDefined();
+
+			annotationsRuntime.unmount();
+			expect(removeSpy).toHaveBeenCalledWith('contextmenu', firstHandler);
+
+			annotationsRuntime.mount(container);
+			annotationsRuntime.destroy();
+
+			const addedHandlers = addSpy.mock.calls
+				.filter(([type]) => type === 'contextmenu')
+				.map(([, handler]) => handler);
+			const removedHandlers = removeSpy.mock.calls
+				.filter(([type]) => type === 'contextmenu')
+				.map(([, handler]) => handler);
+			expect(addedHandlers).toHaveLength(2);
+			expect(removedHandlers).toEqual(addedHandlers);
 		});
 	});
 });

@@ -1,38 +1,20 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import type { LayoutProps } from './$types';
+	import Navigation from '#lib/chessboard-examples/Navigation.svelte';
+	import { exampleLinks } from '#lib/chessboard-examples/links.js';
+	import '#lib/chessboard-examples/chessboard-examples.css';
+	import favicon from '#lib/assets/favicon.svg';
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 
-	let { children } = $props();
-
-	const links = [
-		{ href: '/', label: 'Debug' },
-		{ href: '/free', label: 'Free' },
-		{ href: '/2-custom-ext-list', label: 'Custom Extension List' },
-		{ href: '/promotion', label: 'Promotion' },
-		{ href: '/chessjs', label: 'Chess.js Adapter' }
-	] as const;
+	let { children }: LayoutProps = $props();
+	const links = exampleLinks.map(({ route, label }) => ({ href: resolve(route), label }));
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
+<svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="app-shell">
-	<nav class="top-nav">
-		<div class="brand">Manual routes</div>
-
-		<div class="links">
-			{#each links as link (link.href)}
-				<a href={resolve(link.href)} class:active={page.url.pathname === link.href}>
-					{link.label}
-				</a>
-			{/each}
-		</div>
-	</nav>
-
-	<main class="content">
-		{@render children()}
-	</main>
+<div class="chessboard-examples">
+	<Navigation {links} currentPath={page.url.pathname} />
+	<main>{@render children()}</main>
 </div>

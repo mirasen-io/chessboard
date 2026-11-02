@@ -45,13 +45,13 @@ export function runtimeMount(state: RuntimeInternal, container: HTMLElement): vo
 export function runtimeUnmount(state: RuntimeInternal): void {
 	runtimeValidateIsMounted(state);
 	assert(state.inputAdapter !== null, 'Input adapter should be initialized when mounted');
-	state.inputAdapter.destroy();
-	state.inputAdapter = null;
 	if (state.resizeObserver) {
 		state.resizeObserver.disconnect();
 		state.resizeObserver = null;
 	}
 	state.renderSystem.unmount();
+	state.inputAdapter.destroy();
+	state.inputAdapter = null;
 	state.extensionSystem.onUnmount();
 }
 
