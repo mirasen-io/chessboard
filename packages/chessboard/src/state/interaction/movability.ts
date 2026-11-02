@@ -23,7 +23,7 @@ function moveDestinationsEqual(
 		a.capturedSquare === b.capturedSquare &&
 		a.secondary?.from === b.secondary?.from &&
 		a.secondary?.to === b.secondary?.to &&
-		setsEqual(new Set(a.promotedTo ? a.promotedTo : []), new Set(b.promotedTo ? b.promotedTo : []))
+		setsEqual(new Set(a.promotedTo ?? []), new Set(b.promotedTo ?? []))
 	);
 }
 

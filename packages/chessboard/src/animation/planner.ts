@@ -130,11 +130,7 @@ function normalizePromotionEffectiveCurrent(
 ): AnimationPlanningSnapshot {
 	const lastMove = current.change.lastMove;
 
-	if (
-		current.change.deferredUIMoveRequest !== null ||
-		lastMove === null ||
-		lastMove.promotedTo === undefined
-	) {
+	if (current.change.deferredUIMoveRequest !== null || lastMove?.promotedTo === undefined) {
 		return current;
 	}
 
