@@ -1,6 +1,6 @@
 # Migration plan: `@mirasen/chessboard` + `@mirasen/react-chessboard` → npm-workspaces monorepo
 
-> Status: **implementation complete on `migrate/monorepo`; PR #151 is open for owner review**. Both original histories are preserved. Updated 2026-11-02 after CI and the consolidated Quality Gate passed.
+> Status: **migration and first production release complete on `main`**. PR #151 merged as `77cc7a9`; PR #160 merged as `4e13377`. Published from the monorepo: `@mirasen/chessboard@1.5.4` and `@mirasen/react-chessboard@2.0.2`, with npm provenance verified. Updated 2026-11-02 after CI and the Release workflow passed.
 > Goal: consolidate core and React development and release workflows **while preserving both Git commit
 > histories**, maintaining independent published package identities, and removing the manual cross-repository linking workflow.
 > Companion doc: [`research-dependabot-monorepo-changesets.md`](./research-dependabot-monorepo-changesets.md)
@@ -529,7 +529,7 @@ zero production vulnerabilities, and the CI result validation passed. The run ex
 verify the Dependabot token on a future Dependabot PR. If a later scan encounters a lockfile mismatch, keep
 strict validation and resolve the mismatch rather than disabling the check.
 
-## Phase 14 — Pre-release dry-run checklist — migration verification complete; still applies before first release
+## Phase 14 — Pre-release dry-run checklist — ✅ completed before first release
 
 ```bash
 npm ci
@@ -548,17 +548,20 @@ Check each tarball for its own `dist/`, assets if applicable, README, LICENSE, C
 
 **History and CI checkpoint:** check that Git history includes both original graphs, every expected folder exists, no nested redundant React CI configuration remains, and the final migration PR passes current CI, CodeQL, the single SonarQube Quality Gate, Snyk and Socket checks. Never publish while testing the migration.
 
-## Phase 15 — First release from the monorepo
+## Phase 15 — First release from the monorepo — ✅ DONE (2026-11-02)
 
-1. The final migration merge into `chessboard/main` should be **release-neutral if no pending changesets exist**. Recheck the actual queue and any Version Packages PRs immediately beforehand; do not rely on the historical assumption of an empty queue.
-2. The history-preserving React merge is complete on the preparation branch. The owner decides when to merge the validated final migration PR; the implementation agent must not merge it.
-3. Before the first **intentional** npm publication from the monorepo, configure and verify trusted publishing/provenance for **both** existing npm packages and the new source repository. React's existing trusted-publishing setup does not transfer through Git history alone.
-4. Changesets CLI 3.0.3 `publish` emits package-qualified tag events for packages it successfully publishes; `changesets/action@v2` consumes those events to push matching tags and create package GitHub Releases. Its v2 outputs are `published`, `has-changesets`, and `pr-number`. The shared wrapper uses those names, reports partial publication, and only attempts npm-token fallback after a failed primary action that did not report publication; successful no-publication runs do not trigger fallback. It does not publish or tag an unchanged workspace. The private root is not a workspace member. Isolated core-only, React-only, and coordinated `publish-plan` rehearsals planned only the requested packages, in core-before-React order. Version/changelog/lockfile simulations passed; no publish command was run.
-5. Leave historical React GitHub Releases in the React repository; they cannot be transferred through a normal Git merge.
+- Migration PR #151 merged to `main` as `77cc7a904a86f2917bf716d7cc1a341af996ec0a`.
+- Trusted publishing and provenance were configured for both packages from `mirasen-io/chessboard`.
+- Version Packages PR #160 merged as `4e133777de9a77bce3886e8c10057f9b5f601314` after its required checks passed.
+- Main CI run [41544441390](https://github.com/mirasen-io/chessboard/actions/runs/41544441390) and Release workflow run [41545076506](https://github.com/mirasen-io/chessboard/actions/runs/41545076506) succeeded. The primary Changesets publish path succeeded with provenance enabled; the npm-token fallback was skipped.
+- npm reports `@mirasen/chessboard@1.5.4` and `@mirasen/react-chessboard@2.0.2` as `latest`. Both package metadata records and SLSA provenance attestations are available.
+- Package GitHub Releases: [@mirasen/chessboard@1.5.4](https://github.com/mirasen-io/chessboard/releases/tag/%40mirasen/chessboard%401.5.4) and [@mirasen/react-chessboard@2.0.2](https://github.com/mirasen-io/chessboard/releases/tag/%40mirasen/react-chessboard%402.0.2).
 
-## Phase 16 — Dependabot post-migration verification (test matrix — required)
+## Phase 16 — Dependabot post-migration verification — first live batch complete
 
-Run/observe these on the first live Dependabot PRs (from research report):
+The first live batch was processed sequentially: #153 and #155–#158 merged after passing required CI, Snyk test and monitor, CodeQL, and Sonar; #154 was closed as redundant with #153; #159 had already merged. Main CI, including Snyk monitoring, passed after each merge.
+
+The table below remains the original regression and edge-case matrix. Cases not represented by the live PRs above were not separately exercised.
 
 | #   | Scenario                                                               | Expected changeset                             | Auto-merge | Release     |
 | --- | ---------------------------------------------------------------------- | ---------------------------------------------- | ---------- | ----------- |
@@ -587,15 +590,17 @@ Scenario 10 is the concrete regression fixture: a #126-style "across N directori
 - **Git commits:** the `--no-ff --allow-unrelated-histories` integration merge has both histories as parents/ancestors; no squash, so original commits are retained.
 - **Old tags:** the two standalone repositories already use overlapping `v*` tag names. Fetch only the React preparation branch with `--no-tags`, **not** `git fetch --tags`. Do not rename or overwrite existing core tags during import. Leave original React tags in its own repository.
 - **Old GitHub Releases:** release objects remain associated with their original GitHub repository, even when Git commits are imported. React's old Release URLs stay valid while the old repository stays accessible.
-- **New tags and releases:** after workspace migration, verify the installed Changesets/action tooling generates **distinct package-qualified** tag names (e.g., `@mirasen/chessboard@<version>` and `@mirasen/react-chessboard@<version>`). Test before the first actual publication.
-- **npm:** names and independent semver histories stay unchanged; move React's authorized publishing origin/workflow to the destination as a separate setup/check.
+- **New tags and releases:** verified on 2026-11-02 with package-qualified releases `@mirasen/chessboard@1.5.4` and `@mirasen/react-chessboard@2.0.2`.
+- **npm:** package names and independent semver histories remain unchanged. Trusted publishing from `mirasen-io/chessboard` and provenance for both packages are verified.
 
-## Verification status — 2026-11-02
+## Final verification — 2026-11-02
 
-**Completed and verified:** the history-preserving merge and both ancestry checks; clean root install and local workspace links; independent package builds, checks, tests, coverage, lint, release builds, and package tarballs; SvelteKit and React example installation/build validation; isolated Changesets version and publish-plan rehearsals; and the empty root Changesets queue. The migration branch leaves both published versions unchanged (`@mirasen/chessboard` 1.5.3 and `@mirasen/react-chessboard` 2.0.1), which match the npm registry. No version, changelog, or release changeset was introduced by the migration.
+**Migration and CI:** PR #151 merged as `77cc7a904a86f2917bf716d7cc1a341af996ec0a`. The consolidated CI and release setup passed on `main`; Snyk monitors the root workspace, both published packages, and the React and SvelteKit examples.
 
-PR #151 passes CI on Node.js 22, 24, and 26, including the workspace/example checks; CodeQL; Snyk; both Socket.dev checks; Dependabot configuration validation; and the required aggregate checks. The single `mirasen-io_chessboard` Sonar analysis imported six LCOV reports, passed its Quality Gate, and reported 94.8% coverage on new code. The SvelteKit `check` command ran before scanning to generate and validate the Kit TypeScript configuration.
+**Dependabot:** PRs #153 and #155–#158 passed required checks, including Snyk test and monitor, before merge; each resulting `main` CI passed. PR #154 was closed as redundant because #153 already included `es-toolkit@1.53.1`. PR #159 was already merged.
 
-**Owner-controlled follow-up:** preserve the imported histories when merging PR #151; verify React npm trusted publishing for `mirasen-io/chessboard` before the first release; and manually retire the old React SonarQube Cloud project and any duplicate Socket.dev integration after the consolidated checks are verified. The current GitHub token could not read the Dependabot secret store (403); the normal Actions Snyk scan passed, but verify `SNYK_TOKEN` availability in Dependabot's secret context before the first Dependabot-triggered run. No production release has been run.
+**First production release:** PR #160 merged as `4e133777de9a77bce3886e8c10057f9b5f601314`. The Release workflow successfully published `@mirasen/chessboard@1.5.4` and `@mirasen/react-chessboard@2.0.2`; npm metadata lists both as `latest`, and both SLSA provenance attestations are available. The primary trusted-publishing path succeeded without the npm-token fallback.
 
-**Out of scope:** developing new adapters or features, automatic merging into `main`, rewriting original Git histories, moving GitHub Release objects, and publishing npm versions only because files were reorganized.
+**Outcome:** the migration and first monorepo release are complete. The old React repository remains available for its history, issues, and legacy releases. Retiring old SonarQube/Socket integrations remains optional owner-controlled cleanup.
+
+**Out of scope:** developing new adapters or features, rewriting original Git histories, moving old GitHub Release objects, and publishing npm versions solely because files were reorganized.
