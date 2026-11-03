@@ -46,7 +46,7 @@ Keep Tailwind setup in the host application (`src/routes/layout.css` here). Pass
 host-resolved links and the active pathname into `Navigation`; it has no Kit imports.
 The root layout demonstrates the integration. Styles target only the example wrapper.
 
-## Validation and optional tooling
+## Validation and browser tests
 
 ```sh
 npm --prefix examples/sveltekit run format
@@ -56,11 +56,27 @@ npm --prefix examples/sveltekit run build
 npm --prefix examples/sveltekit run preview
 ```
 
-Vitest unit/component tooling, Playwright, local `@playwright/cli` and Tailwind with
-forms/typography are installed and configured for future use. There are intentionally
-no automated example tests. The `test:*` scripts are reserved for future suites;
-no-tests results are expected until tests are added. `test:e2e` also downloads browsers.
-The core and React packages have their own automated tests and validation scripts.
+Playwright browser specifications and their committed visual baselines live in
+`tests/e2e/`. After installing the example dependencies, install Chromium once and run
+the suite with:
+
+```sh
+npm ci --prefix examples/sveltekit
+npm --prefix examples/sveltekit run test:e2e:install
+npm --prefix examples/sveltekit run test:e2e
+```
+
+Update screenshots deliberately after reviewing the UI change:
+
+```sh
+npm --prefix examples/sveltekit run test:e2e:update
+```
+
+Failures retain traces and screenshots under `test-results/`; use
+`playwright-report/index.html` for the HTML report. Screenshot mismatches include actual,
+expected, and diff images in the test output. GitHub Actions runs both app suites in its
+single `browser-tests` job. Core package coverage and SonarCloud reporting remain based
+on the existing Vitest LCOV reports; browser tests do not contribute coverage.
 
 For a brief interactive browser check from the repository root, use
 `examples/sveltekit/node_modules/.bin/playwright-cli --help` and the root Playwright

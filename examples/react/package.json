@@ -6,7 +6,10 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test:e2e": "playwright test",
+		"test:e2e:update": "playwright test --update-snapshots",
+		"test:e2e:install": "playwright install chromium"
 	},
 	"dependencies": {
 		"@mirasen/react-chessboard": "file:../../packages/react-chessboard",
@@ -17,6 +20,7 @@
 	"devDependencies": {
 		"@types/react": "^19.3.0",
 		"@types/react-dom": "^19.3.0",
+		"@playwright/test": "^1.64.1",
 		"@vitejs/plugin-react": "^6.1.2",
 		"typescript": "^5.8.2",
 		"vite": "^8.3.5"

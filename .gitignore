@@ -139,6 +139,8 @@ dist
 .pnp.*
 
 artifacts
+playwright-report/
+test-results/
 
 .claude/settings.local.json
 .claude/cache/

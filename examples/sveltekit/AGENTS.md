@@ -31,7 +31,7 @@ and user edits.
 
 - Run `npm run format` after code or configuration changes. Preserve generated skills and existing specification archives using the repository's formatting exclusions.
 - Run `npm run lint`, `npm run check`, and `npm run build` after a coherent block of work or a dependency/configuration change, not after every small edit.
-- Vitest unit/component and Playwright are configured for future use. There are no automated example tests; do not create or require them unless requested. The workspace packages have their own tests and validation.
+- Vitest remains available for component work. Playwright browser tests now cover the numbered example routes and key user interactions under `tests/e2e/`; run `npm --prefix examples/sveltekit run test:e2e` when changing route behavior, board interactions, or example rendering. Update committed screenshot baselines only after reviewing the visual change.
 - Use manual browser sanity checks for this example. Prioritize `/0-debug`, basic controls and navigation; keep visual verification brief unless the task explicitly requires broader review.
 - In the final response, briefly report formatting and the checks actually run, including any unavailable checks.
 
