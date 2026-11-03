@@ -6,7 +6,8 @@ test('shows the configured promotion chooser and commits the selected piece', as
 	await expect(page.locator('[data-chessboard-id="piece-1-12"]')).toBeAttached();
 	await clickMove(page, 'e2', 'e8');
 	await expect(page.locator('[data-chessboard-id^="promotion-piece-"]')).toHaveCount(2);
-	await expect(page.locator('.board')).toHaveScreenshot('svelte-promotion-chooser.png');
+	await expect(page.locator('[data-chessboard-id="promotion-piece-3"]')).toBeAttached();
+	await expect(page.locator('[data-chessboard-id="promotion-piece-2"]')).toBeAttached();
 	const promotionSquare = await page
 		.locator('[data-chessboard-id="promotion-piece-3"]')
 		.boundingBox();

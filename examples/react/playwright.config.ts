@@ -15,7 +15,6 @@ export default defineConfig({
 		trace: 'retain-on-failure',
 		screenshot: 'only-on-failure'
 	},
-	snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
 	webServer: {
 		command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4174 --strictPort',
 		url: 'http://127.0.0.1:4174',

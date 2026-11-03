@@ -31,13 +31,17 @@ and user edits.
 
 - Run `npm run format` after code or configuration changes. Preserve generated skills and existing specification archives using the repository's formatting exclusions.
 - Run `npm run lint`, `npm run check`, and `npm run build` after a coherent block of work or a dependency/configuration change, not after every small edit.
-- Vitest remains available for component work. Playwright browser tests now cover the numbered example routes and key user interactions under `tests/e2e/`; run `npm --prefix examples/sveltekit run test:e2e` when changing route behavior, board interactions, or example rendering. Update committed screenshot baselines only after reviewing the visual change.
+- Vitest remains available for component work. Behavior-oriented Playwright tests cover the numbered example routes and key user interactions under `tests/e2e/`; run `npm --prefix examples/sveltekit run test:e2e` when changing route behavior, board interactions, or example behavior. These tests do not use committed screenshot baselines or pixel comparisons.
 - Use manual browser sanity checks for this example. Prioritize `/0-debug`, basic controls and navigation; keep visual verification brief unless the task explicitly requires broader review.
 - In the final response, briefly report formatting and the checks actually run, including any unavailable checks.
 
 ## Browser Verification
 
-Browser checks are for verifying a meaningful visual state, not part of the routine edit loop.
+Playwright E2E checks focus on observable behavior and interaction correctness. Keep their
+assertions independent of colors, dimensions, and pixel appearance. Use board positions,
+FEN, piece identities, selection state, promotion choices, and annotation elements where
+useful. Committed screenshot baselines and pixel-comparison tests are intentionally not
+used. Temporary failure screenshots and traces are diagnostic artifacts only.
 
 - Use the project's own CLI: `./node_modules/.bin/playwright-cli`, not a global install. Check `--help` instead of guessing commands. If the dependency is not installed, say so; do not install it silently or change `package.json` for verification.
 - Start `npm run dev` in the background, wait for the URL Vite reports, and use that URL. Do not run `npm run build` just to look at a page. Stop the server you started when done, and never leave duplicate servers on different ports.
@@ -57,9 +61,9 @@ Browser checks are for verifying a meaningful visual state, not part of the rout
 - Inspect the rendered example at a representative desktop and narrow width when visuals
   change. Prioritize Debug, board mounting, controls, navigation and obvious overflow.
 - Use a small number of meaningful screenshots; DOM snapshots do not replace visual inspection.
-- Keep checks proportional to the task. Do not run exhaustive route/state/viewport matrices
-  or pixel comparisons unless requested. Preserve the numbered examples and portable
-  components/helpers/CSS under `src/lib/chessboard-examples/`.
+- Keep checks proportional to the task. Do not run exhaustive route/state/viewport matrices.
+  Preserve the numbered examples and portable components/helpers/CSS under
+  `src/lib/chessboard-examples/`.
 - Fix meaningful regressions with targeted edits, then recheck the affected state.
 - Report the routes/states actually checked and any remaining limitations.
 

@@ -56,9 +56,10 @@ npm --prefix examples/sveltekit run build
 npm --prefix examples/sveltekit run preview
 ```
 
-Playwright browser specifications and their committed visual baselines live in
-`tests/e2e/`. After installing the example dependencies, install Chromium once and run
-the suite with:
+Playwright browser interaction specifications live in `tests/e2e/`. They check route
+rendering, board state, moves, controls, and interaction cleanup without committed
+screenshot baselines or pixel comparisons. After installing the example dependencies,
+install Chromium once and run the suite with:
 
 ```sh
 npm ci --prefix examples/sveltekit
@@ -66,17 +67,12 @@ npm --prefix examples/sveltekit run test:e2e:install
 npm --prefix examples/sveltekit run test:e2e
 ```
 
-Update screenshots deliberately after reviewing the UI change:
-
-```sh
-npm --prefix examples/sveltekit run test:e2e:update
-```
-
-Failures retain traces and screenshots under `test-results/`; use
-`playwright-report/index.html` for the HTML report. Screenshot mismatches include actual,
-expected, and diff images in the test output. GitHub Actions runs both app suites in its
-single `browser-tests` job. Core package coverage and SonarCloud reporting remain based
-on the existing Vitest LCOV reports; browser tests do not contribute coverage.
+Failures retain temporary diagnostic traces and screenshots under `test-results/`; use
+`playwright-report/index.html` for the HTML report. These screenshots help debug failed
+interactions and are not committed baselines or pixel-based assertions. GitHub Actions
+runs both app suites in its single `browser-tests` job. Core package coverage and
+SonarCloud reporting remain based on the existing Vitest LCOV reports; browser tests do
+not contribute coverage.
 
 For a brief interactive browser check from the repository root, use
 `examples/sveltekit/node_modules/.bin/playwright-cli --help` and the root Playwright

@@ -42,9 +42,8 @@ test('commits a pointer drag and clears the overlay after an outside cancellatio
 	await expect(page.locator('[data-chessboard-id="piece-1-11"]')).toBeAttached();
 });
 
-test('selected square state matches the visual baseline', async ({ page }) => {
+test('selecting a square exposes its selection state', async ({ page }) => {
 	const selected = await squareCenter(page, 'e2');
 	await page.mouse.click(selected.x, selected.y);
-	await expect(page.locator('[data-chessboard-id="selected-square-highlight"]')).toBeAttached();
-	await expect(page.locator('.board')).toHaveScreenshot('svelte-free-selected-square.png');
+	await expect(page.locator('[data-chessboard-id="selected-square-highlight"]')).toHaveCount(1);
 });
