@@ -25,6 +25,7 @@
 		"@changesets/cli": "^3.0.3",
 		"@eslint/compat": "^2.1.1",
 		"@eslint/js": "^10.0.1",
+		"@playwright/cli": "^0.1.23",
 		"eslint": "^10.14.0",
 		"eslint-config-prettier": "^10.1.8",
 		"globals": "^17.13.0",

@@ -32,27 +32,27 @@ The saved file contains:
 
 ```json
 {
-	"cookies": [
-		{
-			"name": "session_id",
-			"value": "abc123",
-			"domain": "example.com",
-			"path": "/",
-			"expires": 1893456000,
-			"httpOnly": true,
-			"secure": true,
-			"sameSite": "Lax"
-		}
-	],
-	"origins": [
-		{
-			"origin": "https://example.com",
-			"localStorage": [
-				{ "name": "theme", "value": "dark" },
-				{ "name": "user_id", "value": "12345" }
-			]
-		}
-	]
+  "cookies": [
+    {
+      "name": "session_id",
+      "value": "abc123",
+      "domain": "example.com",
+      "path": "/",
+      "expires": 1893456000,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://example.com",
+      "localStorage": [
+        { "name": "theme", "value": "dark" },
+        { "name": "user_id", "value": "12345" }
+      ]
+    }
+  ]
 }
 ```
 
@@ -99,6 +99,9 @@ playwright-cli cookie-set remember_me token123 --expires=1893456000
 
 ```bash
 playwright-cli cookie-delete session_id
+
+# Only on one domain, other domains keep their session_id
+playwright-cli cookie-delete session_id --domain=example.com
 ```
 
 ### Clear All Cookies

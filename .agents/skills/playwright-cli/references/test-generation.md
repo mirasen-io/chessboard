@@ -45,14 +45,14 @@ Collect the generated code into a Playwright test:
 import { test, expect } from '@playwright/test';
 
 test('login flow', async ({ page }) => {
-	// Generated code from playwright-cli session:
-	await page.goto('https://example.com/login');
-	await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
-	await page.getByRole('textbox', { name: 'Password' }).fill('password123');
-	await page.getByRole('button', { name: 'Sign In' }).click();
+  // Generated code from playwright-cli session:
+  await page.goto('https://example.com/login');
+  await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+  await page.getByRole('button', { name: 'Sign In' }).click();
 
-	// Add assertions
-	await expect(page).toHaveURL(/.*dashboard/);
+  // Add assertions
+  await expect(page).toHaveURL(/.*dashboard/);
 });
 ```
 
@@ -86,7 +86,7 @@ Generated code captures actions but not assertions. Add expectations in your tes
 - `toBeVisible()` — element is rendered and visible
 - `toHaveText(text)` — element text content matches
 - `toHaveValue(value) / toBeEmpty()` — input/select value matches
-- `toBeChecked() / toBeUnchecked()` — checkbox state matches
+- `toBeChecked() / not.toBeChecked()` — checkbox state matches
 - `toMatchAriaSnapshot(snapshot)` — page (or locator) matches a partial accessibility snapshot
 
 Use `playwright-cli generate-locator <target>` to produce the locator expression for the assertion, and the snapshot/eval commands to capture the expected value.
@@ -161,7 +161,7 @@ npm init playwright@latest
 
 ### 1.2 Prerequisite: seed test
 
-A **seed test** is a minimal test that lands the page in the state every scenario starts from: navigation to the app, any required login, feature flags, etc. Scenarios assume a fresh start _after_ the seed. `--debug=cli` pauses _inside_ this test, so the seed is where every planning and generation session begins.
+A **seed test** is a minimal test that lands the page in the state every scenario starts from: navigation to the app, any required login, feature flags, etc. Scenarios assume a fresh start *after* the seed. `--debug=cli` pauses *inside* this test, so the seed is where every planning and generation session begins.
 
 Minimum viable seed:
 
@@ -170,7 +170,7 @@ Minimum viable seed:
 import { test } from '@playwright/test';
 
 test('seed', async ({ page }) => {
-	await page.goto('https://example.com/');
+  await page.goto('https://example.com/');
 });
 ```
 
@@ -182,10 +182,10 @@ import { test as baseTest } from '@playwright/test';
 export { expect } from '@playwright/test';
 
 export const test = baseTest.extend({
-	page: async ({ page }, use) => {
-		await page.goto('https://example.com/');
-		await use(page);
-	}
+  page: async ({ page }, use) => {
+    await page.goto('https://example.com/');
+    await use(page);
+  },
 });
 ```
 
@@ -194,7 +194,7 @@ export const test = baseTest.extend({
 import { test } from './fixtures';
 
 test('seed', async ({ page }) => {
-	// Fixture already navigates. This empty body tells agents where to start.
+  // Fixture already navigates. This empty body tells agents where to start.
 });
 ```
 
@@ -253,17 +253,13 @@ Save under `specs/<feature>.plan.md`. Use this structure:
 **File:** `tests/<group>/<kebab-case-scenario-name>.spec.ts`
 
 **Steps:**
-
-1.   <Concrete user step>
-
+  1. <Concrete user step>
     - expect: <observable outcome>
-
     - expect: <another observable outcome>
-
-2. <Next step> - expect: <outcome>
+  2. <Next step>
+    - expect: <outcome>
 
 #### 1.2. <next-scenario>
-
 ...
 
 ### 2. <Next Group>
@@ -322,24 +318,24 @@ Collect the generated code and write the test file at the path given in the spec
 ```ts
 // spec: specs/basic-operations.plan.md
 // seed: tests/seed.spec.ts
-import { test, expect } from './fixtures'; // or '@playwright/test' if no fixtures file
+import { test, expect } from './fixtures';   // or '@playwright/test' if no fixtures file
 
 test.describe('Signing in and out', () => {
-	test('should sign in', async ({ page }) => {
-		// 1. Navigate to the application
-		// (handled by the seed fixture)
+  test('should sign in', async ({ page }) => {
+    // 1. Navigate to the application
+    // (handled by the seed fixture)
 
-		// 2. Type 'John Doe' into the username field
-		await page.getByRole('textbox', { name: 'username' }).fill('John Doe');
+    // 2. Type 'John Doe' into the username field
+    await page.getByRole('textbox', { name: 'username' }).fill('John Doe');
 
-		// 3. Type password
-		await page.getByRole('textbox', { name: 'password' }).fill('TestPassword');
+    // 3. Type password
+    await page.getByRole('textbox', { name: 'password' }).fill('TestPassword');
 
-		// 4. Press Enter to submit
-		await page.getByRole('textbox', { name: 'password' }).press('Enter');
+    // 4. Press Enter to submit
+    await page.getByRole('textbox', { name: 'password' }).press('Enter');
 
-		await expect(page.getByRole('heading')).toContainText('Welcome, John Doe!');
-	});
+    await expect(page.getByRole('heading')).toContainText('Welcome, John Doe!');
+  });
 });
 ```
 
@@ -424,14 +420,14 @@ Only after the user answers, either update the spec (intentional change) or file
 ### 3.5 Iteration and giving up
 
 - Fix failures one at a time; rerun after each.
-- If after thorough investigation you are confident the test is correct but the app is wrong _and_ the user has confirmed it's a bug: mark the test `test.fixme(...)` with a comment pointing at the user's decision or issue link. Never silently skip.
+- If after thorough investigation you are confident the test is correct but the app is wrong *and* the user has confirmed it's a bug: mark the test `test.fixme(...)` with a comment pointing at the user's decision or issue link. Never silently skip.
 
 ---
 
 ## Cross-references
 
-| For...                                         | See                                            |
-| ---------------------------------------------- | ---------------------------------------------- |
-| `--debug=cli` / attach mechanics               | [playwright-tests.md](playwright-tests.md)     |
-| Mocking requests during exploration/generation | [request-mocking.md](request-mocking.md)       |
-| Managing the CLI browser session               | [session-management.md](session-management.md) |
+| For... | See |
+|---|---|
+| `--debug=cli` / attach mechanics | [playwright-tests.md](playwright-tests.md) |
+| Mocking requests during exploration/generation | [request-mocking.md](request-mocking.md) |
+| Managing the CLI browser session | [session-management.md](session-management.md) |

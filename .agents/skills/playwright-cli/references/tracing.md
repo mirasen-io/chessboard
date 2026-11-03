@@ -5,11 +5,14 @@ Capture detailed execution traces for debugging and analysis. Traces include DOM
 ## Basic Usage
 
 ```bash
+# Open the browser (tracing needs an open browser)
+playwright-cli open
+
 # Start trace recording
 playwright-cli tracing-start
 
 # Perform actions
-playwright-cli open https://example.com
+playwright-cli goto https://example.com
 playwright-cli click e1
 playwright-cli fill e2 "test"
 
@@ -24,7 +27,6 @@ When you start tracing, Playwright creates a `.playwright-cli/traces/` directory
 ### `trace-{timestamp}.trace`
 
 **Action log** - The main trace file containing:
-
 - Every action performed (clicks, fills, navigations)
 - DOM snapshots before and after each action
 - Screenshots at each step
@@ -35,7 +37,6 @@ When you start tracing, Playwright creates a `.playwright-cli/traces/` directory
 ### `trace-{timestamp}.network`
 
 **Network log** - Complete network activity:
-
 - All HTTP requests and responses
 - Request headers and bodies
 - Response headers and bodies
@@ -46,29 +47,29 @@ When you start tracing, Playwright creates a `.playwright-cli/traces/` directory
 ### `resources/`
 
 **Resources directory** - Cached resources:
-
 - Images, fonts, stylesheets, scripts
 - Response bodies for replay
 - Assets needed to reconstruct page state
 
 ## What Traces Capture
 
-| Category        | Details                                            |
-| --------------- | -------------------------------------------------- |
-| **Actions**     | Clicks, fills, hovers, keyboard input, navigations |
-| **DOM**         | Full DOM snapshot before/after each action         |
-| **Screenshots** | Visual state at each step                          |
-| **Network**     | All requests, responses, headers, bodies, timing   |
-| **Console**     | All console.log, warn, error messages              |
-| **Timing**      | Precise timing for each operation                  |
+| Category | Details |
+|----------|---------|
+| **Actions** | Clicks, fills, hovers, keyboard input, navigations |
+| **DOM** | Full DOM snapshot before/after each action |
+| **Screenshots** | Visual state at each step |
+| **Network** | All requests, responses, headers, bodies, timing |
+| **Console** | All console.log, warn, error messages |
+| **Timing** | Precise timing for each operation |
 
 ## Use Cases
 
 ### Debugging Failed Actions
 
 ```bash
+playwright-cli open
 playwright-cli tracing-start
-playwright-cli open https://app.example.com
+playwright-cli goto https://app.example.com
 
 # This click fails - why?
 playwright-cli click e5
@@ -80,8 +81,9 @@ playwright-cli tracing-stop
 ### Analyzing Performance
 
 ```bash
+playwright-cli open
 playwright-cli tracing-start
-playwright-cli open https://slow-site.com
+playwright-cli goto https://slow-site.com
 playwright-cli tracing-stop
 
 # View network waterfall to identify slow resources
@@ -91,9 +93,10 @@ playwright-cli tracing-stop
 
 ```bash
 # Record a complete user flow for documentation
+playwright-cli open
 playwright-cli tracing-start
 
-playwright-cli open https://app.example.com/checkout
+playwright-cli goto https://app.example.com/checkout
 playwright-cli fill e1 "4111111111111111"
 playwright-cli fill e2 "12/25"
 playwright-cli fill e3 "123"
@@ -105,14 +108,14 @@ playwright-cli tracing-stop
 
 ## Trace vs Video vs Screenshot
 
-| Feature                 | Trace       | Video       | Screenshot       |
-| ----------------------- | ----------- | ----------- | ---------------- |
-| **Format**              | .trace file | .webm video | .png/.jpeg image |
-| **DOM inspection**      | Yes         | No          | No               |
-| **Network details**     | Yes         | No          | No               |
-| **Step-by-step replay** | Yes         | Continuous  | Single frame     |
-| **File size**           | Medium      | Large       | Small            |
-| **Best for**            | Debugging   | Demos       | Quick capture    |
+| Feature | Trace | Video | Screenshot |
+|---------|-------|-------|------------|
+| **Format** | .trace file | .webm video | .png/.jpeg image |
+| **DOM inspection** | Yes | No | No |
+| **Network details** | Yes | No | No |
+| **Step-by-step replay** | Yes | Continuous | Single frame |
+| **File size** | Medium | Large | Small |
+| **Best for** | Debugging | Demos | Quick capture |
 
 ## Best Practices
 
@@ -120,8 +123,9 @@ playwright-cli tracing-stop
 
 ```bash
 # Trace the entire flow, not just the failing step
+playwright-cli open
 playwright-cli tracing-start
-playwright-cli open https://example.com
+playwright-cli goto https://example.com
 # ... all steps leading to the issue ...
 playwright-cli tracing-stop
 ```
