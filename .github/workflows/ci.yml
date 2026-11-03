@@ -303,6 +303,39 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  browser-tests:
+    needs: config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: kt-workflows/actions/npm-run-script@main
+        with:
+          matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
+          install-script: |
+            npm ci
+            npm ci --prefix examples/sveltekit
+            npm ci --prefix examples/react
+          run-script: |
+            npm run build
+            examples/sveltekit/node_modules/.bin/playwright install chromium --with-deps
+            npm --prefix examples/react run test:e2e
+            npm --prefix examples/sveltekit run test:e2e
+
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-diagnostics-${{ github.run_id }}
+          path: |
+            examples/react/test-results/
+            examples/react/playwright-report/
+            examples/sveltekit/test-results/
+            examples/sveltekit/playwright-report/
+          if-no-files-found: warn
+          retention-days: 7
+
   sonar:
     needs:
       - config
@@ -356,26 +389,63 @@ jobs:
   required-main:
     name: required-main (${{ github.event_name }})
     needs:
+      - check-execution
+      - config
       - check
       - test
       - snyk
       - sonar
+      - browser-tests
+    if: always() && needs.check-execution.result == 'success' && needs.check-execution.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Verify required jobs for main
+        env:
+          CONFIG_RESULT: ${{ needs.config.result }}
+          CHECK_RESULT: ${{ needs.check.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+          SNYK_RESULT: ${{ needs.snyk.result }}
+          SONAR_RESULT: ${{ needs.sonar.result }}
+          SONAR_ENABLED: ${{ needs.config.outputs.sonar }}
+          BROWSER_RESULT: ${{ needs.browser-tests.result }}
         shell: bash
         run: |
-          echo "Required jobs for main are fulfilled"
+          set -euo pipefail
+          test "$CONFIG_RESULT" = success
+          test "$CHECK_RESULT" = success
+          test "$TEST_RESULT" = success
+          test "$SNYK_RESULT" = success
+          test "$BROWSER_RESULT" = success
+          if [[ "$SONAR_ENABLED" == "true" ]]; then
+            test "$SONAR_RESULT" = success
+          else
+            test "$SONAR_RESULT" = skipped
+          fi
 
   required-contribution:
     name: required-contribution (${{ github.event_name }})
     needs:
+      - check-execution
+      - config
       - check
       - test
       - snyk
+      - browser-tests
+    if: always() && needs.check-execution.result == 'success' && needs.check-execution.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Verify required jobs for contribution
+        env:
+          CONFIG_RESULT: ${{ needs.config.result }}
+          CHECK_RESULT: ${{ needs.check.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+          SNYK_RESULT: ${{ needs.snyk.result }}
+          BROWSER_RESULT: ${{ needs.browser-tests.result }}
         shell: bash
         run: |
-          echo "Required jobs for contribution are fulfilled"
+          set -euo pipefail
+          test "$CONFIG_RESULT" = success
+          test "$CHECK_RESULT" = success
+          test "$TEST_RESULT" = success
+          test "$SNYK_RESULT" = success
+          test "$BROWSER_RESULT" = success
