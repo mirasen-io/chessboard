@@ -309,34 +309,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: kt-workflows/actions/setup-node-minmax@main
+      - uses: kt-workflows/actions/npm-run-script@main
         with:
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
-          matrix-node-version-earliest: 'false'
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            examples/react/package-lock.json
-            examples/sveltekit/package-lock.json
-
-      - name: Install root dependencies and build library workspaces
-        run: |
-          npm ci
-          npm run build
-
-      - name: Install standalone example dependencies
-        run: |
-          npm ci --prefix examples/sveltekit
-          npm ci --prefix examples/react
-
-      - name: Install Chromium and operating system dependencies
-        run: examples/sveltekit/node_modules/.bin/playwright install chromium --with-deps
-
-      - name: Run React browser tests
-        run: npm --prefix examples/react run test:e2e
-
-      - name: Run SvelteKit browser tests
-        run: npm --prefix examples/sveltekit run test:e2e
+          cache-reset: ${{ needs.config.outputs.cache-reset }}
+          install-script: |
+            npm ci
+            npm ci --prefix examples/sveltekit
+            npm ci --prefix examples/react
+          run-script: |
+            npm run build
+            examples/sveltekit/node_modules/.bin/playwright install chromium --with-deps
+            npm --prefix examples/react run test:e2e
+            npm --prefix examples/sveltekit run test:e2e
 
       - name: Upload browser diagnostics
         if: failure()
