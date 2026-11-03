@@ -4,7 +4,7 @@
 - **Package Manager**: npm
 - **Framework**: SvelteKit 3, Svelte 5, adapter-auto
 - **Tooling**: prettier, eslint, vitest, playwright/CLI, tailwindcss (forms/typography)
-- **Purpose**: manual chessboard checks; no automated example test suite
+- **Purpose**: manual chessboard examples and automated Playwright interaction checks
 
 These instructions apply inside this example alongside the repository's root instructions.
 Run the commands below from `examples/sveltekit`; from the repository root, use
