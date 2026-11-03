@@ -309,9 +309,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v6
+      - uses: kt-workflows/actions/setup-node-minmax@main
         with:
-          node-version: 26
+          matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
+          matrix-node-version-earliest: 'false'
           cache: npm
           cache-dependency-path: |
             package-lock.json
