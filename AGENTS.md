@@ -219,8 +219,9 @@ workspace packages; SvelteKit application tooling belongs to `examples/sveltekit
 ### Browser verification
 
 - Apply `.agents/skills/playwright-cli/SKILL.md` for browser interaction guidance.
-  Use `examples/sveltekit/node_modules/.bin/playwright-cli` from the root, or the local
-  binary from inside the example. Check `--help`; never use a global installation.
+  For repository-level browser tasks, use the root `node_modules/.bin/playwright-cli`.
+  For SvelteKit example verification, use `examples/sveltekit/node_modules/.bin/playwright-cli`
+  from the root, or the example's local binary. Check `--help`; never use a global installation.
 - Start the example dev server in the background, use the URL Vite reports, and stop
   the server you started when finished. Do not build solely to inspect a page.
 - Restart after routing/configuration/dependency changes or stale output, and before
