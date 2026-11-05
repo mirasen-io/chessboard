@@ -33,6 +33,18 @@ This is intentional: premove candidates may include squares occupied by either c
 
 Ordinary-move interaction retains its current destination/reselection policy apart from the shared repeated-source deselect change.
 
+## Primary-button routing when premove is available
+
+With **no selected piece**, primary-button input is routed by preset. This applies whether the queue is empty or nonempty, except where queue cancellation explicitly requires a nonempty queue.
+
+| `pointerdown` target | Web / desktop mouse (left button) | Mobile / touch |
+| --- | --- | --- |
+| Own piece | Start **premove selection / lifted-piece interaction**. | Start **premove selection / lifted-piece interaction**. |
+| Empty square | Pass through to **normal runtime interaction** (typically no action without selection); **do not** start premove queue cancellation. | If the queue is nonempty, start **release-targeting for queue cancellation**; otherwise use normal runtime interaction. |
+| Opponent piece | Pass through to **normal runtime interaction**; **do not** start premove queue cancellation. | If the queue is nonempty, start **release-targeting for queue cancellation**; otherwise use normal runtime interaction. |
+
+With **an existing selection**, this table no longer applies: a primary press on a **different** square enters **premove move release-targeting**, regardless of occupancy or occupant color, as described above. A repeat press on the selected source follows the common select/deselect behavior.
+
 ## Queue cancellation: input presets
 
 A nonempty premove queue can enter a **release-targeting cancellation gesture**. This is distinct from release-targeting used to complete a move: it owns the input gesture until release and decides **whether to clear the queue** on `pointerup`, not on `pointerdown`.
