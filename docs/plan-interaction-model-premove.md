@@ -83,6 +83,17 @@ Extension ordering alone must not be assumed to guarantee exclusive gesture hand
 
 ## Follow-up architecture and documentation (not decided here)
 
+### Competing movability approaches (open hypotheses)
+
+These are **design thoughts, not decisions**:
+
+1. **Shared runtime `movability`:** use the existing runtime movability/destination path for both ordinary moves and premoves; the application switches the destination policy as appropriate. This would likely reuse current selection, active-destination handling and rendering, but mixes game-move and premove concerns and makes the consumer responsible for switching between them.
+2. **Premove-owned movability:** give the optional premove extension its **own required, strict-only destination configuration** (hypothesis: no `free` or `disabled` mode, and no separate setter; supply it at extension initialization). This separates the two destination policies, but requires a way to **reuse existing destination processing and hint rendering** rather than duplicating or rebuilding them.
+
+Current code already derives `activeDestinations` from runtime interaction `movability` (`state/interaction/movability.ts`), so an extension-owned policy cannot automatically reuse the same display path. Explore whether the destination/hint logic can be shared as a narrow reusable facility, rather than broadening or coupling unrelated runtime responsibilities.
+
+**No choice yet.** In particular, do not assume the extension's strict-only configuration, an additional setter, or a common rendering utility is approved until the trade-offs and relevant code are examined.
+
 - Evaluate whether the existing `movability` infrastructure can provide premove candidate destinations (potentially with a separate resolver/policy), or whether a distinct premove mechanism is required. **No decision yet.**
 - Inspect renderer destination-hint logic: a premove candidate on **any occupied square**, including a friendly piece, needs a circle rather than a dot; do not assume existing normal-move coloring/occupancy checks are suitable.
 - Resolve projected-piece hit-testing, extension/core input ownership and consumption, and changes to board/turn while a gesture is active. Avoid introducing a generic multi-event gesture framework without a demonstrated requirement.
