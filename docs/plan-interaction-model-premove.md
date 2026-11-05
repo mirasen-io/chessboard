@@ -33,26 +33,33 @@ This is intentional: premove candidates may include squares occupied by either c
 
 Ordinary-move interaction retains its current destination/reselection policy apart from the shared repeated-source deselect change.
 
-### Touch/primary-button cancellation when a queue exists
+## Queue cancellation: input presets
 
-With a nonempty queue and **no selected source**, an initial primary touch/press on an empty square or an opponent piece begins a queue-cancellation attempt. Clearing is deferred until release **inside** the board; release outside leaves the queue unchanged. The cancelling gesture must not also select, drag, or commit a move.
+A nonempty premove queue can enter a **release-targeting cancellation gesture**. This is distinct from release-targeting used to complete a move: it owns the input gesture until release and decides **whether to clear the queue** on `pointerup`, not on `pointerdown`.
 
-With a selected source, the release-targeting rules in the table apply instead: an allowed target appends a premove, an invalid in-board target cancels the queue and deselects, and an outside release leaves the queue and selection intact. Invalid **lifted drags** do not cancel the queue.
+| Input preset | When cancellation targeting begins on `pointerdown` | `pointerup` inside board | `pointerup` outside board |
+| --- | --- | --- | --- |
+| **Web / desktop mouse** | **Secondary/right button** pressed on any board square while the queue is nonempty, **regardless of selection**. | Clear the **entire** queue. | Preserve the queue. |
+| **Mobile / touch** | **Primary touch** on an empty square or opponent-occupied square, **only if the queue is nonempty and no piece is selected**. | Clear the **entire** queue. | Preserve the queue. |
 
-## Desktop secondary-button cancellation and annotations
+The cancelling gesture is **consumed in both presets**: it must not select a piece, initiate a piece drag, commit a move, or create an annotation. It does not retrospectively turn into another gesture when cancellation is aborted outside the board.
 
-When the premove queue is nonempty, the **secondary mouse button belongs to premove**, not annotations, for the whole gesture.
+### Mobile preset: selection takes precedence over cancellation targeting
 
-| Secondary-button gesture | Intended result |
-| --- | --- |
-| Press on board while queue is nonempty | Claim the gesture; do **not** clear queue yet and do not start annotation drawing. |
-| Release on board | Clear **the entire** queue; consume the gesture, without drawing a circle or arrow. |
-| Release outside board | Leave the queue unchanged; no annotation is created by that gesture. |
-| Press when queue is empty | Existing annotation behavior applies. |
+- With a nonempty queue and **no selection**, pressing a friendly piece (including at a projected piece position) starts the normal selection/lifted-drag interaction **instead of** cancellation targeting.
+- With a nonempty queue and **no selection**, pressing an empty square or an opponent piece starts **release-targeting for queue cancellation**. Nothing is cleared until release.
+- With **an already-selected piece**, the next primary press on a different square starts **move release-targeting**, including on friendly-occupied squares. Its release either appends a premove, clears the queue on a disallowed in-board target, or preserves queue and selection when released outside.
+- Invalid **lifted-piece drags** restore the piece without clearing the queue.
+
+### Web preset: secondary-button ownership versus annotations
+
+With a nonempty queue, **every secondary-button press on the board** starts **release-targeting for queue cancellation**, even if a piece is selected. This gesture is owned by premove rather than annotations; it does not draw a circle or arrow whether released inside or outside the board.
+
+When the queue is empty, secondary-button input follows the existing annotation behavior.
 
 This **release-based** cancellation deliberately differs from the observed Chess.com desktop behavior, where the queue visibly cleared on the initial right-button press.
 
-Extension ordering alone must not be assumed to guarantee exclusive gesture handling: ensure the premove-owned event/gesture cannot also produce annotations.
+Extension ordering alone must not be assumed to guarantee exclusive gesture handling: ensure a premove-owned cancellation gesture cannot also produce annotations.
 
 ## Premove candidates and visuals
 
