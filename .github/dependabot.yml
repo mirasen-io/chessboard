@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: 'npm'
-    directories: ['/', '/packages/*', '/examples/sveltekit', '/examples/react']
+    directories: ['/', '/examples/sveltekit', '/examples/react']
     schedule:
       interval: 'weekly'
       time: '03:18'
