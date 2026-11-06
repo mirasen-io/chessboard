@@ -81,7 +81,7 @@
 	],
 	"devDependencies": {
 		"@types/node": "^26.6.6",
-		"@vitest/coverage-v8": "^5.0.5",
+		"@vitest/coverage-v8": "^5.1.0",
 		"chess.js": "^1.4.0",
 		"jsdom": "^30.1.3",
 		"publint": "^0.3.25",
@@ -94,7 +94,7 @@
 		"node": ">=22"
 	},
 	"dependencies": {
-		"@ktarmyshov/assert": "^0.1.15",
+		"@ktarmyshov/assert": "^0.1.16",
 		"es-toolkit": "^1.53.1",
 		"type-fest": "^5.10.0"
 	},
