@@ -1,5 +1,14 @@
 # @mirasen/chessboard
 
+## 1.5.5
+
+### Patch Changes
+
+- e4311f3: dependabot: dependency updates for PR #164
+- e95a99b: dependabot: dependency updates for PR #166
+- be61519: dependabot: dependency updates for PR #168
+- b6866d8: dependabot: dependency updates for PR #169
+
 ## 1.5.4
 
 ### Patch Changes
