@@ -96,7 +96,7 @@
 	"dependencies": {
 		"@ktarmyshov/assert": "^0.1.16",
 		"es-toolkit": "^1.53.2",
-		"type-fest": "^5.10.0"
+		"type-fest": "^6.0.0"
 	},
 	"peerDependencies": {
 		"chess.js": "^1.4.0"
