@@ -83,10 +83,10 @@
 		"@types/node": "^26.6.6",
 		"@vitest/coverage-v8": "^5.1.0",
 		"chess.js": "^1.4.0",
-		"jsdom": "^31.0.0",
+		"jsdom": "^31.0.1",
 		"publint": "^0.3.25",
 		"rimraf": "^6.1.4",
-		"serve": "^14.2.7",
+		"serve": "^14.2.8",
 		"typescript": "^6.0.3",
 		"vitest": "^5.1.0"
 	},
