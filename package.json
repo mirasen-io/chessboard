@@ -29,7 +29,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"globals": "^17.14.0",
 		"prettier": "^3.10.1",
-		"snyk": "^1.1308.4",
-		"typescript-eslint": "^8.73.0"
+		"snyk": "^1.1309.0",
+		"typescript-eslint": "^8.74.0"
 	}
 }
